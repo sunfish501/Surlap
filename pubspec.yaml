@@ -1,0 +1,52 @@
+name: spacehour
+description: "spaceHour — 나만의 일정·시간표·위젯을 한 곳에"
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.11.4
+
+dependencies:
+  flutter:
+    sdk: flutter
+  cupertino_icons: ^1.0.8
+
+  # 상태관리
+  flutter_riverpod: ^2.6.1
+  riverpod_annotation: ^2.6.1
+
+  # 저장소
+  shared_preferences: ^2.3.2
+
+  # Supabase
+  supabase_flutter: ^2.8.4
+
+  # 유틸
+  intl: ^0.20.2
+  uuid: ^4.5.1
+
+  # 파일 백업/복원
+  file_picker: ^8.3.7
+  path_provider: ^2.1.5
+
+  # 공유
+  share_plus: ^10.1.4
+  url_launcher: ^6.3.1
+
+  # NEIS HTTP
+  http: ^1.4.0
+
+  # SVG 아이콘
+  flutter_svg: ^2.0.17
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+  riverpod_generator: ^2.6.5
+  build_runner: ^2.4.15
+
+flutter:
+  uses-material-design: true
+  # assets/fonts/ 에 파일이 없으면 빌드 오류 — 폰트는 web/index.html CDN 사용
+

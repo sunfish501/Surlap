@@ -1,0 +1,382 @@
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:uuid/uuid.dart';
+import '../core/theme/app_theme.dart';
+import '../models/calendar_theme.dart';
+import '../providers/themes_provider.dart';
+import '../supabase/theme_share_service.dart';
+
+Future<void> showThemeManagerModal(BuildContext context) {
+  return showModalBottomSheet(
+    context: context,
+    isScrollControlled: true,
+    useSafeArea: true,
+    builder: (_) => const ThemeManagerModal(),
+  );
+}
+
+class ThemeManagerModal extends ConsumerWidget {
+  const ThemeManagerModal({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final sh = context.sh;
+    final themes = ref.watch(themesProvider);
+
+    // 분류: local, owned(공유 중), sub(구독 중)
+    final local  = themes.where((t) => t.shareCode == null).toList();
+    final owned  = themes.where((t) => t.shareCode != null && t.shareRole == 'owner').toList();
+    final subbed = themes.where((t) => t.shareCode != null && t.shareRole == 'subscriber').toList();
+
+    return FractionallySizedBox(
+      heightFactor: 0.88,
+      child: Container(
+        color: sh.card,
+        child: Column(
+          children: [
+            // 헤더
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 18, 12, 10),
+              child: Row(
+                children: [
+                  Text('테마 관리',
+                      style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700, color: sh.ink)),
+                  const Spacer(),
+                  IconButton(
+                    icon: Icon(Icons.close, color: sh.inkSoft, size: 20),
+                    onPressed: () => Navigator.pop(context),
+                  ),
+                ],
+              ),
+            ),
+            Divider(color: sh.border, height: 1),
+            Expanded(
+              child: ListView(
+                padding: const EdgeInsets.fromLTRB(16, 8, 16, 20),
+                children: [
+                  if (local.isNotEmpty) ...[
+                    _GroupLabel('내 카테고리', sh),
+                    ...local.map((t) => _ThemeRow(theme: t, editable: true, ref: ref, sh: sh)),
+                  ],
+                  if (owned.isNotEmpty) ...[
+                    _GroupLabel('🔗 공유 중 · 내가 공유', sh),
+                    ...owned.map((t) => _ThemeRow(theme: t, editable: true, ref: ref, sh: sh,
+                        shareCode: t.shareCode)),
+                  ],
+                  if (subbed.isNotEmpty) ...[
+                    _GroupLabel('📥 구독 중', sh),
+                    ...subbed.map((t) => _ThemeRow(theme: t, editable: false, ref: ref, sh: sh,
+                        shareCode: t.shareCode)),
+                  ],
+                  const SizedBox(height: 16),
+                ],
+              ),
+            ),
+            // 하단 버튼
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 20),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      onPressed: () => _addTheme(context, ref),
+                      icon: const Icon(Icons.add, size: 16),
+                      label: const Text('테마 추가'),
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: sh.accent,
+                        side: BorderSide(color: sh.accent),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      onPressed: () => _importTheme(context, ref, sh),
+                      icon: const Icon(Icons.download_outlined, size: 16),
+                      label: const Text('초대 링크로 가져오기'),
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: sh.inkSoft,
+                        side: BorderSide(color: sh.border),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _addTheme(BuildContext context, WidgetRef ref) {
+    final theme = CalendarTheme(
+      id: 'th_${const Uuid().v4().replaceAll('-', '').substring(0, 8)}',
+      name: '새 카테고리',
+      color: '#5b9bd5',
+    );
+    ref.read(themesProvider.notifier).add(theme);
+  }
+
+  void _importTheme(BuildContext context, WidgetRef ref, SpaceHourColors sh) {
+    final ctrl = TextEditingController();
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: sh.card,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Text('초대 코드 입력', style: TextStyle(color: sh.ink, fontSize: 16, fontWeight: FontWeight.w700)),
+        content: TextField(
+          controller: ctrl,
+          autofocus: true,
+          decoration: InputDecoration(
+            hintText: 'XXXXXXXX',
+            hintStyle: TextStyle(color: sh.inkFaint),
+          ),
+          textCapitalization: TextCapitalization.characters,
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('취소')),
+          FilledButton(
+            onPressed: () async {
+              final code = ctrl.text.trim();
+              Navigator.pop(ctx);
+              if (code.isEmpty) return;
+              try {
+                final theme = await ThemeShareService.fetchByCode(code);
+                if (theme == null) {
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('해당 코드의 테마를 찾을 수 없습니다')),
+                    );
+                  }
+                  return;
+                }
+                // Subscribe: add with role='subscriber'
+                final subTheme = theme.copyWith(shareRole: 'subscriber');
+                ref.read(themesProvider.notifier).add(subTheme);
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('테마 "${theme.name}" 가져오기 완료')),
+                  );
+                }
+              } catch (e) {
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('오류: $e')),
+                  );
+                }
+              }
+            },
+            child: const Text('가져오기'),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _GroupLabel extends StatelessWidget {
+  final String text;
+  final SpaceHourColors sh;
+  const _GroupLabel(this.text, this.sh);
+
+  @override
+  Widget build(BuildContext context) => Padding(
+    padding: const EdgeInsets.fromLTRB(0, 14, 0, 6),
+    child: Text(text,
+        style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700,
+            color: sh.inkSoft, letterSpacing: 0.4)),
+  );
+}
+
+class _ThemeRow extends ConsumerStatefulWidget {
+  final CalendarTheme theme;
+  final bool editable;
+  final WidgetRef ref;
+  final SpaceHourColors sh;
+  final String? shareCode;
+
+  const _ThemeRow({
+    required this.theme, required this.editable,
+    required this.ref, required this.sh, this.shareCode,
+  });
+
+  @override
+  ConsumerState<_ThemeRow> createState() => _ThemeRowState();
+}
+
+class _ThemeRowState extends ConsumerState<_ThemeRow> {
+  late TextEditingController _nameCtrl;
+  late Color _color;
+
+  @override
+  void initState() {
+    super.initState();
+    _nameCtrl = TextEditingController(text: widget.theme.name);
+    _color = widget.theme.colorValue;
+  }
+
+  @override
+  void dispose() {
+    _nameCtrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final sh = widget.sh;
+    return Container(
+      margin: const EdgeInsets.only(bottom: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      decoration: BoxDecoration(
+        color: sh.card2,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: sh.border),
+      ),
+      child: Row(
+        children: [
+          // 색상 도트 (탭하면 색상 변경)
+          GestureDetector(
+            onTap: widget.editable ? _pickColor : null,
+            child: Container(
+              width: 22, height: 22,
+              decoration: BoxDecoration(
+                color: _color,
+                shape: BoxShape.circle,
+                border: Border.all(color: sh.border, width: 1.5),
+              ),
+            ),
+          ),
+          const SizedBox(width: 10),
+          // 이름 편집
+          Expanded(
+            child: TextField(
+              controller: _nameCtrl,
+              readOnly: !widget.editable,
+              style: TextStyle(fontSize: 14, color: sh.ink),
+              decoration: InputDecoration(
+                hintText: '카테고리 이름',
+                hintStyle: TextStyle(color: sh.inkFaint),
+                border: InputBorder.none,
+                isDense: true,
+                contentPadding: EdgeInsets.zero,
+              ),
+              onSubmitted: (v) => _saveName(v),
+              onEditingComplete: () => _saveName(_nameCtrl.text),
+            ),
+          ),
+          // 공유 코드 배지 (탭하면 복사)
+          if (widget.shareCode != null)
+            GestureDetector(
+              onTap: () => _copyCode(context),
+              child: Container(
+                margin: const EdgeInsets.only(left: 6),
+                padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+                decoration: BoxDecoration(
+                  color: sh.accentBg,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Text(widget.shareCode!,
+                    style: TextStyle(fontSize: 10, color: sh.accentInk,
+                        fontWeight: FontWeight.w600)),
+              ),
+            ),
+          // 공유 버튼 (로컬·오너 테마만 — subscriber는 제외)
+          if (widget.editable && widget.shareCode == null)
+            IconButton(
+              icon: Icon(Icons.link_rounded, size: 18, color: sh.inkSoft),
+              tooltip: '공유하기',
+              onPressed: () => _shareTheme(context),
+              padding: const EdgeInsets.only(left: 2),
+              constraints: const BoxConstraints(),
+            ),
+          // 삭제 버튼
+          if (widget.editable)
+            IconButton(
+              icon: Icon(Icons.delete_outline_rounded, size: 18, color: sh.danger),
+              onPressed: _delete,
+              padding: const EdgeInsets.only(left: 4),
+              constraints: const BoxConstraints(),
+            ),
+        ],
+      ),
+    );
+  }
+
+  void _saveName(String name) {
+    if (name.trim().isEmpty) { return; }
+    ref.read(themesProvider.notifier).update(
+        widget.theme.copyWith(name: name.trim()));
+  }
+
+  void _pickColor() async {
+    // 간단한 색상 선택: 미리 정의된 색상 팔레트
+    final presets = [
+      '#d33333','#e67e22','#f1c40f','#2ecc71','#1abc9c',
+      '#3498db','#5b9bd5','#9b59b6','#e91e63','#607d8b',
+      '#795548','#ff5722','#4caf50','#00bcd4','#673ab7',
+    ];
+    final picked = await showDialog<String>(
+      context: context,
+      builder: (ctx) {
+        final sh = context.sh;
+        return AlertDialog(
+          backgroundColor: sh.card,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          title: Text('색상 선택', style: TextStyle(color: sh.ink, fontSize: 15, fontWeight: FontWeight.w700)),
+          content: Wrap(
+            spacing: 10, runSpacing: 10,
+            children: presets.map((hex) {
+              final c = Color(int.parse('FF${hex.replaceAll('#', '')}', radix: 16));
+              return GestureDetector(
+                onTap: () => Navigator.pop(ctx, hex),
+                child: Container(
+                  width: 36, height: 36,
+                  decoration: BoxDecoration(color: c, shape: BoxShape.circle),
+                ),
+              );
+            }).toList(),
+          ),
+        );
+      },
+    );
+    if (picked == null) { return; }
+    setState(() => _color = Color(int.parse('FF${picked.replaceAll('#', '')}', radix: 16)));
+    ref.read(themesProvider.notifier).update(widget.theme.copyWith(color: picked));
+  }
+
+  void _delete() {
+    ref.read(themesProvider.notifier).delete(widget.theme.id);
+  }
+
+  void _copyCode(BuildContext context) {
+    Clipboard.setData(ClipboardData(text: widget.shareCode!));
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('코드 복사됨: ${widget.shareCode}')),
+    );
+  }
+
+  Future<void> _shareTheme(BuildContext context) async {
+    try {
+      final code = await ThemeShareService.shareTheme(widget.theme);
+      ref.read(themesProvider.notifier).update(
+          widget.theme.copyWith(shareCode: code, shareRole: 'owner'));
+      if (context.mounted) {
+        Clipboard.setData(ClipboardData(text: code));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('공유 코드: $code (클립보드에 복사됨)')),
+        );
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('공유 실패: $e')),
+        );
+      }
+    }
+  }
+}
