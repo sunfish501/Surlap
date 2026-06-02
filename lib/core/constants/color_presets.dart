@@ -93,6 +93,17 @@ const kColorPresets = [
     inkSoft: Color(0xFFA89E8E), inkFaint: Color(0xFF6E6557),
     dark: true,
   ),
+  // Dark Elegant — 차콜 + 인디고/바이올렛 포인트
+  ColorPreset(
+    id: 'dark_elegant', name: '다크 엘레강스',
+    dot: Color(0xFF9B8FE0),
+    accent: Color(0xFF9B8FE0), accentInk: Color(0xFFCEC4FF),
+    accentBg: Color(0xFF201E3C),
+    app: Color(0xFF0E0E14), card: Color(0xFF1A1A24),
+    card2: Color(0xFF22223A), hairline: Color(0xFF2E2E42),
+    ink: Color(0xFFEDEDF2), inkSoft: Color(0xFF9898AC), inkFaint: Color(0xFF5A5A72),
+    dark: true,
+  ),
 ];
 
 ColorPreset presetById(String id) =>

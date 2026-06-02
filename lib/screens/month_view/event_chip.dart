@@ -27,9 +27,15 @@ class EventChip extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1.5),
         decoration: BoxDecoration(
           color: themeColor != null
-              ? themeColor.withValues(alpha: 0.15)
+              ? themeColor.withValues(alpha: sh.dark ? 0.22 : 0.15)
               : sh.card2,
           borderRadius: BorderRadius.circular(4),
+          boxShadow: (sh.dark && themeColor != null)
+              ? [BoxShadow(
+                  color: themeColor.withValues(alpha: 0.18),
+                  blurRadius: 4, spreadRadius: 0,
+                )]
+              : null,
         ),
         child: Row(
           children: [

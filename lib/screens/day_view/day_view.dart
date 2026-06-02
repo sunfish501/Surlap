@@ -217,9 +217,16 @@ class _DayViewState extends ConsumerState<DayView> {
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: Gap.sm, vertical: Gap.xs),
             decoration: BoxDecoration(
-              color: thColor.withValues(alpha: 0.16),
+              color: thColor.withValues(alpha: sh.dark ? 0.20 : 0.16),
               borderRadius: BorderRadius.circular(6),
               border: Border(left: BorderSide(color: thColor, width: 3)),
+              boxShadow: sh.dark
+                  ? [BoxShadow(
+                      color: thColor.withValues(alpha: 0.22),
+                      blurRadius: 10, spreadRadius: 0,
+                      offset: const Offset(0, 1),
+                    )]
+                  : null,
             ),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -309,14 +316,32 @@ class _NowLine extends StatelessWidget {
       child: Row(
         children: [
           Container(
-            width: 6,
-            height: 6,
-            decoration:
-                BoxDecoration(color: sh.danger, shape: BoxShape.circle),
+            width: 7,
+            height: 7,
+            decoration: BoxDecoration(
+              color: sh.danger,
+              shape: BoxShape.circle,
+              boxShadow: sh.dark
+                  ? [BoxShadow(
+                      color: sh.danger.withValues(alpha: 0.5),
+                      blurRadius: 6, spreadRadius: 1,
+                    )]
+                  : null,
+            ),
           ),
           Expanded(
             child: Container(
-                height: 1.5, color: sh.danger.withValues(alpha: 0.7)),
+              height: 1.5,
+              decoration: BoxDecoration(
+                color: sh.danger.withValues(alpha: 0.7),
+                boxShadow: sh.dark
+                    ? [BoxShadow(
+                        color: sh.danger.withValues(alpha: 0.4),
+                        blurRadius: 4, spreadRadius: 1,
+                      )]
+                    : null,
+              ),
+            ),
           ),
         ],
       ),
