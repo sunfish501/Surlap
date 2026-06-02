@@ -1,37 +1,17 @@
-// userDataSync.js 대응 — user_data KV 테이블에 localStorage 키를 push/pull.
+// userDataSync.js 대응 — user_data KV 테이블에 계정 데이터 키를 push/pull.
 import '../core/constants/storage_keys.dart';
 import '../storage/local_store.dart';
 import 'supabase_client.dart';
 
-const _trackedKeys = [
-  StorageKeys.themes,
-  StorageKeys.colorPreset,
-  StorageKeys.neisSchool,
-  StorageKeys.memos,
-  StorageKeys.starred,
-  StorageKeys.circles,
-  StorageKeys.notifyEnabled,
-  StorageKeys.continuousView,
-  StorageKeys.themeFilter,
-  StorageKeys.cellDesign,
-  StorageKeys.motto,
-  StorageKeys.mottoIcon,
-  StorageKeys.dayTemplates,
-  StorageKeys.dayWidgetValues,
-  StorageKeys.timetableTemplate,
-  StorageKeys.timetableOverrides,
-  StorageKeys.birthdays,
-];
-
 class UserDataSync {
   static Future<void> pushKey(String key) async {
     final client = sb;
-    if (client == null) { return; }
+    if (client == null) return;
     final uid = client.auth.currentUser?.id;
-    if (uid == null) { return; }
-    if (!_trackedKeys.contains(key)) { return; }
+    if (uid == null) return;
+    if (!StorageKeys.userDataKeys.contains(key)) return;
 
-    final value = LocalStore.instance.getString(key);
+    final value = LocalStore.instance.getString(key); // 현재 스코프 값
     try {
       if (value == null) {
         await client.from('user_data')
@@ -46,31 +26,44 @@ class UserDataSync {
   }
 
   static Future<void> pushAll() async {
-    for (final key in _trackedKeys) {
+    for (final key in StorageKeys.userDataKeys) {
       await pushKey(key);
     }
   }
 
-  static Future<void> pullAll() async {
+  /// 클라우드 user_data → 현재 스코프 로컬 캐시. 성공하면 true.
+  /// pull 실패 시 로컬을 건드리지 않는다(증발 방지). 클라우드에 없는 키는
+  /// 그 스코프에서 비운다(클라우드가 원본).
+  static Future<bool> pullAll() async {
     final client = sb;
-    if (client == null) { return; }
+    if (client == null) return false;
     final uid = client.auth.currentUser?.id;
-    if (uid == null) { return; }
+    if (uid == null) return false;
 
     try {
       final data = await client
           .from('user_data')
           .select('key, value')
           .eq('user_id', uid)
-          .inFilter('key', _trackedKeys);
+          .inFilter('key', StorageKeys.userDataKeys.toList());
 
+      final cloud = <String, String>{};
       for (final row in data as List) {
-        final key = row['key'] as String;
+        final key = row['key'] as String?;
         final val = row['value'];
-        if (val != null) {
-          await LocalStore.instance.setString(key, val.toString());
+        if (key != null && val != null) cloud[key] = val.toString();
+      }
+      // 성공적으로 받은 뒤에만 로컬 교체(quiet — push 에코 방지)
+      for (final key in StorageKeys.userDataKeys) {
+        if (cloud.containsKey(key)) {
+          await LocalStore.instance.setStringQuiet(key, cloud[key]!);
+        } else {
+          await LocalStore.instance.remove(key);
         }
       }
-    } catch (_) {}
+      return true;
+    } catch (_) {
+      return false; // 로컬 유지
+    }
   }
 }

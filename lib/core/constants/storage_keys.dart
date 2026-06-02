@@ -23,4 +23,20 @@ abstract final class StorageKeys {
   static const userProfile   = 'calendar-user-profile-v2';
   static const backupConfig  = 'calendar-backup-config-v1';
   static const supabaseHashes = 'calendar_supabase_hashes_v1';
+
+  /// 계정 종속 데이터 키 — 계정별로 분리 저장(스코프 프리픽스)된다.
+  /// 기기 설정성 키(colorPreset, weekStart, continuousView, notifyEnabled,
+  /// show-past)는 제외 — 기기에 그대로 남는다.
+  static const Set<String> accountKeys = {
+    events, themes, memos, starred, circles, themeFilter, cellDesign,
+    motto, mottoIcon, dayTemplates, dayWidgetValues,
+    timetableTemplate, timetableOverrides, birthdays, neisSchool,
+  };
+
+  /// user_data KV 테이블로 동기화하는 키 (events 는 별도 events 테이블이라 제외).
+  static const Set<String> userDataKeys = {
+    themes, memos, starred, circles, themeFilter, cellDesign,
+    motto, mottoIcon, dayTemplates, dayWidgetValues,
+    timetableTemplate, timetableOverrides, birthdays, neisSchool,
+  };
 }

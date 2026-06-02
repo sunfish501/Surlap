@@ -1,9 +1,40 @@
 // events.js 대응 — Supabase events 테이블과 동기화.
+import '../core/constants/storage_keys.dart';
 import '../models/event_item.dart';
+import '../storage/local_store.dart';
 import 'supabase_client.dart';
 
 class EventsSync {
   static bool _pullAttempted = false;
+
+  /// 현재 계정의 events 전체를 클라우드에서 받아 현재 스코프 로컬 캐시에 교체.
+  /// 성공 시 true. 실패 시 로컬을 건드리지 않는다(증발 방지).
+  static Future<bool> pullToLocal() async {
+    final client = sb;
+    if (client == null) return false;
+    final user = client.auth.currentUser;
+    if (user == null) return false;
+    try {
+      final res = await client
+          .from('events')
+          .select('date,title,is_timetable,theme_id,position')
+          .eq('user_id', user.id)
+          .order('date')
+          .order('position');
+      final byDate = <String, List<EventItem>>{};
+      for (final row in res as List) {
+        final r = row as Map<String, dynamic>;
+        final date = r['date'] as String;
+        (byDate[date] ??= []).add(rowToItem(r));
+      }
+      await LocalStore.instance
+          .setStringQuiet(StorageKeys.events, eventsToJson(byDate));
+      _pullAttempted = true;
+      return true;
+    } catch (_) {
+      return false;
+    }
+  }
 
   static Map<String, dynamic> itemToRow(String date, EventItem item, int pos, String userId) => {
     'date': date,
@@ -87,6 +118,12 @@ class EventsSync {
       if (entry.key.startsWith('__')) { continue; }
       await pushDate(entry.key, entry.value);
     }
+  }
+
+  /// 현재 스코프 로컬 events 를 통째로 클라우드에 push(디바운스 훅에서 호출).
+  static Future<void> pushLocal() async {
+    final raw = LocalStore.instance.getString(StorageKeys.events);
+    await pushAll(raw != null ? eventsFromJson(raw) : {});
   }
 
   static void forceReady() => _pullAttempted = true;

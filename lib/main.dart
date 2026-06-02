@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'storage/local_store.dart';
 import 'supabase/supabase_client.dart';
+import 'supabase/account_scope.dart';
 import 'app.dart';
 
 void main() async {
@@ -13,11 +14,17 @@ void main() async {
     statusBarColor: Colors.transparent,
   ));
 
-  // 로컬 저장소 초기화
+  // 로컬 저장소 초기화 + 레거시 데이터 백업/마이그레이션(1회)
   await LocalStore.init();
+  await LocalStore.instance.migrateLegacyToGuestOnce();
 
   // Supabase 초기화 (dart-define 값이 있을 때만)
   await initSupabase();
+
+  // 복원된 세션에 맞춰 초기 계정 스코프 설정 + 변경 push 훅 설치
+  final restored = sb?.auth.currentUser;
+  LocalStore.instance.setScope(AccountScope.scopeFor(restored));
+  AccountScope.installPushHook();
 
   runApp(
     const ProviderScope(

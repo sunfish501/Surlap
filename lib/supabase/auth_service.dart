@@ -4,8 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'supabase_client.dart';
-import 'user_data_sync.dart';
-import 'events_sync.dart';
+import 'account_scope.dart';
 
 const _idDomain = 'cal-id.local';
 
@@ -26,7 +25,10 @@ class AuthNotifier extends Notifier<User?> {
   @override
   User? build() {
     sb?.auth.onAuthStateChange.listen((data) {
-      state = data.session?.user;
+      final user = data.session?.user;
+      state = user;
+      // 계정 스코프 전환 + pull + provider invalidate 단일 처리
+      AccountScope.applyAuth(ref, user);
     });
     return sb?.auth.currentUser;
   }
@@ -39,9 +41,7 @@ class AuthNotifier extends Notifier<User?> {
       final res = await client.auth.signInWithPassword(
           email: idToEmail(id), password: password);
       state = res.user;
-      // 로그인 성공 → 클라우드에서 데이터 pull
-      EventsSync.forceReady();
-      await UserDataSync.pullAll();
+      // 스코프 전환 + 데이터 pull + invalidate 는 onAuthStateChange→AccountScope 처리
     } catch (e, st) {
       debugPrint('[Auth] signInWithId 실패: ${e.runtimeType} → $e');
       debugPrint('$st');
@@ -58,8 +58,8 @@ class AuthNotifier extends Notifier<User?> {
           email: idToEmail(id), password: password,
           data: {'id': id});
       state = res.user;
-      EventsSync.forceReady();
-      await UserDataSync.pushAll();
+      // 신규 계정은 빈 데이터로 시작(게스트 데이터는 guest 스코프에 보존).
+      // 스코프 전환/invalidate 는 AccountScope 가 처리.
     } catch (e, st) {
       debugPrint('[Auth] signUpWithId 실패: ${e.runtimeType} → $e');
       debugPrint('$st');
