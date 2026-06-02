@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:uuid/uuid.dart';
 import '../core/theme/app_theme.dart';
+import '../core/theme/design_tokens.dart';
 import '../models/calendar_theme.dart';
 import '../providers/themes_provider.dart';
 import '../supabase/theme_share_service.dart';
@@ -38,14 +39,14 @@ class ThemeManagerModal extends ConsumerWidget {
           children: [
             // 헤더
             Padding(
-              padding: const EdgeInsets.fromLTRB(20, 18, 12, 10),
+              padding: const EdgeInsets.fromLTRB(Gap.lg, Gap.lg, Gap.sm, Gap.md),
               child: Row(
                 children: [
                   Text('테마 관리',
-                      style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700, color: sh.ink)),
+                      style: AppType.title.copyWith(color: sh.ink)),
                   const Spacer(),
                   IconButton(
-                    icon: Icon(Icons.close, color: sh.inkSoft, size: 20),
+                    icon: Icon(Icons.close, color: sh.inkSoft, size: 22),
                     onPressed: () => Navigator.pop(context),
                   ),
                 ],
@@ -54,7 +55,7 @@ class ThemeManagerModal extends ConsumerWidget {
             Divider(color: sh.border, height: 1),
             Expanded(
               child: ListView(
-                padding: const EdgeInsets.fromLTRB(16, 8, 16, 20),
+                padding: const EdgeInsets.fromLTRB(Gap.lg, Gap.sm, Gap.lg, Gap.xl),
                 children: [
                   if (local.isNotEmpty) ...[
                     _GroupLabel('내 카테고리', sh),
@@ -82,31 +83,35 @@ class ThemeManagerModal extends ConsumerWidget {
             ),
             // 하단 버튼
             Padding(
-              padding: const EdgeInsets.fromLTRB(16, 0, 16, 20),
+              padding: const EdgeInsets.fromLTRB(Gap.lg, 0, Gap.lg, Gap.lg),
               child: Row(
                 children: [
                   Expanded(
                     child: OutlinedButton.icon(
                       onPressed: () => _addTheme(context, ref),
-                      icon: const Icon(Icons.add, size: 16),
+                      icon: const Icon(Icons.add, size: 18),
                       label: const Text('테마 추가'),
                       style: OutlinedButton.styleFrom(
                         foregroundColor: sh.accent,
                         side: BorderSide(color: sh.accent),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                        minimumSize: const Size.fromHeight(kMinTouch),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(Radii.card)),
                       ),
                     ),
                   ),
-                  const SizedBox(width: 10),
+                  const SizedBox(width: Gap.md),
                   Expanded(
                     child: OutlinedButton.icon(
                       onPressed: () => _importTheme(context, ref, sh),
-                      icon: const Icon(Icons.download_outlined, size: 16),
+                      icon: const Icon(Icons.download_outlined, size: 18),
                       label: const Text('초대 링크로 가져오기'),
                       style: OutlinedButton.styleFrom(
                         foregroundColor: sh.inkSoft,
                         side: BorderSide(color: sh.border),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                        minimumSize: const Size.fromHeight(kMinTouch),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(Radii.card)),
                       ),
                     ),
                   ),
@@ -135,7 +140,7 @@ class ThemeManagerModal extends ConsumerWidget {
       builder: (ctx) => AlertDialog(
         backgroundColor: sh.card,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: Text('초대 코드 입력', style: TextStyle(color: sh.ink, fontSize: 16, fontWeight: FontWeight.w700)),
+        title: Text('초대 코드 입력', style: AppType.section.copyWith(color: sh.ink)),
         content: TextField(
           controller: ctrl,
           autofocus: true,
@@ -193,10 +198,8 @@ class _GroupLabel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Padding(
-    padding: const EdgeInsets.fromLTRB(0, 14, 0, 6),
-    child: Text(text,
-        style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700,
-            color: sh.inkSoft, letterSpacing: 0.4)),
+    padding: const EdgeInsets.fromLTRB(0, Gap.lg, 0, Gap.sm),
+    child: Text(text, style: AppType.label.copyWith(color: sh.inkSoft)),
   );
 }
 
@@ -251,11 +254,11 @@ class _ThemeRowState extends ConsumerState<_ThemeRow> {
   Widget build(BuildContext context) {
     final sh = widget.sh;
     return Container(
-      margin: const EdgeInsets.only(bottom: 8),
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      margin: const EdgeInsets.only(bottom: Gap.sm),
+      padding: const EdgeInsets.symmetric(horizontal: Gap.md, vertical: Gap.md),
       decoration: BoxDecoration(
         color: sh.card2,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(Radii.card),
         border: Border.all(color: sh.border),
       ),
       child: Row(
@@ -272,13 +275,13 @@ class _ThemeRowState extends ConsumerState<_ThemeRow> {
               ),
             ),
           ),
-          const SizedBox(width: 10),
+          const SizedBox(width: Gap.md),
           // 이름 편집
           Expanded(
             child: TextField(
               controller: _nameCtrl,
               readOnly: !widget.editable,
-              style: TextStyle(fontSize: 14, color: sh.ink),
+              style: AppType.body.copyWith(color: sh.ink),
               decoration: InputDecoration(
                 hintText: '카테고리 이름',
                 hintStyle: TextStyle(color: sh.inkFaint),
@@ -302,8 +305,7 @@ class _ThemeRowState extends ConsumerState<_ThemeRow> {
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(widget.shareCode!,
-                    style: TextStyle(fontSize: 10, color: sh.accentInk,
-                        fontWeight: FontWeight.w600)),
+                    style: AppType.label.copyWith(color: sh.accentInk)),
               ),
             ),
           // 구독 테마: 최신 내용 받기(owner 수정 반영) + 내 테마로 복제
@@ -415,7 +417,7 @@ class _ThemeRowState extends ConsumerState<_ThemeRow> {
         return AlertDialog(
           backgroundColor: sh.card,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-          title: Text('색상 선택', style: TextStyle(color: sh.ink, fontSize: 15, fontWeight: FontWeight.w700)),
+          title: Text('색상 선택', style: AppType.section.copyWith(color: sh.ink)),
           content: Wrap(
             spacing: 10, runSpacing: 10,
             children: presets.map((hex) {
