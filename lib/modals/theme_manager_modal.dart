@@ -306,8 +306,15 @@ class _ThemeRowState extends ConsumerState<_ThemeRow> {
                         fontWeight: FontWeight.w600)),
               ),
             ),
-          // 구독 테마: 읽기 전용 → 수정하려면 내 테마로 복제
-          if (widget.theme.shareRole == 'subscriber')
+          // 구독 테마: 최신 내용 받기(owner 수정 반영) + 내 테마로 복제
+          if (widget.theme.shareRole == 'subscriber') ...[
+            IconButton(
+              icon: Icon(Icons.refresh_rounded, size: 18, color: sh.inkSoft),
+              tooltip: '최신 내용 받기',
+              onPressed: _refreshSubscribed,
+              padding: const EdgeInsets.only(left: 2),
+              constraints: const BoxConstraints(),
+            ),
             IconButton(
               icon: Icon(Icons.copy_rounded, size: 17, color: sh.inkSoft),
               tooltip: '내 테마로 복제',
@@ -315,6 +322,7 @@ class _ThemeRowState extends ConsumerState<_ThemeRow> {
               padding: const EdgeInsets.only(left: 2),
               constraints: const BoxConstraints(),
             ),
+          ],
           // 공유 버튼 (로컬·오너 테마만 — subscriber는 제외)
           if (widget.editable && widget.shareCode == null)
             IconButton(
@@ -350,6 +358,31 @@ class _ThemeRowState extends ConsumerState<_ThemeRow> {
       ThemeShareService.updateShare(t.shareCode!, t).catchError((Object e) {
         debugPrint('[ThemeShare] 소유 테마 수정 동기화 실패: $e');
       });
+    }
+  }
+
+  // 구독 테마의 최신 내용을 클라우드에서 다시 받아 반영(owner 수정 반영).
+  Future<void> _refreshSubscribed() async {
+    final code = widget.theme.shareCode;
+    if (code == null) return;
+    final messenger = ScaffoldMessenger.of(context);
+    try {
+      final latest = await ThemeShareService.fetchByCode(code);
+      if (latest == null) {
+        messenger.showSnackBar(
+            const SnackBar(content: Text('원본 테마를 찾을 수 없습니다(삭제됨?)')));
+        return;
+      }
+      // id/역할/코드는 유지, 내용(이름·색·이미지)만 최신으로.
+      ref.read(themesProvider.notifier).update(widget.theme.copyWith(
+            name: latest.name,
+            color: latest.color,
+            image: latest.image,
+          ));
+      messenger.showSnackBar(
+          SnackBar(content: Text('"${latest.name}" 최신 내용 반영됨')));
+    } catch (e) {
+      messenger.showSnackBar(SnackBar(content: Text('새로고침 실패: $e')));
     }
   }
 
