@@ -254,13 +254,17 @@ class _ZoomOverlayState extends State<_ZoomOverlay>
   void initState() {
     super.initState();
     _c = AnimationController(
-        vsync: this, duration: const Duration(milliseconds: 300));
+        vsync: this, duration: const Duration(milliseconds: 360));
     _c.addStatusListener((s) {
       if (s == AnimationStatus.completed) widget.onDone();
     });
+    // 뷰 전환을 먼저 트리거해 월간 뷰를 오버레이 뒤에서 미리 빌드.
+    // 2프레임 후에 애니메이션 시작 → 빌드 비용이 애니메이션 프레임을 잡아먹지 않는다.
+    widget.onSwitch();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      widget.onSwitch(); // 월간 뷰를 아래에서 미리 빌드
-      _c.forward();
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _c.forward();
+      });
     });
   }
 
@@ -278,13 +282,16 @@ class _ZoomOverlayState extends State<_ZoomOverlay>
       builder: (context, _) {
         final t = Curves.easeInOutCubic.transform(_c.value);
         final rect = Rect.lerp(widget.source, widget.target, t)!;
-        final fade = t < 0.7 ? 1.0 : (1 - (t - 0.7) / 0.3).clamp(0.0, 1.0);
+        // 확대 중 border-radius: 작은 카드(12) → 가득 찼을 때 0
+        final br = BorderRadius.circular(Radii.card * (1.0 - t).clamp(0.0, 1.0));
+        // 페이드아웃: t=0.6..1.0 구간 (더 넓어서 부드럽게 사라짐)
+        final fade = t < 0.6 ? 1.0 : (1 - (t - 0.6) / 0.4).clamp(0.0, 1.0);
         return IgnorePointer(
           child: Stack(
             children: [
               Positioned.fromRect(
                 rect: rect,
-                child: Opacity(opacity: fade, child: _card(sh)),
+                child: Opacity(opacity: fade, child: _card(sh, br)),
               ),
             ],
           ),
@@ -293,12 +300,12 @@ class _ZoomOverlayState extends State<_ZoomOverlay>
     );
   }
 
-  Widget _card(SpaceHourColors sh) {
+  Widget _card(SpaceHourColors sh, BorderRadius br) {
     return Container(
       clipBehavior: Clip.antiAlias,
       decoration: BoxDecoration(
         color: sh.card,
-        borderRadius: BorderRadius.circular(Radii.card),
+        borderRadius: br,
         border: Border.all(color: sh.accent, width: 1.5),
         boxShadow: [
           BoxShadow(
