@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
 import '../core/theme/app_theme.dart';
+import '../core/theme/design_tokens.dart';
 import '../core/utils/date_utils.dart' as du;
 import '../models/event_item.dart';
 import '../models/calendar_theme.dart';
@@ -79,7 +80,7 @@ class _AddEditEventModalState extends ConsumerState<AddEditEventModal> {
       padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
       child: Container(
         color: sh.card,
-        padding: const EdgeInsets.fromLTRB(20, 20, 20, 28),
+        padding: const EdgeInsets.fromLTRB(Gap.lg, Gap.lg, Gap.lg, Gap.xl),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -89,8 +90,7 @@ class _AddEditEventModalState extends ConsumerState<AddEditEventModal> {
               children: [
                 Text(
                   isEdit ? '일정 편집' : '일정 추가',
-                  style: TextStyle(
-                      fontSize: 17, fontWeight: FontWeight.w700, color: sh.ink),
+                  style: AppType.title.copyWith(color: sh.ink),
                 ),
                 const Spacer(),
                 if (isEdit)
@@ -113,10 +113,8 @@ class _AddEditEventModalState extends ConsumerState<AddEditEventModal> {
                 onTap: _pickDate,
                 child: Text(
                   _dateKey,
-                  style: TextStyle(
-                      fontSize: 14,
-                      color: sh.accent,
-                      fontWeight: FontWeight.w500),
+                  style: AppType.body
+                      .copyWith(color: sh.accent, fontWeight: FontWeight.w500),
                 ),
               ),
             ),
@@ -129,7 +127,7 @@ class _AddEditEventModalState extends ConsumerState<AddEditEventModal> {
               child: TextField(
                 controller: _textCtrl,
                 autofocus: true,
-                style: TextStyle(fontSize: 15, color: sh.ink),
+                style: AppType.body.copyWith(color: sh.ink),
                 decoration: InputDecoration(
                   hintText: '어머니 생신',
                   hintStyle: TextStyle(color: sh.inkFaint),
@@ -182,10 +180,8 @@ class _AddEditEventModalState extends ConsumerState<AddEditEventModal> {
             // 테마 선택
             if (themes.isNotEmpty) ...[
               Text('테마 (여러 개 선택 가능)',
-                  style: TextStyle(
-                      fontSize: 12, fontWeight: FontWeight.w600,
-                      color: sh.inkSoft)),
-              const SizedBox(height: 8),
+                  style: AppType.label.copyWith(color: sh.inkSoft)),
+              const SizedBox(height: Gap.sm),
               Wrap(
                 spacing: 8,
                 runSpacing: 8,
@@ -216,20 +212,22 @@ class _AddEditEventModalState extends ConsumerState<AddEditEventModal> {
                     style: OutlinedButton.styleFrom(
                         foregroundColor: sh.inkSoft,
                         side: BorderSide(color: sh.border),
+                        minimumSize: const Size.fromHeight(kMinTouch),
                         shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10))),
+                            borderRadius: BorderRadius.circular(Radii.card))),
                     child: const Text('취소'),
                   ),
                 ),
-                const SizedBox(width: 10),
+                const SizedBox(width: Gap.md),
                 Expanded(
                   flex: 2,
                   child: FilledButton(
                     onPressed: _save,
                     style: FilledButton.styleFrom(
                       backgroundColor: sh.accent,
+                      minimumSize: const Size.fromHeight(kMinTouch),
                       shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10)),
+                          borderRadius: BorderRadius.circular(Radii.card)),
                     ),
                     child: const Text('저장'),
                   ),
@@ -341,19 +339,14 @@ class _FieldRow extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label,
-            style: TextStyle(
-                fontSize: 11,
-                fontWeight: FontWeight.w700,
-                color: sh.inkSoft,
-                letterSpacing: 0.4)),
-        const SizedBox(height: 5),
+        Text(label, style: AppType.label.copyWith(color: sh.inkSoft)),
+        const SizedBox(height: Gap.xs),
         Container(
           width: double.infinity,
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+          padding: const EdgeInsets.symmetric(horizontal: Gap.md, vertical: Gap.md),
           decoration: BoxDecoration(
             color: sh.card2,
-            borderRadius: BorderRadius.circular(10),
+            borderRadius: BorderRadius.circular(Radii.small),
             border: Border.all(color: sh.border),
           ),
           child: child,
@@ -377,20 +370,18 @@ class _TimeBtn extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+        padding: const EdgeInsets.symmetric(horizontal: Gap.md, vertical: Gap.sm),
         decoration: BoxDecoration(
           color: value != null ? sh.accentBg : sh.card,
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(Radii.small),
           border: Border.all(
               color: value != null ? sh.accent : sh.border),
         ),
         child: Text(
           value ?? hint,
-          style: TextStyle(
-              fontSize: 13,
+          style: AppType.body.copyWith(
               color: value != null ? sh.accentInk : sh.inkFaint,
-              fontWeight:
-                  value != null ? FontWeight.w600 : FontWeight.w400),
+              fontWeight: value != null ? FontWeight.w600 : FontWeight.w400),
         ),
       ),
     );
@@ -426,10 +417,9 @@ class _ThemeChip extends StatelessWidget {
                 width: 8, height: 8,
                 decoration: BoxDecoration(
                     color: color, shape: BoxShape.circle)),
-            const SizedBox(width: 5),
+            const SizedBox(width: Gap.xs),
             Text(theme.name,
-                style: TextStyle(
-                    fontSize: 12,
+                style: AppType.caption.copyWith(
                     color: selected ? color : color.withValues(alpha: 0.8),
                     fontWeight: selected ? FontWeight.w700 : FontWeight.w500)),
           ],
