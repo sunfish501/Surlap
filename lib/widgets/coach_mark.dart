@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../core/theme/app_theme.dart';
+import '../core/theme/design_tokens.dart';
 
 /// 단계별 튜토리얼(coach mark / 제품 투어).
 /// 마스크(어둡게) + 스포트라이트(강조 cutout) + 툴팁(N/M 단계 + 이전/다음)로
@@ -222,7 +223,7 @@ class _Card extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(18, 14, 18, 14),
       decoration: BoxDecoration(
         color: sh.card,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(Radii.card),
         border: Border.all(color: sh.border),
         boxShadow: [
           BoxShadow(
@@ -240,14 +241,13 @@ class _Card extends StatelessWidget {
             children: [
               Container(
                 padding:
-                    const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                    const EdgeInsets.symmetric(horizontal: Gap.sm, vertical: 2),
                 decoration: BoxDecoration(
                   color: sh.accentBg,
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: BorderRadius.circular(Radii.small),
                 ),
                 child: Text('${index + 1} / $total',
-                    style: TextStyle(
-                        fontSize: 11,
+                    style: AppType.label.copyWith(
                         fontWeight: FontWeight.w700,
                         color: sh.accentInk)),
               ),
@@ -264,18 +264,16 @@ class _Card extends StatelessWidget {
           ),
           const SizedBox(height: 10),
           Text(step.title,
-              style: TextStyle(
-                  fontSize: 16, fontWeight: FontWeight.w700, color: sh.ink)),
-          const SizedBox(height: 8),
+              style: AppType.section.copyWith(fontWeight: FontWeight.w700, color: sh.ink)),
+          const SizedBox(height: Gap.sm),
           Text(step.desc,
-              style: TextStyle(fontSize: 13, color: sh.inkSoft, height: 1.45)),
+              style: AppType.body.copyWith(color: sh.inkSoft, height: 1.45)),
           if (step.extra != null) ...[
-            const SizedBox(height: 8),
+            const SizedBox(height: Gap.sm),
             Text(step.extra!,
-                style:
-                    TextStyle(fontSize: 12, color: sh.inkFaint, height: 1.45)),
+                style: AppType.caption.copyWith(color: sh.inkFaint, height: 1.45)),
           ],
-          const SizedBox(height: 16),
+          const SizedBox(height: Gap.lg),
           Row(
             children: [
               if (index > 0)
