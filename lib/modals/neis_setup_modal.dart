@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../core/theme/app_theme.dart';
+import '../core/theme/design_tokens.dart';
 import '../supabase/neis_service.dart';
 
 Future<void> showNeisSetupModal(BuildContext context) =>
@@ -40,8 +41,8 @@ class _NeisSetupModalState extends State<NeisSetupModal> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text('🏫 학교 연결',
-                style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700, color: sh.ink)),
-            const SizedBox(height: 16),
+                style: AppType.section.copyWith(fontWeight: FontWeight.w700, color: sh.ink)),
+            const SizedBox(height: Gap.lg),
             // 학교명 검색
             Row(children: [
               Expanded(child: TextField(
@@ -54,7 +55,7 @@ class _NeisSetupModalState extends State<NeisSetupModal> {
                 textInputAction: TextInputAction.search,
                 onSubmitted: (_) => _search(),
               )),
-              const SizedBox(width: 8),
+              const SizedBox(width: Gap.sm),
               FilledButton(
                 onPressed: _loading ? null : _search,
                 child: _loading
@@ -65,8 +66,8 @@ class _NeisSetupModalState extends State<NeisSetupModal> {
             ]),
             if (_status != null)
               Padding(
-                padding: const EdgeInsets.only(top: 8),
-                child: Text(_status!, style: TextStyle(fontSize: 12, color: sh.inkSoft)),
+                padding: const EdgeInsets.only(top: Gap.sm),
+                child: Text(_status!, style: AppType.caption.copyWith(color: sh.inkSoft)),
               ),
             // 검색 결과
             if (_results.isNotEmpty) ...[
@@ -83,12 +84,12 @@ class _NeisSetupModalState extends State<NeisSetupModal> {
                       dense: true,
                       tileColor: sel ? sh.accentBg : null,
                       title: Text(r['SCHUL_NM']?.toString() ?? '',
-                          style: TextStyle(fontSize: 13,
+                          style: AppType.body.copyWith(
                               fontWeight: sel ? FontWeight.w700 : FontWeight.w400,
                               color: sel ? sh.accentInk : sh.ink)),
                       subtitle: Text(
                           '${r['LCTN_SC_NM'] ?? ''} · ${r['SCHUL_KND_SC_NM'] ?? ''}',
-                          style: TextStyle(fontSize: 11, color: sh.inkSoft)),
+                          style: AppType.label.copyWith(color: sh.inkSoft)),
                       onTap: () => setState(() => _selected = r),
                     );
                   },
@@ -102,7 +103,7 @@ class _NeisSetupModalState extends State<NeisSetupModal> {
                 Expanded(child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('학년', style: TextStyle(fontSize: 12, color: sh.inkSoft)),
+                    Text('학년', style: AppType.caption.copyWith(color: sh.inkSoft)),
                     DropdownButton<int>(
                       value: _grade,
                       isExpanded: true,
@@ -112,11 +113,11 @@ class _NeisSetupModalState extends State<NeisSetupModal> {
                     ),
                   ],
                 )),
-                const SizedBox(width: 16),
+                const SizedBox(width: Gap.lg),
                 Expanded(child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('반', style: TextStyle(fontSize: 12, color: sh.inkSoft)),
+                    Text('반', style: AppType.caption.copyWith(color: sh.inkSoft)),
                     TextField(
                       keyboardType: TextInputType.number,
                       decoration: InputDecoration(

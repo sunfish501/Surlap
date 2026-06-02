@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
 import '../core/theme/app_theme.dart';
+import '../core/theme/design_tokens.dart';
 import '../models/day_template.dart';
 import '../providers/day_widget_provider.dart';
 
@@ -68,10 +69,10 @@ class DayTemplateManagerModal extends ConsumerWidget {
               padding: const EdgeInsets.fromLTRB(20, 18, 12, 10),
               child: Row(children: [
                 Text('일별 위젯 템플릿',
-                    style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700, color: sh.ink)),
-                const SizedBox(width: 6),
+                    style: AppType.section.copyWith(fontWeight: FontWeight.w700, color: sh.ink)),
+                const SizedBox(width: Gap.xs + 2),
                 Text('날짜에 표시할 위젯을 만들고 적용 범위를 정하세요',
-                    style: TextStyle(fontSize: 11, color: sh.inkSoft)),
+                    style: AppType.label.copyWith(color: sh.inkSoft)),
                 const Spacer(),
                 IconButton(
                   icon: Icon(Icons.close, color: sh.inkSoft, size: 20),
@@ -95,7 +96,7 @@ class DayTemplateManagerModal extends ConsumerWidget {
                         child: Text(
                           '템플릿이 없습니다.\n"+ 새 템플릿" 또는 추천 시안에서 가져와보세요.',
                           textAlign: TextAlign.center,
-                          style: TextStyle(color: sh.inkFaint, fontSize: 13, height: 1.6),
+                          style: AppType.body.copyWith(color: sh.inkFaint, height: 1.6),
                         ),
                       ),
                     )
@@ -121,7 +122,7 @@ class DayTemplateManagerModal extends ConsumerWidget {
                     label: const Text('+ 새 템플릿'),
                     style: FilledButton.styleFrom(
                       backgroundColor: sh.accent,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(Radii.card)),
                     ),
                   ),
                 ),
@@ -176,8 +177,8 @@ class _PresetsSectionState extends State<_PresetsSection> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(children: [
-          Text('추천 시안', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700,
-              color: sh.inkSoft, letterSpacing: 0.4)),
+          Text('추천 시안', style: AppType.label.copyWith(fontWeight: FontWeight.w700,
+              color: sh.inkSoft)),
           const Spacer(),
           TextButton(
             onPressed: () => setState(() => _open = !_open),
@@ -189,7 +190,7 @@ class _PresetsSectionState extends State<_PresetsSection> {
           GridView.count(
             shrinkWrap: true, physics: const NeverScrollableScrollPhysics(),
             crossAxisCount: 2, childAspectRatio: 2.0,
-            crossAxisSpacing: 8, mainAxisSpacing: 8,
+            crossAxisSpacing: Gap.sm, mainAxisSpacing: Gap.sm,
             children: _presets.map((p) {
               return _PresetCard(preset: p, sh: sh, onAdd: () {
                 _addPreset(p);
@@ -240,7 +241,7 @@ class _PresetCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(preset.name, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: sh.ink)),
+          Text(preset.name, style: AppType.caption.copyWith(fontWeight: FontWeight.w700, color: sh.ink)),
           const SizedBox(height: 2),
           Expanded(child: Text(
             preset.fields.map((f) => f.label).join(' · '),
@@ -275,11 +276,11 @@ class _TemplateCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: const EdgeInsets.only(bottom: 8),
+      margin: const EdgeInsets.only(bottom: Gap.sm),
       padding: const EdgeInsets.fromLTRB(14, 12, 10, 12),
       decoration: BoxDecoration(
         color: sh.card,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(Radii.card),
         border: Border.all(color: sh.border),
       ),
       child: Row(children: [
@@ -291,14 +292,14 @@ class _TemplateCard extends StatelessWidget {
                 id: template.id, name: template.name,
                 fields: template.fields, scope: template.scope, enabled: v)),
         ),
-        const SizedBox(width: 8),
+        const SizedBox(width: Gap.sm),
         Expanded(
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text(template.name, style: TextStyle(fontSize: 14,
+            Text(template.name, style: AppType.body.copyWith(
                 fontWeight: FontWeight.w600, color: sh.ink)),
             Text(
               template.fields.map((f) => f.label).join(' · '),
-              style: TextStyle(fontSize: 11, color: sh.inkSoft),
+              style: AppType.label.copyWith(color: sh.inkSoft),
               maxLines: 1, overflow: TextOverflow.ellipsis,
             ),
             Text(_scopeLabel(template.scope),
@@ -381,7 +382,7 @@ class _DayTemplateEditorPageState extends State<DayTemplateEditorPage> {
       backgroundColor: sh.bg,
       appBar: AppBar(
         title: Text(widget.template == null ? '템플릿 만들기' : '템플릿 편집',
-            style: TextStyle(color: sh.ink, fontSize: 17, fontWeight: FontWeight.w700)),
+            style: AppType.section.copyWith(color: sh.ink, fontWeight: FontWeight.w700)),
         actions: [
           if (widget.onDelete != null)
             TextButton(
@@ -604,25 +605,25 @@ class _FieldEditorState extends State<_FieldEditor> {
     final sh = widget.sh;
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.all(Gap.md),
       decoration: BoxDecoration(
         color: sh.card2,
-        borderRadius: BorderRadius.circular(10),
+        borderRadius: BorderRadius.circular(Radii.card),
         border: Border.all(color: sh.border),
       ),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Row(children: [
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+            padding: const EdgeInsets.symmetric(horizontal: Gap.sm, vertical: 3),
             decoration: BoxDecoration(
-              color: sh.accentBg, borderRadius: BorderRadius.circular(8)),
+              color: sh.accentBg, borderRadius: BorderRadius.circular(Radii.small)),
             child: Text(widget.typeLabel,
                 style: TextStyle(fontSize: 10, color: sh.accentInk, fontWeight: FontWeight.w600)),
           ),
-          const SizedBox(width: 8),
+          const SizedBox(width: Gap.sm),
           Expanded(child: TextField(
             controller: _labelCtrl,
-            style: TextStyle(fontSize: 13, color: sh.ink),
+            style: AppType.body.copyWith(color: sh.ink),
             decoration: InputDecoration(
                 hintText: '라벨',
                 hintStyle: TextStyle(color: sh.inkFaint),
@@ -708,7 +709,7 @@ class _Card extends StatelessWidget {
     padding: const EdgeInsets.all(16),
     decoration: BoxDecoration(
       color: sh.card,
-      borderRadius: BorderRadius.circular(14),
+      borderRadius: BorderRadius.circular(Radii.card),
       border: Border.all(color: sh.border),
     ),
     child: child,
@@ -719,6 +720,6 @@ class _Label extends StatelessWidget {
   final String text; final SpaceHourColors sh;
   const _Label(this.text, this.sh);
   @override Widget build(BuildContext context) => Text(text,
-    style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700,
-        color: sh.inkSoft, letterSpacing: 0.4));
+    style: AppType.label.copyWith(fontWeight: FontWeight.w700,
+        color: sh.inkSoft));
 }
