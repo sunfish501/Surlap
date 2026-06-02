@@ -3,30 +3,37 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../core/theme/app_theme.dart';
 import '../core/theme/design_tokens.dart';
+import '../core/utils/date_utils.dart' as du;
 import '../providers/view_provider.dart';
 import '../providers/color_preset_provider.dart';
 import '../widgets/sidebar_drawer.dart';
-import '../modals/theme_manager_modal.dart';
 import 'coach_mark.dart';
 
-// ─── 하단 네비 (4탭) ─────────────────────────────────────────────
-// 캘린더 / 기록 / 시간표 / 설정
+// ─── 하단 네비 (5탭) — 스킬셋 2026 구조 ─────────────────────────
+// 홈 / 캘린더 / 시간표 / 기록 / 설정
 class SpaceHourBottomNav extends ConsumerWidget {
   const SpaceHourBottomNav({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final view    = ref.watch(viewProvider);
+    final view     = ref.watch(viewProvider);
     final notifier = ref.read(viewProvider.notifier);
-    final preset  = ref.watch(colorPresetProvider);
-    final sh      = context.sh;
+    final preset   = ref.watch(colorPresetProvider);
+    final sh       = context.sh;
 
     final accent = preset.accent;
 
-    final isCalendar = const {
-      ViewMode.events, ViewMode.year, ViewMode.planner, ViewMode.day
+    final isHome       = view.mode == ViewMode.home;
+    final isCalendar   = const {
+      ViewMode.events, ViewMode.year, ViewMode.planner
     }.contains(view.mode);
-    final isTimetable = view.mode == ViewMode.timetable;
+    final isTimetable  = view.mode == ViewMode.timetable;
+    final isRecord     = view.mode == ViewMode.day;
+
+    String todayKey() {
+      final n = DateTime.now();
+      return du.toDateKey(n);
+    }
 
     return Positioned(
       left: 0, right: 0, bottom: 16,
@@ -37,7 +44,7 @@ class SpaceHourBottomNav extends ConsumerWidget {
             filter: ImageFilter.blur(sigmaX: 16, sigmaY: 16),
             child: Container(
               key: coachKeyBottomNav,
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 7),
               decoration: BoxDecoration(
                 color: sh.dark
                     ? Colors.black.withValues(alpha: 0.72)
@@ -59,6 +66,14 @@ class SpaceHourBottomNav extends ConsumerWidget {
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
+                  // ─── 홈 ───
+                  _NavTab(
+                    icon: const Icon(Icons.home_outlined, size: 22),
+                    label: '홈',
+                    active: isHome,
+                    accent: accent,
+                    onTap: () => notifier.setMode(ViewMode.home),
+                  ),
                   // ─── 캘린더 ───
                   _NavTab(
                     icon: const Icon(Icons.calendar_month_outlined, size: 22),
@@ -69,14 +84,6 @@ class SpaceHourBottomNav extends ConsumerWidget {
                       if (!isCalendar) notifier.setMode(ViewMode.events);
                     },
                   ),
-                  // ─── 테마 관리 ───
-                  _NavTab(
-                    icon: const Icon(Icons.label_outline_rounded, size: 22),
-                    label: '테마 관리',
-                    active: false,
-                    accent: accent,
-                    onTap: () => showThemeManagerModal(context),
-                  ),
                   // ─── 시간표 ───
                   _NavTab(
                     key: coachKeyTabTimetable,
@@ -86,9 +93,17 @@ class SpaceHourBottomNav extends ConsumerWidget {
                     accent: accent,
                     onTap: () => notifier.setMode(ViewMode.timetable),
                   ),
-                  // ─── 설정 ───
+                  // ─── 기록 (오늘 일별 뷰) ───
                   _NavTab(
                     key: coachKeyTabProfile,
+                    icon: const Icon(Icons.edit_note_rounded, size: 22),
+                    label: '기록',
+                    active: isRecord,
+                    accent: accent,
+                    onTap: () => notifier.setDayView(todayKey()),
+                  ),
+                  // ─── 설정 ───
+                  _NavTab(
                     icon: const Icon(Icons.settings_outlined, size: 22),
                     label: '설정',
                     active: false,
@@ -138,8 +153,8 @@ class _NavTab extends StatelessWidget {
       onTap: onTap,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 150),
-        constraints: const BoxConstraints(minWidth: 62),
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+        constraints: const BoxConstraints(minWidth: 58),
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
         decoration: BoxDecoration(
           color: active ? accent.withValues(alpha: 0.12) : Colors.transparent,
           borderRadius: BorderRadius.circular(16),

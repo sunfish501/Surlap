@@ -52,6 +52,7 @@ class _AppHeaderState extends ConsumerState<AppHeader> {
     final view = ref.watch(viewProvider);
     final notifier = ref.read(viewProvider.notifier);
     final settings = ref.watch(settingsProvider);
+    final isHome = view.mode == ViewMode.home;
     final isTimetable = view.mode == ViewMode.timetable;
     final isYear = view.mode == ViewMode.year;
 
@@ -94,7 +95,9 @@ class _AppHeaderState extends ConsumerState<AppHeader> {
             ),
           ),
 
-          // ── 날짜 앵커 + 탐색 ───────────────────────────────
+          // ── 날짜 앵커 + 탐색 (홈 모드에서 숨김) ─────────────
+          if (isHome) const SizedBox.shrink()
+          else
           Padding(
             padding: const EdgeInsets.fromLTRB(Gap.lg, Gap.sm, Gap.md, 0),
             child: isTimetable
@@ -162,8 +165,8 @@ class _AppHeaderState extends ConsumerState<AppHeader> {
               ),
             ),
 
-          // ── 모토 ────────────────────────────────────────────
-          Padding(
+          // ── 모토 (홈·시간표에서 숨김) ────────────────────────
+          if (!isHome) Padding(
             padding: const EdgeInsets.fromLTRB(Gap.lg, 2, Gap.lg, Gap.xs),
             child: Row(
               children: [
@@ -211,8 +214,8 @@ class _AppHeaderState extends ConsumerState<AppHeader> {
             ),
           ),
 
-          // ── 뷰 세그먼트 탭 ─────────────────────────────────
-          Padding(
+          // ── 뷰 세그먼트 탭 (홈에서 숨김) ────────────────────
+          if (!isHome) Padding(
             padding: const EdgeInsets.fromLTRB(Gap.lg, 0, Gap.lg, Gap.sm),
             child: _ViewSegment(view: view, notifier: notifier, sh: sh),
           ),
