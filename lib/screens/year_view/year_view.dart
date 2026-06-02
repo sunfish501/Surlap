@@ -33,12 +33,15 @@ class YearView extends ConsumerWidget {
           month: month,
           events: events,
           sh: sh,
-          onTap: (source) => _zoomToMonth(context, ref, source, year, month, sh),
+          onTap: (source) =>
+              _zoomToMonth(context, ref, source, year, month, sh),
         );
       },
     );
   }
 }
+
+// ── 미니 월 카드 ────────────────────────────────────────────────────
 
 class _MiniMonthCard extends StatelessWidget {
   final int year, month;
@@ -47,14 +50,16 @@ class _MiniMonthCard extends StatelessWidget {
   final void Function(Rect source) onTap;
 
   const _MiniMonthCard({
-    required this.year, required this.month,
-    required this.events, required this.sh, required this.onTap,
+    required this.year,
+    required this.month,
+    required this.events,
+    required this.sh,
+    required this.onTap,
   });
 
-  static const _dow = ['일','월','화','수','목','금','토'];
   static const _monthNames = [
-    '1월','2월','3월','4월','5월','6월',
-    '7월','8월','9월','10월','11월','12월',
+    '1월', '2월', '3월', '4월', '5월', '6월',
+    '7월', '8월', '9월', '10월', '11월', '12월',
   ];
 
   @override
@@ -92,7 +97,8 @@ class _MiniMonthCard extends StatelessWidget {
               padding: const EdgeInsets.symmetric(vertical: 5),
               decoration: BoxDecoration(
                 color: isCurrentMonth ? sh.accentBg : sh.card2,
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(Radii.card)),
+                borderRadius:
+                    const BorderRadius.vertical(top: Radius.circular(Radii.card)),
               ),
               child: Center(
                 child: Text(
@@ -104,15 +110,42 @@ class _MiniMonthCard extends StatelessWidget {
                 ),
               ),
             ),
-            // 미니 캘린더 그리드
-            Expanded(child: _buildGrid()),
+            // 미니 캘린더 그리드 (이벤트 dot 포함)
+            Expanded(
+              child: _MiniMonthGrid(
+                year: year,
+                month: month,
+                sh: sh,
+                events: events,
+              ),
+            ),
           ],
         ),
       ),
     );
   }
+}
 
-  Widget _buildGrid() {
+// ── 공유 미니 그리드 위젯 ─────────────────────────────────────────────
+// _MiniMonthCard(년 뷰)와 _ZoomOverlay(전환 중) 양쪽에서 재사용.
+
+class _MiniMonthGrid extends StatelessWidget {
+  final int year, month;
+  final SpaceHourColors sh;
+  /// null이면 이벤트 dot 표시 안 함 (줌 오버레이에서 사용).
+  final Map<String, List<dynamic>>? events;
+
+  const _MiniMonthGrid({
+    required this.year,
+    required this.month,
+    required this.sh,
+    this.events,
+  });
+
+  static const _dow = ['일', '월', '화', '수', '목', '금', '토'];
+
+  @override
+  Widget build(BuildContext context) {
     final first = DateTime(year, month, 1);
     // 일요일 시작
     final startOffset = first.weekday % 7;
@@ -127,13 +160,17 @@ class _MiniMonthCard extends StatelessWidget {
         children: [
           // 요일 헤더
           Row(
-            children: List.generate(7, (i) => Expanded(
-              child: Center(
-                child: Text(_dow[i],
-                    style: TextStyle(fontSize: 7, color: sh.inkFaint)),
+            children: List.generate(
+              7,
+              (i) => Expanded(
+                child: Center(
+                  child: Text(_dow[i],
+                      style: TextStyle(fontSize: 7, color: sh.inkFaint)),
+                ),
               ),
-            )),
+            ),
           ),
+          // 날짜 셀
           Expanded(
             child: Column(
               children: List.generate(rows, (r) {
@@ -145,18 +182,24 @@ class _MiniMonthCard extends StatelessWidget {
                       if (day < 1 || day > daysInMonth) {
                         return const Expanded(child: SizedBox());
                       }
-                      final key = du.toDateKey(DateTime(year, month, day));
-                      final hasEvent = (events[key] ?? []).isNotEmpty;
+                      final key =
+                          du.toDateKey(DateTime(year, month, day));
+                      final hasEvent =
+                          events != null && (events![key] ?? []).isNotEmpty;
                       final isToday = year == now.year &&
-                          month == now.month && day == now.day;
+                          month == now.month &&
+                          day == now.day;
                       return Expanded(
                         child: Center(
                           child: Container(
-                            width: 14, height: 14,
-                            decoration: isToday ? BoxDecoration(
-                              color: sh.accentBg,
-                              shape: BoxShape.circle,
-                            ) : null,
+                            width: 14,
+                            height: 14,
+                            decoration: isToday
+                                ? BoxDecoration(
+                                    color: sh.accentBg,
+                                    shape: BoxShape.circle,
+                                  )
+                                : null,
                             child: Stack(
                               alignment: Alignment.center,
                               children: [
@@ -164,16 +207,19 @@ class _MiniMonthCard extends StatelessWidget {
                                   '$day',
                                   style: TextStyle(
                                     fontSize: 7.5,
-                                    color: isToday ? sh.accentInk : sh.ink,
+                                    color:
+                                        isToday ? sh.accentInk : sh.ink,
                                     fontWeight: isToday
-                                        ? FontWeight.w700 : FontWeight.w400,
+                                        ? FontWeight.w700
+                                        : FontWeight.w400,
                                   ),
                                 ),
                                 if (hasEvent)
                                   Positioned(
                                     bottom: 0,
                                     child: Container(
-                                      width: 3, height: 3,
+                                      width: 3,
+                                      height: 3,
                                       decoration: BoxDecoration(
                                         color: sh.accent,
                                         shape: BoxShape.circle,
@@ -197,10 +243,11 @@ class _MiniMonthCard extends StatelessWidget {
   }
 }
 
-// ── 년→월 줌(히어로 유사) 전환 ──────────────────────────────
-// 뷰 전환이 Navigator 라우트가 아니라 AnimatedSwitcher 기반이라 실제 Hero 대신,
-// 탭한 미니 월을 콘텐츠 영역으로 확대하는 오버레이를 띄운다. 시작과 동시에 뷰를
-// 월간으로 전환해 두고, 끝에서 페이드아웃하며 실제 월간 뷰를 드러낸다.
+// ── 년→월 줌 전환 ─────────────────────────────────────────────────────
+// Navigator 라우트가 아닌 AnimatedSwitcher 기반이라 Flutter Hero 대신
+// 커스텀 Overlay로 구현. 출발 미니 월과 같은 날짜 그리드를 오버레이 안에
+// 렌더한 뒤 폭 기준 유니폼 스케일로 확대 → 카드+날짜가 통째로 커지는 느낌.
+
 void _zoomToMonth(BuildContext context, WidgetRef ref, Rect source,
     int year, int month, SpaceHourColors sh) {
   void switchView() {
@@ -224,6 +271,8 @@ void _zoomToMonth(BuildContext context, WidgetRef ref, Rect source,
       source: source,
       target: target,
       sh: sh,
+      year: year,
+      month: month,
       monthLabel: '$month월',
       onSwitch: switchView,
       onDone: () => entry.remove(),
@@ -235,13 +284,22 @@ void _zoomToMonth(BuildContext context, WidgetRef ref, Rect source,
 class _ZoomOverlay extends StatefulWidget {
   final Rect source, target;
   final SpaceHourColors sh;
+  final int year, month;
   final String monthLabel;
   final VoidCallback onSwitch;
   final VoidCallback onDone;
+
   const _ZoomOverlay({
-    required this.source, required this.target, required this.sh,
-    required this.monthLabel, required this.onSwitch, required this.onDone,
+    required this.source,
+    required this.target,
+    required this.sh,
+    required this.year,
+    required this.month,
+    required this.monthLabel,
+    required this.onSwitch,
+    required this.onDone,
   });
+
   @override
   State<_ZoomOverlay> createState() => _ZoomOverlayState();
 }
@@ -258,11 +316,11 @@ class _ZoomOverlayState extends State<_ZoomOverlay>
     _c.addStatusListener((s) {
       if (s == AnimationStatus.completed) widget.onDone();
     });
-    // 프레임 1 끝: provider 수정(onSwitch)을 빌드 사이클 밖에서 실행.
-    // initState() 안에서 직접 호출하면 "widget tree building 중 provider 수정" 에러 발생.
+    // 프레임 1: provider 수정을 빌드 사이클 밖에서 실행
+    // (initState() 안에서 직접 호출 → "building 중 provider 수정" 에러)
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      widget.onSwitch(); // 월간 뷰를 오버레이 뒤에서 미리 빌드
-      // 프레임 2 끝: 뷰가 빌드된 뒤 애니메이션 시작 → 첫 프레임 드랍 방지
+      widget.onSwitch(); // MonthView를 오버레이 뒤에서 미리 빌드
+      // 프레임 2: MonthView 빌드 완료 후 애니메이션 시작
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) _c.forward();
       });
@@ -283,16 +341,18 @@ class _ZoomOverlayState extends State<_ZoomOverlay>
       builder: (context, _) {
         final t = Curves.easeInOutCubic.transform(_c.value);
         final rect = Rect.lerp(widget.source, widget.target, t)!;
-        // 확대 중 border-radius: 작은 카드(12) → 가득 찼을 때 0
-        final br = BorderRadius.circular(Radii.card * (1.0 - t).clamp(0.0, 1.0));
-        // 페이드아웃: t=0.6..1.0 구간 (더 넓어서 부드럽게 사라짐)
-        final fade = t < 0.6 ? 1.0 : (1 - (t - 0.6) / 0.4).clamp(0.0, 1.0);
+        // 반경: 작은 카드(Radii.card) → 가득 찰 때 0
+        final br =
+            BorderRadius.circular(Radii.card * (1.0 - t).clamp(0.0, 1.0));
+        // 페이드아웃: t=0.6..1.0
+        final fade =
+            t < 0.6 ? 1.0 : (1 - (t - 0.6) / 0.4).clamp(0.0, 1.0);
         return IgnorePointer(
           child: Stack(
             children: [
               Positioned.fromRect(
                 rect: rect,
-                child: Opacity(opacity: fade, child: _card(sh, br)),
+                child: Opacity(opacity: fade, child: _card(sh, br, rect)),
               ),
             ],
           ),
@@ -301,7 +361,17 @@ class _ZoomOverlayState extends State<_ZoomOverlay>
     );
   }
 
-  Widget _card(SpaceHourColors sh, BorderRadius br) {
+  /// 카드 + 내부 날짜 그리드를 통째로 스케일한다.
+  ///
+  /// • 폭 기준 유니폼 스케일(Transform.scale): 왜곡 없이 날짜가 함께 커짐.
+  /// • 원점 = 소스 카드 크기를 기준으로 렌더 후 현재 rect 폭만큼 확대.
+  /// • 스케일 넘치는 하단 부분은 Container(clipBehavior) 로 자연스럽게 잘림.
+  Widget _card(SpaceHourColors sh, BorderRadius br, Rect currentRect) {
+    final srcW = widget.source.width;
+    final srcH = widget.source.height;
+    // 폭 기준 유니폼 스케일 — 가로세로 같은 비율로 확대
+    final scale = (currentRect.width / srcW).clamp(1.0, double.infinity);
+
     return Container(
       clipBehavior: Clip.antiAlias,
       decoration: BoxDecoration(
@@ -311,24 +381,46 @@ class _ZoomOverlayState extends State<_ZoomOverlay>
         boxShadow: [
           BoxShadow(
               color: Colors.black.withValues(alpha: 0.12),
-              blurRadius: 16, offset: const Offset(0, 6)),
+              blurRadius: 16,
+              offset: const Offset(0, 6)),
         ],
       ),
-      child: Column(
-        children: [
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.symmetric(vertical: 6),
-            color: sh.accentBg,
-            child: Center(
-              child: Text(widget.monthLabel,
-                  style: AppType.body.copyWith(
-                      fontWeight: FontWeight.w700,
-                      color: sh.accentInk)),
+      child: Align(
+        alignment: Alignment.topCenter,
+        child: Transform.scale(
+          scale: scale,
+          alignment: Alignment.topCenter,
+          child: SizedBox(
+            width: srcW,
+            height: srcH,
+            child: Column(
+              children: [
+                // 월 헤더 (소스 크기 기준으로 렌더, scale로 같이 커짐)
+                Container(
+                  color: sh.accentBg,
+                  padding: const EdgeInsets.symmetric(vertical: 5),
+                  alignment: Alignment.center,
+                  child: Text(
+                    widget.monthLabel,
+                    style: AppType.label.copyWith(
+                        fontWeight: FontWeight.w700,
+                        color: sh.accentInk),
+                  ),
+                ),
+                // 날짜 그리드 (이벤트 dot 없이 날짜만)
+                Expanded(
+                  child: _MiniMonthGrid(
+                    year: widget.year,
+                    month: widget.month,
+                    sh: sh,
+                    // 전환 중엔 dot 불필요 (가벼움 유지)
+                    events: null,
+                  ),
+                ),
+              ],
             ),
           ),
-          const Expanded(child: SizedBox()),
-        ],
+        ),
       ),
     );
   }
