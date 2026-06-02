@@ -23,6 +23,25 @@ class _NavControlsState extends ConsumerState<NavControls> {
     final view = ref.watch(viewProvider);
     final sh = context.sh;
     final notifier = ref.read(viewProvider.notifier);
+
+    // 시간표는 요일+교시 기반(매주 반복)이라 특정 날짜/월 개념이 없다.
+    // reference(calendar.html)와 동일하게 월 네비 대신 "시간표" 라벨만 표시.
+    if (view.mode == ViewMode.timetable) {
+      return Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+        color: sh.bg,
+        alignment: Alignment.center,
+        child: Text(
+          '시간표',
+          style: TextStyle(
+            fontSize: 17,
+            fontWeight: FontWeight.w700,
+            color: sh.ink,
+          ),
+        ),
+      );
+    }
+
     final isYear = view.mode == ViewMode.year;
 
     final label = isYear
