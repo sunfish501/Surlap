@@ -305,6 +305,15 @@ class _ThemeRowState extends ConsumerState<_ThemeRow> {
                         fontWeight: FontWeight.w600)),
               ),
             ),
+          // 구독 테마: 읽기 전용 → 수정하려면 내 테마로 복제
+          if (widget.theme.shareRole == 'subscriber')
+            IconButton(
+              icon: Icon(Icons.copy_rounded, size: 17, color: sh.inkSoft),
+              tooltip: '내 테마로 복제',
+              onPressed: _duplicateToMine,
+              padding: const EdgeInsets.only(left: 2),
+              constraints: const BoxConstraints(),
+            ),
           // 공유 버튼 (로컬·오너 테마만 — subscriber는 제외)
           if (widget.editable && widget.shareCode == null)
             IconButton(
@@ -314,14 +323,14 @@ class _ThemeRowState extends ConsumerState<_ThemeRow> {
               padding: const EdgeInsets.only(left: 2),
               constraints: const BoxConstraints(),
             ),
-          // 삭제 버튼
-          if (widget.editable)
-            IconButton(
-              icon: Icon(Icons.delete_outline_rounded, size: 18, color: sh.danger),
-              onPressed: _delete,
-              padding: const EdgeInsets.only(left: 4),
-              constraints: const BoxConstraints(),
-            ),
+          // 삭제 버튼 (구독 테마는 "구독 취소")
+          IconButton(
+            icon: Icon(Icons.delete_outline_rounded, size: 18, color: sh.danger),
+            tooltip: widget.theme.shareRole == 'subscriber' ? '구독 취소' : '삭제',
+            onPressed: _delete,
+            padding: const EdgeInsets.only(left: 4),
+            constraints: const BoxConstraints(),
+          ),
         ],
       ),
     );
@@ -329,8 +338,33 @@ class _ThemeRowState extends ConsumerState<_ThemeRow> {
 
   void _saveName(String name) {
     if (name.trim().isEmpty) { return; }
-    ref.read(themesProvider.notifier).update(
-        widget.theme.copyWith(name: name.trim()));
+    final updated = widget.theme.copyWith(name: name.trim());
+    ref.read(themesProvider.notifier).update(updated);
+    _syncOwned(updated);
+  }
+
+  // owner가 소유 테마를 수정하면 클라우드 payload도 갱신(실패해도 로컬은 유지).
+  void _syncOwned(CalendarTheme t) {
+    if (t.shareCode != null && t.shareRole == 'owner') {
+      ThemeShareService.updateShare(t.shareCode!, t).catchError((Object e) {
+        debugPrint('[ThemeShare] 소유 테마 수정 동기화 실패: $e');
+      });
+    }
+  }
+
+  // 구독 테마를 편집 가능한 내 로컬 테마로 복제.
+  void _duplicateToMine() {
+    final copy = CalendarTheme(
+      id: 'th_${const Uuid().v4().replaceAll('-', '').substring(0, 8)}',
+      name: '${widget.theme.name} (복사본)',
+      color: widget.theme.color,
+      image: widget.theme.image,
+      // shareCode/shareRole 없음 → 내가 편집할 수 있는 로컬 테마
+    );
+    ref.read(themesProvider.notifier).add(copy);
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('"${copy.name}" 내 테마로 복제됨')),
+    );
   }
 
   void _pickColor() async {
@@ -366,7 +400,9 @@ class _ThemeRowState extends ConsumerState<_ThemeRow> {
     );
     if (picked == null) { return; }
     setState(() => _color = Color(int.parse('FF${picked.replaceAll('#', '')}', radix: 16)));
-    ref.read(themesProvider.notifier).update(widget.theme.copyWith(color: picked));
+    final updated = widget.theme.copyWith(color: picked);
+    ref.read(themesProvider.notifier).update(updated);
+    _syncOwned(updated);
   }
 
   void _delete() {

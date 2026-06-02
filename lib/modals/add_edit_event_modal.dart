@@ -72,9 +72,8 @@ class _AddEditEventModalState extends ConsumerState<AddEditEventModal> {
   @override
   Widget build(BuildContext context) {
     final sh = context.sh;
-    final themes = ref.watch(themesProvider)
-        .where((t) => t.shareRole != 'subscriber')
-        .toList();
+    // 구독 테마도 일정에 "적용"은 가능(읽기 전용은 테마 관리에서만 적용).
+    final themes = ref.watch(themesProvider);
 
     return Padding(
       padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
