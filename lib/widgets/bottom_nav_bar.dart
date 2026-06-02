@@ -6,7 +6,7 @@ import '../core/theme/design_tokens.dart';
 import '../providers/view_provider.dart';
 import '../providers/color_preset_provider.dart';
 import '../widgets/sidebar_drawer.dart';
-import '../modals/day_template_manager_modal.dart';
+import '../modals/theme_manager_modal.dart';
 import 'coach_mark.dart';
 
 // ─── 하단 네비 (4탭) ─────────────────────────────────────────────
@@ -69,13 +69,13 @@ class SpaceHourBottomNav extends ConsumerWidget {
                       if (!isCalendar) notifier.setMode(ViewMode.events);
                     },
                   ),
-                  // ─── 기록 ───
+                  // ─── 테마 관리 ───
                   _NavTab(
-                    icon: const Icon(Icons.edit_note_rounded, size: 22),
-                    label: '기록',
+                    icon: const Icon(Icons.label_outline_rounded, size: 22),
+                    label: '테마 관리',
                     active: false,
                     accent: accent,
-                    onTap: () => showDayTemplateManagerModal(context),
+                    onTap: () => showThemeManagerModal(context),
                   ),
                   // ─── 시간표 ───
                   _NavTab(

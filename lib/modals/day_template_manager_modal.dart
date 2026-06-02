@@ -94,7 +94,7 @@ class DayTemplateManagerModal extends ConsumerWidget {
                       padding: const EdgeInsets.symmetric(vertical: 20),
                       child: Center(
                         child: Text(
-                          '템플릿이 없습니다.\n"+ 새 템플릿" 또는 추천 시안에서 가져와보세요.',
+                          '템플릿이 없습니다.\n추천 시안에서 가져오거나 새로 만들어보세요.',
                           textAlign: TextAlign.center,
                           style: AppType.body.copyWith(color: sh.inkFaint, height: 1.6),
                         ),
@@ -108,25 +108,22 @@ class DayTemplateManagerModal extends ConsumerWidget {
                           ref: ref,
                           onEdit: () => _openEditor(context, ref, sh, e.key),
                         )),
-                  const SizedBox(height: 16),
-                ],
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 0, 16, 20),
-              child: Row(children: [
-                Expanded(
-                  child: FilledButton.icon(
+                  const SizedBox(height: 12),
+                  // "+ 새 템플릿" 버튼 — ListView 안에 1개만
+                  FilledButton.icon(
                     onPressed: () => _openEditor(context, ref, sh, null),
                     icon: const Icon(Icons.add, size: 16),
                     label: const Text('+ 새 템플릿'),
                     style: FilledButton.styleFrom(
                       backgroundColor: sh.accent,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(Radii.card)),
+                      minimumSize: const Size.fromHeight(48),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(Radii.card)),
                     ),
                   ),
-                ),
-              ]),
+                  const SizedBox(height: 20),
+                ],
+              ),
             ),
           ],
         ),

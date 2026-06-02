@@ -105,38 +105,20 @@ class _AppHeaderState extends ConsumerState<AppHeader> {
                         color: sh.ink))
                 : Row(
                     children: [
-                      // 연도 부분 탭 → 연간 보기 토글
+                      // 날짜 라벨 탭 → 날짜 피커
                       GestureDetector(
-                        onTap: () {
-                          if (isYear) {
-                            notifier.setMode(ViewMode.events);
-                          } else {
-                            notifier.setMode(ViewMode.year);
-                          }
-                        },
+                        onTap: () =>
+                            setState(() => _pickerOpen = !_pickerOpen),
                         child: Text(
-                          '${view.viewYear}년',
+                          isYear
+                              ? '${view.viewYear}년'
+                              : '${view.viewYear}년 ${_monthNames[view.viewMonth - 1]}',
                           style: AppType.title.copyWith(
                               fontSize: 22,
                               fontWeight: FontWeight.w700,
-                              color: isYear ? sh.accent : sh.ink),
+                              color: sh.ink),
                         ),
                       ),
-                      if (!isYear) ...[
-                        const SizedBox(width: 4),
-                        // 월 부분 탭 → 날짜 피커
-                        GestureDetector(
-                          onTap: () =>
-                              setState(() => _pickerOpen = !_pickerOpen),
-                          child: Text(
-                            _monthNames[view.viewMonth - 1],
-                            style: AppType.title.copyWith(
-                                fontSize: 22,
-                                fontWeight: FontWeight.w700,
-                                color: sh.ink),
-                          ),
-                        ),
-                      ],
                       const Spacer(),
                       _NavBtn(
                         label: '＜',
@@ -278,12 +260,7 @@ class _ViewSegment extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    bool isActive(ViewMode m) {
-      if (m == ViewMode.events) {
-        return view.mode == ViewMode.events || view.mode == ViewMode.year;
-      }
-      return view.mode == m;
-    }
+    bool isActive(ViewMode m) => view.mode == m;
 
     void goToDay() {
       final n = DateTime.now();
@@ -293,13 +270,13 @@ class _ViewSegment extends StatelessWidget {
     }
 
     final tabs = [
+      (label: '연간', mode: ViewMode.year,
+          onTap: () => notifier.setMode(ViewMode.year)),
       (label: '월간', mode: ViewMode.events,
           onTap: () => notifier.setMode(ViewMode.events)),
       (label: '주간', mode: ViewMode.planner,
           onTap: () => notifier.setMode(ViewMode.planner)),
       (label: '일별', mode: ViewMode.day, onTap: goToDay),
-      (label: '시간표', mode: ViewMode.timetable,
-          onTap: () => notifier.setMode(ViewMode.timetable)),
     ];
 
     return Container(

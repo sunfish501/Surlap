@@ -539,8 +539,8 @@ class _TimetableViewState extends ConsumerState<TimetableView> {
                     decoration: BoxDecoration(
                       color: isToday ? sh.accentBg : sh.card2,
                       border: Border(
-                        left: BorderSide(color: sh.border, width: 0.5),
-                        bottom: BorderSide(color: sh.border),
+                        left: BorderSide(color: _gridLine(sh), width: 1),
+                        bottom: BorderSide(color: _gridLine(sh), width: 1.5),
                       ),
                     ),
                     child: Column(
@@ -621,8 +621,10 @@ class _TimetableViewState extends ConsumerState<TimetableView> {
                                     alignment: Alignment.center,
                                     decoration: BoxDecoration(
                                       color: _timeLblBg(row, sh),
-                                      border: Border(bottom:
-                                          BorderSide(color: sh.border, width: 0.5)),
+                                      border: Border(
+                                        right: BorderSide(color: _gridLine(sh), width: 1),
+                                        bottom: BorderSide(color: _gridLine(sh), width: 1),
+                                      ),
                                     ),
                                     child: Text(row.label, style: TextStyle(
                                       fontSize: row.type == _RType.school ? 11 : 10,
@@ -692,9 +694,12 @@ class _TimetableViewState extends ConsumerState<TimetableView> {
                                         decoration: BoxDecoration(
                                           color: bgColor,
                                           border: Border(
-                                            left: BorderSide(color: sh.border, width: 0.5),
+                                            left: BorderSide(color: _gridLine(sh), width: 1),
+                                            right: col == 6
+                                                ? BorderSide(color: _gridLine(sh), width: 1)
+                                                : BorderSide.none,
                                             bottom: hasBottomBorder
-                                                ? BorderSide(color: sh.border, width: 0.5)
+                                                ? BorderSide(color: _gridLine(sh), width: 1)
                                                 : BorderSide.none,
                                           ),
                                         ),
@@ -770,6 +775,10 @@ class _TimetableViewState extends ConsumerState<TimetableView> {
     if (row.type == _RType.lunch) return sh.accentBg.withValues(alpha: 0.6);
     return sh.card2;
   }
+
+  // 격자선: ink 색 12% — hairline보다 진하고 배경과 대비 보장.
+  Color _gridLine(SpaceHourColors sh) =>
+      sh.ink.withValues(alpha: sh.dark ? 0.20 : 0.12);
 }
 
 // ─── Design mode button ───────────────────────────────────────────
