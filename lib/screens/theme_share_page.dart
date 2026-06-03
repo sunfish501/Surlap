@@ -135,17 +135,50 @@ class _ThemeSharePageState extends ConsumerState<ThemeSharePage> {
   }
 
   Widget _empty(SpaceHourColors sh, _Tab tab) {
-    final msg = switch (tab) {
-      _Tab.received => '공유받은 테마가 없어요\n코드로 가져오기로 받아보세요',
-      _Tab.shared => '아직 공유한 테마가 없어요\n비공개 테마에서 공유해보세요',
-      _Tab.private => '저장한 일정 테마가 없어요',
+    final (IconData icon, String title, String sub) = switch (tab) {
+      _Tab.received => (
+          Icons.inbox_rounded,
+          '공유받은 테마가 없어요',
+          '친구에게 받은 코드로 가져와보세요'
+        ),
+      _Tab.shared => (
+          Icons.ios_share_rounded,
+          '아직 공유한 테마가 없어요',
+          '비공개 테마에서 공유를 시작해보세요'
+        ),
+      _Tab.private => (
+          Icons.bookmark_border_rounded,
+          '저장한 일정 테마가 없어요',
+          '자주 쓰는 일정 테마를 만들어보세요'
+        ),
     };
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 40),
+      padding: const EdgeInsets.symmetric(vertical: 48),
       child: Center(
-        child: Text(msg,
-            textAlign: TextAlign.center,
-            style: AppType.body.copyWith(color: sh.inkFaint, height: 1.5)),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 64,
+              height: 64,
+              decoration: BoxDecoration(
+                color: sh.accent.withValues(alpha: 0.10),
+                shape: BoxShape.circle,
+              ),
+              alignment: Alignment.center,
+              child: Icon(icon, size: 28, color: sh.accent),
+            ),
+            const SizedBox(height: 16),
+            Text(title,
+                style: AppType.body.copyWith(
+                    fontSize: 15, fontWeight: FontWeight.w700, color: sh.ink)),
+            const SizedBox(height: 4),
+            Text(sub,
+                textAlign: TextAlign.center,
+                style: AppType.label.copyWith(
+                    fontSize: 12.5, color: sh.inkSoft, height: 1.4)),
+          ],
+        ),
       ),
     );
   }
