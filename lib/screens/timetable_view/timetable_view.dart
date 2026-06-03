@@ -87,7 +87,7 @@ class _TimetableViewState extends ConsumerState<TimetableView> {
   static const _timeLblW = 52.0;
   static const _divH   = 3.0;  // wk-divider height
   static const _hdrH   = 48.0; // day header height (shows dow + date)
-  static const _tlbH   = 32.0; // toolbar height
+  static const _tlbH   = 42.0; // toolbar height
 
   // NEIS cache: di(0=Mon..6=Sun) → period → subject
   final Map<int, Map<int, String>> _neisData = {};
@@ -567,22 +567,22 @@ class _TimetableViewState extends ConsumerState<TimetableView> {
             padding: const EdgeInsets.symmetric(horizontal: Gap.md, vertical: 4),
             child: Row(
               children: [
-                _DesignModeBtn(
-                  active: _designMode,
-                  onTap: () => setState(() => _designMode = !_designMode),
-                ),
-                const Spacer(),
                 if (school != null) ...[
                   Icon(Icons.school_outlined, size: 13, color: sh.inkFaint),
                   const SizedBox(width: Gap.xs),
                   Text('${school.name} ${school.grade}학년',
                       style: AppType.label.copyWith(color: sh.inkFaint)),
                 ],
+                const Spacer(),
+                _DesignModeBtn(
+                  active: _designMode,
+                  onTap: () => setState(() => _designMode = !_designMode),
+                ),
               ],
             ),
           ),
         ),
-        Divider(height: 1, color: sh.border),
+        Divider(height: 1, color: _gridLine(sh)),
 
         // ── Scrollable grid ──────────────────────────────────────
         Expanded(
@@ -793,23 +793,36 @@ class _DesignModeBtn extends StatelessWidget {
     final sh = context.sh;
     return GestureDetector(
       onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: Gap.sm, vertical: 4),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 160),
+        curve: Curves.easeOutCubic,
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
         decoration: BoxDecoration(
           color: active ? sh.accent : sh.card2,
-          borderRadius: BorderRadius.circular(Radii.small),
-          border: Border.all(color: active ? sh.accent : sh.border),
+          borderRadius: BorderRadius.circular(999),
+          border: Border.all(
+              color: active ? sh.accent : sh.ink.withValues(alpha: 0.06)),
+          boxShadow: active
+              ? [
+                  BoxShadow(
+                    color: sh.accent.withValues(alpha: 0.28),
+                    blurRadius: 8,
+                    offset: const Offset(0, 2),
+                  ),
+                ]
+              : null,
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text('🎨', style: const TextStyle(fontSize: 12)),
-            const SizedBox(width: 4),
+            Icon(Icons.palette_outlined,
+                size: 14, color: active ? Colors.white : sh.inkSoft),
+            const SizedBox(width: 5),
             Text(
-              active ? '디자인 모드 켜짐' : '셀 디자인',
+              active ? '디자인 켜짐' : '셀 디자인',
               style: AppType.label.copyWith(
                   color: active ? Colors.white : sh.inkSoft,
-                  fontWeight: FontWeight.w600),
+                  fontWeight: FontWeight.w700),
             ),
           ],
         ),

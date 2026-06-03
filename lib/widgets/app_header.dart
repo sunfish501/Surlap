@@ -107,8 +107,9 @@ class _AppHeaderState extends ConsumerState<AppHeader> {
               ),
             ),
 
-          // ── 뷰 세그먼트 탭 (홈에서 숨김) ────────────────────
-          if (!isHome) Padding(
+          // ── 뷰 세그먼트 탭 (홈·시간표에서 숨김) ──────────────
+          // 시간표는 세그먼트(연/월/주/일) 대상이 아니므로 숨긴다.
+          if (!isHome && !isTimetable) Padding(
             padding: const EdgeInsets.fromLTRB(Gap.xl, Gap.sm, Gap.xl, Gap.sm),
             child: _ViewSegment(view: view, notifier: notifier, sh: sh),
           ),
