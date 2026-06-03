@@ -91,11 +91,11 @@ class SpaceHourBottomNav extends ConsumerWidget {
             tint: tint,
             borderColor: borderColor,
             shadowColor: shadowColor,
-            shadowBlur: 34,
-            shadowOffset: const Offset(0, 14),
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
+            shadowBlur: 30,
+            shadowOffset: const Offset(0, 12),
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
             child: SizedBox(
-              height: 56,
+              height: 44,
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: tabs.map((t) => _NavBtn(tab: t, dark: dark)).toList(),
@@ -188,14 +188,14 @@ class _NavBtn extends StatelessWidget {
         onTap: tab.onTap,
         behavior: HitTestBehavior.opaque,
         child: SizedBox(
-          width: 54,
-          height: 58,
+          width: 50,
+          height: 44,
           child: Center(
             child: AnimatedContainer(
               duration: const Duration(milliseconds: 220),
               curve: Curves.easeOutCubic,
-              width: active ? 46 : 38,
-              height: active ? 42 : 38,
+              width: active ? 44 : 36,
+              height: active ? 36 : 34,
               decoration: BoxDecoration(
                 color: active ? activePillColor : Colors.transparent,
                 borderRadius: BorderRadius.circular(23),
