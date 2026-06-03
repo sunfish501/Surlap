@@ -1,8 +1,11 @@
 // auth.js 대응 — 아이디는 '<id>@cal-id.local' 이메일로 합성.
 // Supabase Dashboard에서 이메일 확인 비활성화 필요.
+import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import '../core/constants/storage_keys.dart';
+import '../storage/local_store.dart';
 import 'supabase_client.dart';
 import 'account_scope.dart';
 
@@ -30,7 +33,47 @@ class AuthNotifier extends Notifier<User?> {
       // 계정 스코프 전환 + pull + provider invalidate 단일 처리
       AccountScope.applyAuth(ref, user);
     });
-    return sb?.auth.currentUser;
+    final current = sb?.auth.currentUser;
+    // Supabase 세션이 복원되지 않았으면 로컬 자격증명으로 자동 로그인 시도.
+    if (current == null) {
+      Future.microtask(tryAutoLogin);
+    }
+    return current;
+  }
+
+  // ── 자동 로그인용 자격증명 (전역 저장, base64 난독화) ──────────
+  Future<void> _saveCredentials(String id, String password) async {
+    final ls = LocalStore.instance;
+    await ls.setString(StorageKeys.savedAuthId, id.toLowerCase().trim());
+    await ls.setString(
+        StorageKeys.savedAuthPw, base64Encode(utf8.encode(password)));
+  }
+
+  Future<void> _clearCredentials() async {
+    final ls = LocalStore.instance;
+    await ls.remove(StorageKeys.savedAuthId);
+    await ls.remove(StorageKeys.savedAuthPw);
+  }
+
+  /// 앱 시작 시: 활성 세션이 없고 로컬에 저장된 로그인 기록이 있으면 재로그인.
+  Future<void> tryAutoLogin() async {
+    if (state != null) return; // 이미 세션 복원됨
+    final ls = LocalStore.instance;
+    final id = ls.getString(StorageKeys.savedAuthId);
+    final pwEnc = ls.getString(StorageKeys.savedAuthPw);
+    if (id == null || id.isEmpty || pwEnc == null || pwEnc.isEmpty) return;
+    String pw;
+    try {
+      pw = utf8.decode(base64Decode(pwEnc));
+    } catch (_) {
+      return; // 손상된 값 → 무시
+    }
+    try {
+      await signInWithId(id, pw);
+    } catch (e) {
+      // 실패해도 자격증명은 유지(네트워크 일시 오류일 수 있음).
+      debugPrint('[Auth] 자동 로그인 실패: $e');
+    }
   }
 
   Future<void> signInWithId(String id, String password) async {
@@ -41,6 +84,7 @@ class AuthNotifier extends Notifier<User?> {
       final res = await client.auth.signInWithPassword(
           email: idToEmail(id), password: password);
       state = res.user;
+      await _saveCredentials(id, password); // 자동 로그인용 저장
       // 스코프 전환 + 데이터 pull + invalidate 는 onAuthStateChange→AccountScope 처리
     } catch (e, st) {
       debugPrint('[Auth] signInWithId 실패: ${e.runtimeType} → $e');
@@ -58,6 +102,7 @@ class AuthNotifier extends Notifier<User?> {
           email: idToEmail(id), password: password,
           data: {'id': id});
       state = res.user;
+      await _saveCredentials(id, password); // 자동 로그인용 저장
       // 신규 계정은 빈 데이터로 시작(게스트 데이터는 guest 스코프에 보존).
       // 스코프 전환/invalidate 는 AccountScope 가 처리.
     } catch (e, st) {
@@ -84,6 +129,7 @@ class AuthNotifier extends Notifier<User?> {
   }
 
   Future<void> signOut() async {
+    await _clearCredentials(); // 자동 로그인 비활성화
     await sb?.auth.signOut();
     state = null;
   }

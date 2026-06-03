@@ -24,6 +24,11 @@ abstract final class StorageKeys {
   static const backupConfig  = 'calendar-backup-config-v1';
   static const supabaseHashes = 'calendar_supabase_hashes_v1';
 
+  // 자동 로그인용 자격증명 — 전역(계정 스코프 제외, accountKeys에 넣지 말 것).
+  // 비밀번호는 base64로 난독화 저장(앱 전용 SharedPreferences).
+  static const savedAuthId   = 'calendar-saved-auth-id-v1';
+  static const savedAuthPw   = 'calendar-saved-auth-pw-v1';
+
   /// 계정 종속 데이터 키 — 계정별로 분리 저장(스코프 프리픽스)된다.
   /// 기기 설정성 키(colorPreset, weekStart, continuousView, notifyEnabled,
   /// show-past)는 제외 — 기기에 그대로 남는다.
