@@ -19,6 +19,7 @@ Future<void> showAddEditEventModal(
     context: context,
     isScrollControlled: true,
     useSafeArea: true,
+    backgroundColor: Colors.transparent,
     builder: (_) => AddEditEventModal(
       dateKey: dateKey,
       editIndex: editIndex,
@@ -79,18 +80,37 @@ class _AddEditEventModalState extends ConsumerState<AddEditEventModal> {
     return Padding(
       padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
       child: Container(
-        color: sh.card,
-        padding: const EdgeInsets.fromLTRB(Gap.lg, Gap.lg, Gap.lg, Gap.xl),
+        decoration: BoxDecoration(
+          color: sh.card,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+        ),
+        padding: const EdgeInsets.fromLTRB(Gap.lg, Gap.sm, Gap.lg, Gap.xl),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // 그랩 핸들
+            Center(
+              child: Container(
+                width: 40,
+                height: 4,
+                margin: const EdgeInsets.only(bottom: 16),
+                decoration: BoxDecoration(
+                  color: sh.ink.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+            ),
             // 제목
             Row(
               children: [
                 Text(
                   isEdit ? '일정 편집' : '일정 추가',
-                  style: AppType.title.copyWith(color: sh.ink),
+                  style: AppType.title.copyWith(
+                      fontSize: 21,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: -0.3,
+                      color: sh.ink),
                 ),
                 const Spacer(),
                 if (isEdit)
@@ -211,11 +231,12 @@ class _AddEditEventModalState extends ConsumerState<AddEditEventModal> {
                     onPressed: () => Navigator.pop(context),
                     style: OutlinedButton.styleFrom(
                         foregroundColor: sh.inkSoft,
-                        side: BorderSide(color: sh.border),
-                        minimumSize: const Size.fromHeight(kMinTouch),
+                        side: BorderSide(color: sh.ink.withValues(alpha: 0.12)),
+                        minimumSize: const Size.fromHeight(52),
                         shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(Radii.card))),
-                    child: const Text('취소'),
+                            borderRadius: BorderRadius.circular(16))),
+                    child: const Text('취소',
+                        style: TextStyle(fontWeight: FontWeight.w700)),
                   ),
                 ),
                 const SizedBox(width: Gap.md),
@@ -225,11 +246,13 @@ class _AddEditEventModalState extends ConsumerState<AddEditEventModal> {
                     onPressed: _save,
                     style: FilledButton.styleFrom(
                       backgroundColor: sh.accent,
-                      minimumSize: const Size.fromHeight(kMinTouch),
+                      minimumSize: const Size.fromHeight(52),
                       shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(Radii.card)),
+                          borderRadius: BorderRadius.circular(16)),
                     ),
-                    child: const Text('저장'),
+                    child: Text(isEdit ? '저장' : '추가',
+                        style: const TextStyle(
+                            fontSize: 15, fontWeight: FontWeight.w800)),
                   ),
                 ),
               ],
@@ -346,8 +369,8 @@ class _FieldRow extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: Gap.md, vertical: Gap.md),
           decoration: BoxDecoration(
             color: sh.card2,
-            borderRadius: BorderRadius.circular(Radii.small),
-            border: Border.all(color: sh.border),
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: sh.ink.withValues(alpha: 0.06)),
           ),
           child: child,
         ),
@@ -372,10 +395,14 @@ class _TimeBtn extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: Gap.md, vertical: Gap.sm),
         decoration: BoxDecoration(
-          color: value != null ? sh.accentBg : sh.card,
-          borderRadius: BorderRadius.circular(Radii.small),
+          color: value != null
+              ? sh.accent.withValues(alpha: 0.12)
+              : sh.card,
+          borderRadius: BorderRadius.circular(12),
           border: Border.all(
-              color: value != null ? sh.accent : sh.border),
+              color: value != null
+                  ? sh.accent.withValues(alpha: 0.5)
+                  : sh.ink.withValues(alpha: 0.10)),
         ),
         child: Text(
           value ?? hint,
