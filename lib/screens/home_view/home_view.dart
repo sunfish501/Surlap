@@ -118,30 +118,33 @@ class _HomeViewState extends ConsumerState<HomeView> {
                 onTap: () => notifier.setDayView(todayKey),
                 onAdd: () => showAddEditEventModal(context, dateKey: todayKey),
               ),
-              const SizedBox(height: Gap.sm),
+              const SizedBox(height: _cardGap),
               // 두 번째 행: 급식 + 오늘 통계
-              Row(
-                children: [
-                  Expanded(
-                    child: _MealCard(
-                      sh: sh,
-                      meal: _mealText,
-                      loaded: _mealLoaded,
-                      error: _mealError,
-                      onRetry: _loadMeal,
+              IntrinsicHeight(
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Expanded(
+                      child: _MealCard(
+                        sh: sh,
+                        meal: _mealText,
+                        loaded: _mealLoaded,
+                        error: _mealError,
+                        onRetry: _loadMeal,
+                      ),
                     ),
-                  ),
-                  const SizedBox(width: Gap.sm),
-                  Expanded(
-                    child: _TodayStatsCard(
-                      sh: sh,
-                      count: todayAll.length,
-                      onTap: () => notifier.setDayView(todayKey),
+                    const SizedBox(width: _cardGap),
+                    Expanded(
+                      child: _TodayStatsCard(
+                        sh: sh,
+                        count: todayAll.length,
+                        onTap: () => notifier.setDayView(todayKey),
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-              const SizedBox(height: Gap.sm),
+              const SizedBox(height: _cardGap),
               // 이번 주 미니 스트립
               _WeekStripCard(
                 sh: sh,
@@ -176,26 +179,74 @@ class _HomeViewState extends ConsumerState<HomeView> {
                 : '오늘 하루도 수고했어요 🌆';
 
     return Padding(
-      padding: const EdgeInsets.fromLTRB(Gap.xl, Gap.sm, Gap.xl, Gap.md),
+      padding: const EdgeInsets.fromLTRB(Gap.xl, Gap.sm, Gap.xl, Gap.lg),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // 작은 오버라인 — 따뜻한 톤의 한 줄.
+          Text(greeting,
+              style: AppType.label.copyWith(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  letterSpacing: 0,
+                  color: sh.accent)),
+          const SizedBox(height: 6),
           Text(
             '${now.month}월 ${now.day}일 $dow요일',
             style: AppType.title.copyWith(
-                fontSize: 26,
-                fontWeight: FontWeight.w700,
+                fontSize: 28,
+                fontWeight: FontWeight.w800,
+                letterSpacing: -0.6,
                 color: sh.ink,
-                height: 1.2),
+                height: 1.15),
           ),
-          const SizedBox(height: 4),
-          Text(greeting,
-              style: AppType.body.copyWith(color: sh.inkSoft)),
         ],
       ),
     );
   }
 }
+
+// ─── 홈 공통 스타일 (이 화면에서만 적용 — 전역 토큰은 유지) ──────────
+const double _cardGap = 14;
+const double _cardRadius = 22;
+
+BoxDecoration _softCard(SpaceHourColors sh,
+        {Color? color, double radius = _cardRadius, Color? border}) =>
+    BoxDecoration(
+      color: color ?? sh.card,
+      borderRadius: BorderRadius.circular(radius),
+      border: Border.all(color: border ?? sh.ink.withValues(alpha: 0.05)),
+      boxShadow: [
+        BoxShadow(
+          color: Colors.black.withValues(alpha: sh.dark ? 0.30 : 0.06),
+          blurRadius: 24,
+          offset: const Offset(0, 10),
+        ),
+      ],
+    );
+
+/// 이모지를 둥근 틴트 배지 안에 넣어 정돈된 헤더 라벨을 만든다.
+Widget _badgeLabel(SpaceHourColors sh, String emoji, String label, Color tint) =>
+    Row(
+      children: [
+        Container(
+          width: 30,
+          height: 30,
+          decoration: BoxDecoration(
+            color: tint,
+            borderRadius: BorderRadius.circular(10),
+          ),
+          alignment: Alignment.center,
+          child: Text(emoji, style: const TextStyle(fontSize: 15)),
+        ),
+        const SizedBox(width: 8),
+        Text(label,
+            style: AppType.label.copyWith(
+                fontSize: 12.5,
+                fontWeight: FontWeight.w700,
+                color: sh.inkSoft)),
+      ],
+    );
 
 // ─── 다음 일정 카드 ──────────────────────────────────────────────
 class _NextEventCard extends StatelessWidget {
@@ -221,28 +272,21 @@ class _NextEventCard extends StatelessWidget {
     final next = hasNext ? upcoming.first : null;
     final themeColor = next != null ? _resolveColor(next) : null;
 
+    final accent = themeColor ?? sh.accent;
+
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.all(Gap.lg),
-        decoration: BoxDecoration(
+        padding: const EdgeInsets.all(20),
+        decoration: _softCard(
+          sh,
+          radius: 24,
           color: hasNext
-              ? (themeColor ?? sh.accent).withValues(alpha: sh.dark ? 0.18 : 0.10)
+              ? accent.withValues(alpha: sh.dark ? 0.18 : 0.09)
               : sh.card,
-          borderRadius: BorderRadius.circular(Radii.card),
-          border: Border.all(
-            color: hasNext
-                ? (themeColor ?? sh.accent).withValues(alpha: 0.35)
-                : sh.border,
-            width: 1,
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: sh.dark ? 0.3 : 0.06),
-              blurRadius: 12,
-              offset: const Offset(0, 4),
-            ),
-          ],
+          border: hasNext
+              ? accent.withValues(alpha: 0.28)
+              : sh.ink.withValues(alpha: 0.05),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -251,52 +295,96 @@ class _NextEventCard extends StatelessWidget {
               children: [
                 Container(
                   padding: const EdgeInsets.symmetric(
-                      horizontal: Gap.sm, vertical: 3),
+                      horizontal: 10, vertical: 5),
                   decoration: BoxDecoration(
-                    color: (themeColor ?? sh.accent).withValues(alpha: 0.15),
-                    borderRadius: BorderRadius.circular(20),
+                    color: accent.withValues(alpha: 0.16),
+                    borderRadius: BorderRadius.circular(999),
                   ),
                   child: Text(
                     '다음 일정',
                     style: AppType.label.copyWith(
+                        fontSize: 11.5,
                         color: themeColor ?? sh.accentInk,
-                        fontWeight: FontWeight.w700),
+                        fontWeight: FontWeight.w800),
                   ),
                 ),
                 const Spacer(),
                 if (allToday.length > 1)
                   Text('오늘 총 ${allToday.length}개',
-                      style: AppType.label.copyWith(color: sh.inkSoft)),
+                      style: AppType.label.copyWith(
+                          fontSize: 12, color: sh.inkSoft)),
               ],
             ),
-            const SizedBox(height: Gap.sm),
+            const SizedBox(height: 14),
             if (hasNext) ...[
-              Text(
-                next!.t,
-                style: AppType.section.copyWith(
-                    fontWeight: FontWeight.w700, color: sh.ink),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      next!.t,
+                      style: AppType.title.copyWith(
+                          fontSize: 19,
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: -0.3,
+                          color: sh.ink),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  Icon(Icons.chevron_right_rounded,
+                      size: 22, color: accent.withValues(alpha: 0.7)),
+                ],
               ),
               if (next.tm != null) ...[
-                const SizedBox(height: 4),
-                Text(
-                  '⏰ ${next.tm}${next.te != null ? ' ~ ${next.te}' : ''}',
-                  style: AppType.body.copyWith(color: sh.inkSoft),
+                const SizedBox(height: 8),
+                Row(
+                  children: [
+                    Icon(Icons.schedule_rounded,
+                        size: 15, color: accent),
+                    const SizedBox(width: 5),
+                    Text(
+                      '${next.tm}${next.te != null ? ' ~ ${next.te}' : ''}',
+                      style: AppType.body.copyWith(
+                          fontSize: 13.5,
+                          fontWeight: FontWeight.w600,
+                          color: sh.inkSoft),
+                    ),
+                  ],
                 ),
               ],
             ] else ...[
               Text(
                 allToday.isEmpty ? '오늘 일정이 없어요' : '남은 일정이 없어요',
-                style: AppType.section.copyWith(color: sh.inkFaint),
+                style: AppType.title.copyWith(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w700,
+                    color: sh.inkFaint),
               ),
-              const SizedBox(height: 4),
+              const SizedBox(height: 10),
               GestureDetector(
                 onTap: onAdd,
-                child: Text(
-                  '+ 일정 추가하기',
-                  style: AppType.body.copyWith(
-                      color: sh.accent, fontWeight: FontWeight.w600),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 14, vertical: 9),
+                  decoration: BoxDecoration(
+                    color: sh.accent,
+                    borderRadius: BorderRadius.circular(999),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(Icons.add_rounded,
+                          size: 16, color: Colors.white),
+                      const SizedBox(width: 4),
+                      Text(
+                        '일정 추가하기',
+                        style: AppType.label.copyWith(
+                            fontSize: 13,
+                            color: Colors.white,
+                            fontWeight: FontWeight.w800),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ],
@@ -336,31 +424,14 @@ class _MealCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(Gap.md),
-      constraints: const BoxConstraints(minHeight: 100),
-      decoration: BoxDecoration(
-        color: sh.card,
-        borderRadius: BorderRadius.circular(Radii.card),
-        border: Border.all(color: sh.border, width: 0.5),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: sh.dark ? 0.25 : 0.05),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
+      padding: const EdgeInsets.all(16),
+      constraints: const BoxConstraints(minHeight: 116),
+      decoration: _softCard(sh, radius: 20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(children: [
-            Text('🍱', style: const TextStyle(fontSize: 16)),
-            const SizedBox(width: 4),
-            Text('오늘 급식',
-                style: AppType.label.copyWith(
-                    fontWeight: FontWeight.w700, color: sh.inkSoft)),
-          ]),
-          const SizedBox(height: Gap.sm),
+          _badgeLabel(sh, '🍱', '오늘 급식', sh.accent.withValues(alpha: 0.10)),
+          const SizedBox(height: 12),
           if (!loaded)
             const SizedBox(
               width: 16,
@@ -418,41 +489,36 @@ class _TodayStatsCard extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.all(Gap.md),
-        constraints: const BoxConstraints(minHeight: 100),
-        decoration: BoxDecoration(
-          color: sh.card,
-          borderRadius: BorderRadius.circular(Radii.card),
-          border: Border.all(color: sh.border, width: 0.5),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: sh.dark ? 0.25 : 0.05),
-              blurRadius: 8,
-              offset: const Offset(0, 2),
-            ),
-          ],
-        ),
+        padding: const EdgeInsets.all(16),
+        constraints: const BoxConstraints(minHeight: 116),
+        decoration: _softCard(sh, radius: 20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(children: [
-              Text('📋', style: const TextStyle(fontSize: 16)),
-              const SizedBox(width: 4),
-              Text('오늘 일정',
-                  style: AppType.label.copyWith(
-                      fontWeight: FontWeight.w700, color: sh.inkSoft)),
-            ]),
-            const SizedBox(height: Gap.sm),
-            Text(
-              '$count',
-              style: AppType.title.copyWith(
-                  fontSize: 32,
-                  fontWeight: FontWeight.w700,
-                  color: count > 0 ? sh.accent : sh.inkFaint,
-                  height: 1),
+            _badgeLabel(sh, '📋', '오늘 일정', sh.accent.withValues(alpha: 0.10)),
+            const Spacer(),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.baseline,
+              textBaseline: TextBaseline.alphabetic,
+              children: [
+                Text(
+                  '$count',
+                  style: AppType.title.copyWith(
+                      fontSize: 34,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: -1,
+                      color: count > 0 ? sh.accent : sh.inkFaint,
+                      height: 1),
+                ),
+                const SizedBox(width: 3),
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 3),
+                  child: Text('개',
+                      style: AppType.body.copyWith(
+                          fontWeight: FontWeight.w600, color: sh.inkSoft)),
+                ),
+              ],
             ),
-            Text('개',
-                style: AppType.body.copyWith(color: sh.inkSoft)),
           ],
         ),
       ),
@@ -483,26 +549,13 @@ class _WeekStripCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(Gap.md),
-      decoration: BoxDecoration(
-        color: sh.card,
-        borderRadius: BorderRadius.circular(Radii.card),
-        border: Border.all(color: sh.border, width: 0.5),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: sh.dark ? 0.25 : 0.05),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
+      padding: const EdgeInsets.all(16),
+      decoration: _softCard(sh, radius: 20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('이번 주',
-              style: AppType.label.copyWith(
-                  fontWeight: FontWeight.w700, color: sh.inkSoft)),
-          const SizedBox(height: Gap.sm),
+          _badgeLabel(sh, '🗓️', '이번 주', sh.accent.withValues(alpha: 0.10)),
+          const SizedBox(height: 14),
           Row(
             children: List.generate(7, (i) {
               final d = monday.add(Duration(days: i));
