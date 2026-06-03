@@ -7,6 +7,7 @@ import '../providers/settings_provider.dart';
 import '../utils/screenshot_util.dart';
 import '../widgets/bottom_nav_bar.dart';
 import '../widgets/app_header.dart';
+import '../widgets/app_top_bar.dart';
 import 'home_view/home_view.dart';
 import 'month_view/month_view.dart';
 import 'month_view/continuous_week_view.dart';
@@ -29,48 +30,51 @@ class MainShell extends ConsumerWidget {
       statusBarIconBrightness: sh.dark ? Brightness.light : Brightness.dark,
     ));
 
+    // 투명 overlay 헤더가 status bar 영역까지 덮으므로
+    // 콘텐츠는 그 높이만큼 내려서 시작한다.
+    final topInset = MediaQuery.of(context).padding.top;
+
     return Scaffold(
       backgroundColor: sh.bg,
       resizeToAvoidBottomInset: false,
-      // 콘텐츠가 하단 시스템 영역(home indicator 등)까지 확장되도록 허용
+      // 콘텐츠가 상·하단 시스템 영역까지 확장되도록 허용
       extendBody: true,
-      body: SafeArea(
-        // bottom: false → 그리드/배경이 화면 맨 아래까지 채워짐
-        // 콘텐츠 가림 방지는 각 뷰의 scroll bottom padding으로 처리
-        bottom: false,
-        child: Stack(
-          children: [
-            // ── 메인 콘텐츠 (화면 전체 높이 채움) ──
-            Column(
-              children: [
-                const AppHeader(),
-                Expanded(
-                  child: RepaintBoundary(
-                    key: screenshotKey,
-                    child: AnimatedSwitcher(
-                      duration: const Duration(milliseconds: 240),
-                      switchInCurve: Curves.easeOutCubic,
-                      switchOutCurve: Curves.easeInCubic,
-                      transitionBuilder: (child, anim) => _SlideTransition(
-                        animation: anim,
-                        direction: view.slideDirection,
-                        child: child,
-                      ),
-                      child: KeyedSubtree(
-                        key: ValueKey('${view.mode}_${settings.continuousView}'),
-                        child: _buildView(view.mode, view.viewDay, settings.continuousView),
-                      ),
+      extendBodyBehindAppBar: true,
+      body: Stack(
+        children: [
+          // ── 메인 콘텐츠 (화면 전체 높이 채움) ──
+          Column(
+            children: [
+              // overlay 헤더 높이만큼 공간 확보 (status bar + 바 높이)
+              SizedBox(height: topInset + kTopBarButtonH),
+              const AppHeader(),
+              Expanded(
+                child: RepaintBoundary(
+                  key: screenshotKey,
+                  child: AnimatedSwitcher(
+                    duration: const Duration(milliseconds: 240),
+                    switchInCurve: Curves.easeOutCubic,
+                    switchOutCurve: Curves.easeInCubic,
+                    transitionBuilder: (child, anim) => _SlideTransition(
+                      animation: anim,
+                      direction: view.slideDirection,
+                      child: child,
+                    ),
+                    child: KeyedSubtree(
+                      key: ValueKey('${view.mode}_${settings.continuousView}'),
+                      child: _buildView(view.mode, view.viewDay, settings.continuousView),
                     ),
                   ),
                 ),
-                // SizedBox 제거 — 그리드가 화면 끝까지 확장됨
-                // 스크롤 콘텐츠 가림은 각 뷰 내부의 bottom padding으로 처리
-              ],
-            ),
-            // ── 플로팅 하단 바 (그리드 위에 overlay) ──
-            const SpaceHourBottomNav(),
-          ],
-        ),
+              ),
+              // 스크롤 콘텐츠 가림은 각 뷰 내부의 bottom padding으로 처리
+            ],
+          ),
+          // ── 투명 overlay 상단 헤더 (status bar 위까지) ──
+          const AppOverlayTopBar(),
+          // ── glass 플로팅 하단 바 (콘텐츠 위 overlay) ──
+          const SpaceHourBottomNav(),
+        ],
       ),
     );
   }

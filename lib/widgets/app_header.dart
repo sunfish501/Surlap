@@ -4,16 +4,10 @@ import '../core/theme/app_theme.dart';
 import '../core/theme/design_tokens.dart';
 import '../providers/view_provider.dart';
 import '../providers/settings_provider.dart';
-import '../widgets/sidebar_drawer.dart';
-import '../widgets/coach_mark.dart';
-import '../modals/theme_manager_modal.dart';
-import '../modals/profile_modal.dart';
-import '../utils/screenshot_util.dart';
 
-enum _MoreAction { category, settings, profile }
-
-// ─── 통합 상단 chrome ─────────────────────────────────────────────
-// Brand row / 날짜 앵커 / 모토 / 뷰 세그먼트 탭을 하나의 위젯으로 묶음.
+// ─── 서브 헤더 (날짜 앵커 / 모토 / 뷰 세그먼트) ───────────────────
+// 브랜드 행·공유·더보기는 AppOverlayTopBar(투명 overlay)로 이전됨.
+// 이 위젯은 overlay 아래에 위치하는 일반 sub-header.
 class AppHeader extends ConsumerStatefulWidget {
   const AppHeader({super.key});
 
@@ -64,35 +58,6 @@ class _AppHeaderState extends ConsumerState<AppHeader> {
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
-          // ── 브랜드 행 ──────────────────────────────────────
-          Padding(
-            padding: const EdgeInsets.fromLTRB(Gap.xl, Gap.xs, Gap.xl, 0),
-            child: Row(
-              children: [
-                _SpaceHourLogo(color: sh.inkFaint),
-                const SizedBox(width: Gap.xs),
-                Text('HourSpace',
-                    style: AppType.label.copyWith(
-                        fontWeight: FontWeight.w600,
-                        color: sh.inkSoft,
-                        letterSpacing: -0.2)),
-                const Spacer(),
-                _IconBtn(
-                  icon: Icons.ios_share_outlined,
-                  sh: sh,
-                  onTap: captureAndShare,
-                ),
-                SizedBox(key: coachKeyBtnCategory, width: 0, height: 0),
-                _IconBtn(
-                  key: coachKeyBtnSettings,
-                  icon: Icons.more_horiz,
-                  sh: sh,
-                  onTap: () => _openMore(context, ref, sh),
-                ),
-              ],
-            ),
-          ),
-
           // ── 날짜 앵커 + 탐색 (홈 모드에서 숨김) ─────────────
           if (isHome) const SizedBox.shrink()
           else
@@ -221,30 +186,6 @@ class _AppHeaderState extends ConsumerState<AppHeader> {
       ),
     );
   }
-
-  void _openMore(BuildContext context, WidgetRef ref, SpaceHourColors sh) {
-    showModalBottomSheet<_MoreAction>(
-      context: context,
-      builder: (_) => const _MoreSheet(),
-    ).then((action) {
-      if (action == null || !context.mounted) return;
-      switch (action) {
-        case _MoreAction.category:
-          showThemeManagerModal(context);
-        case _MoreAction.settings:
-          showModalBottomSheet(
-            context: context,
-            isScrollControlled: true,
-            builder: (_) => const FractionallySizedBox(
-              heightFactor: 0.85,
-              child: SidebarDrawer(),
-            ),
-          );
-        case _MoreAction.profile:
-          showProfileModal(context);
-      }
-    });
-  }
 }
 
 // ─── 알약형 뷰 세그먼트 탭 ────────────────────────────────────────
@@ -328,27 +269,6 @@ class _ViewSegment extends StatelessWidget {
             ),
           ));
         }).toList(),
-      ),
-    );
-  }
-}
-
-// ─── 아이콘 버튼 (44×44 터치 영역) ──────────────────────────────
-class _IconBtn extends StatelessWidget {
-  final IconData icon;
-  final SpaceHourColors sh;
-  final VoidCallback onTap;
-  const _IconBtn({super.key, required this.icon, required this.sh, required this.onTap});
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      width: kMinTouch,
-      height: kMinTouch,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(kMinTouch / 2),
-        child: Center(child: Icon(icon, size: 20, color: sh.inkSoft)),
       ),
     );
   }
@@ -514,100 +434,3 @@ class _PickerCol extends StatelessWidget {
   }
 }
 
-// ─── 더보기 바텀시트 ─────────────────────────────────────────────
-class _MoreSheet extends StatelessWidget {
-  const _MoreSheet();
-
-  @override
-  Widget build(BuildContext context) {
-    final sh = context.sh;
-    return Container(
-      color: sh.card,
-      padding: const EdgeInsets.fromLTRB(Gap.xl, Gap.md, Gap.xl, Gap.xl),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          ListTile(
-            contentPadding: EdgeInsets.zero,
-            minLeadingWidth: Gap.xl,
-            leading: Icon(Icons.label_outline_rounded,
-                size: 20, color: sh.inkSoft),
-            title: Text('카테고리 관리',
-                style: AppType.body.copyWith(color: sh.ink)),
-            trailing: Icon(Icons.chevron_right_rounded,
-                size: 18, color: sh.inkFaint),
-            onTap: () => Navigator.pop(context, _MoreAction.category),
-          ),
-          ListTile(
-            contentPadding: EdgeInsets.zero,
-            minLeadingWidth: Gap.xl,
-            leading: Icon(Icons.settings_outlined,
-                size: 20, color: sh.inkSoft),
-            title: Text('설정', style: AppType.body.copyWith(color: sh.ink)),
-            trailing: Icon(Icons.chevron_right_rounded,
-                size: 18, color: sh.inkFaint),
-            onTap: () => Navigator.pop(context, _MoreAction.settings),
-          ),
-          ListTile(
-            contentPadding: EdgeInsets.zero,
-            minLeadingWidth: Gap.xl,
-            leading: Icon(Icons.person_outline_rounded,
-                size: 20, color: sh.inkSoft),
-            title: Text('프로필', style: AppType.body.copyWith(color: sh.ink)),
-            trailing: Icon(Icons.chevron_right_rounded,
-                size: 18, color: sh.inkFaint),
-            onTap: () => Navigator.pop(context, _MoreAction.profile),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-// ─── HourSpace 로고 ──────────────────────────────────────────────
-class _SpaceHourLogo extends StatelessWidget {
-  final Color color;
-  const _SpaceHourLogo({required this.color});
-
-  @override
-  Widget build(BuildContext context) {
-    return CustomPaint(
-      size: const Size(16, 16),
-      painter: _LogoPainter(color: color),
-    );
-  }
-}
-
-class _LogoPainter extends CustomPainter {
-  final Color color;
-  _LogoPainter({required this.color});
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final p = Paint()
-      ..color = color
-      ..strokeWidth = 1.4
-      ..style = PaintingStyle.stroke
-      ..strokeCap = StrokeCap.round;
-
-    final s = size.width;
-    final rrect = RRect.fromRectAndRadius(
-        Rect.fromLTWH(1, 1.5, s - 2, s - 2.5), const Radius.circular(2.5));
-    canvas.drawRRect(rrect, p);
-    canvas.drawLine(Offset(1, s * 0.36), Offset(s - 1, s * 0.36), p);
-    canvas.drawLine(Offset(s * 0.29, 0), Offset(s * 0.29, s * 0.22), p);
-    canvas.drawLine(Offset(s * 0.71, 0), Offset(s * 0.71, s * 0.22), p);
-    final dp = Paint()
-      ..color = color
-      ..style = PaintingStyle.fill;
-    for (final x in [s * 0.3, s * 0.5, s * 0.7]) {
-      canvas.drawCircle(Offset(x, s * 0.59), 1.0, dp);
-    }
-    canvas.drawCircle(Offset(s * 0.3, s * 0.78), 1.0, dp);
-    canvas.drawCircle(Offset(s * 0.5, s * 0.78), 1.0, dp);
-  }
-
-  @override
-  bool shouldRepaint(_LogoPainter old) => old.color != color;
-}

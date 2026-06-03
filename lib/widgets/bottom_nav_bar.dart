@@ -1,15 +1,15 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../core/theme/app_theme.dart';
 import '../core/utils/date_utils.dart' as du;
 import '../providers/view_provider.dart';
 import '../widgets/sidebar_drawer.dart';
+import '../widgets/glass_container.dart';
 import 'coach_mark.dart';
 
-// ─── Floating Pill Bottom Navigation ────────────────────────────
-// 화면 중앙에 떠 있는 작은 capsule 형태. 아이콘만 표시.
-// Active: 흰 pill 안에 어두운 아이콘 / Inactive: 흐린 아이콘
+// ─── Glassmorphism Floating Bottom Navigation ───────────────────
+// 유리판처럼 뒤 콘텐츠가 비치는 반투명 capsule. 화면 위에 overlay.
+// Active: 밝은 capsule + 진한 아이콘 / Inactive: 흐린 아이콘
 class SpaceHourBottomNav extends ConsumerWidget {
   const SpaceHourBottomNav({super.key});
 
@@ -18,6 +18,7 @@ class SpaceHourBottomNav extends ConsumerWidget {
     final view     = ref.watch(viewProvider);
     final notifier = ref.read(viewProvider.notifier);
     final sh       = context.sh;
+    final dark     = sh.dark;
 
     String todayKey() => du.toDateKey(DateTime.now());
 
@@ -73,14 +74,16 @@ class SpaceHourBottomNav extends ConsumerWidget {
       ),
     ];
 
-    // ── 컨테이너 색상 (다크/라이트 분기) ─────────────────────
-    final containerColor = sh.dark
-        ? Colors.black.withValues(alpha: 0.70)
-        : Colors.white.withValues(alpha: 0.85);
-    final borderColor = sh.dark
-        ? Colors.white.withValues(alpha: 0.10)
-        : Colors.white.withValues(alpha: 0.70);
-    final shadowColor = Colors.black.withValues(alpha: sh.dark ? 0.45 : 0.14);
+    // ── glass 색상 (다크/라이트 분기) ──────────────────────────
+    // 밝은 배경: 흰 frost(높은 불투명) + 옅은 어두운 hairline + shadow로 capsule 정의
+    // 어두운 배경: 검정 frost + 밝은 border
+    final tint = dark
+        ? Colors.black.withValues(alpha: 0.55)
+        : Colors.white.withValues(alpha: 0.62);
+    final borderColor = dark
+        ? Colors.white.withValues(alpha: 0.14)
+        : Colors.black.withValues(alpha: 0.06);
+    final shadowColor = Colors.black.withValues(alpha: dark ? 0.45 : 0.12);
 
     return Positioned(
       left: 0,
@@ -88,34 +91,20 @@ class SpaceHourBottomNav extends ConsumerWidget {
       bottom: 12,
       child: SafeArea(
         child: Center(
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(40),
-            child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
-              child: Container(
-                key: coachKeyBottomNav,
-                height: 58,
-                padding: const EdgeInsets.symmetric(horizontal: 6),
-                decoration: BoxDecoration(
-                  color: containerColor,
-                  borderRadius: BorderRadius.circular(40),
-                  border: Border.all(color: borderColor, width: 1),
-                  boxShadow: [
-                    BoxShadow(
-                      color: shadowColor,
-                      blurRadius: 24,
-                      offset: const Offset(0, 8),
-                    ),
-                  ],
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: tabs.map((t) => _NavBtn(
-                    tab: t,
-                    dark: sh.dark,
-                    // 라이트 다크 모두 accent 색 힌트를 미사용 — 흰 pill로 통일
-                  )).toList(),
-                ),
+          child: GlassContainer(
+            key: coachKeyBottomNav,
+            borderRadius: 32,
+            blur: 22,
+            tint: tint,
+            borderColor: borderColor,
+            shadowColor: shadowColor,
+            shadowBlur: 24,
+            padding: const EdgeInsets.symmetric(horizontal: 6),
+            child: SizedBox(
+              height: 58,
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: tabs.map((t) => _NavBtn(tab: t, dark: dark)).toList(),
               ),
             ),
           ),
@@ -155,12 +144,14 @@ class _NavBtn extends StatelessWidget {
   Widget build(BuildContext context) {
     final active = tab.isActive;
 
-    // Active pill: 항상 흰색 → 라이트/다크 모두 선명하게
-    const activePillColor = Colors.white;
-    final activeIconColor = dark ? Colors.black87 : Colors.black;
+    // Active: glass 위에서 더 밝은 capsule로 강조
+    final activePillColor = dark
+        ? Colors.white.withValues(alpha: 0.90)
+        : Colors.white.withValues(alpha: 0.95);
+    final activeIconColor = Colors.black.withValues(alpha: 0.90);
     final inactiveIconColor = dark
-        ? Colors.white.withValues(alpha: 0.45)
-        : Colors.black.withValues(alpha: 0.40);
+        ? Colors.white.withValues(alpha: 0.55)
+        : Colors.black.withValues(alpha: 0.48);
 
     return Semantics(
       label: tab.label,
