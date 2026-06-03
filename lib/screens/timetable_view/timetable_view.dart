@@ -383,9 +383,10 @@ class _TimetableViewState extends ConsumerState<TimetableView> {
         return AlertDialog(
           backgroundColor: sh.card,
           shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(Radii.card)),
+              borderRadius: BorderRadius.circular(22)),
           title: Text('${_dowNames[col]}요일 $hour:00 · 매주 반복',
-              style: AppType.body.copyWith(fontWeight: FontWeight.w700, color: sh.ink)),
+              style: AppType.section.copyWith(
+                  fontWeight: FontWeight.w800, color: sh.ink)),
           content: TextField(
             controller: ctrl,
             autofocus: true,
@@ -426,6 +427,7 @@ class _TimetableViewState extends ConsumerState<TimetableView> {
     final current = _designs[key] ?? const _CellDesign();
     showModalBottomSheet(
       context: ctx,
+      backgroundColor: Colors.transparent,
       builder: (_) => _DesignPanel(
         currentDesign: current,
         palette: _palette,
@@ -822,15 +824,30 @@ class _DesignPanelState extends State<_DesignPanel> {
   Widget build(BuildContext context) {
     final sh = widget.sh;
     return Container(
-      color: sh.card,
-      padding: const EdgeInsets.fromLTRB(Gap.lg, Gap.md, Gap.lg, Gap.xl),
+      decoration: BoxDecoration(
+        color: sh.card,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+      ),
+      padding: const EdgeInsets.fromLTRB(Gap.lg, Gap.sm, Gap.lg, Gap.xl),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // 그랩 핸들
+          Center(
+            child: Container(
+              width: 40,
+              height: 4,
+              margin: const EdgeInsets.only(bottom: 14),
+              decoration: BoxDecoration(
+                color: sh.ink.withValues(alpha: 0.12),
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+          ),
           Row(children: [
             Text('셀 디자인', style: AppType.section.copyWith(
-                fontWeight: FontWeight.w700, color: sh.ink)),
+                fontWeight: FontWeight.w800, color: sh.ink)),
             const Spacer(),
             TextButton(
               onPressed: () {
@@ -896,7 +913,14 @@ class _DesignPanelState extends State<_DesignPanel> {
                 widget.onApply(_CellDesign(bg: _bg, bold: _bold));
                 Navigator.pop(context);
               },
-              child: const Text('적용'),
+              style: FilledButton.styleFrom(
+                backgroundColor: sh.accent,
+                minimumSize: const Size.fromHeight(52),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16)),
+              ),
+              child: const Text('적용',
+                  style: TextStyle(fontSize: 15, fontWeight: FontWeight.w800)),
             ),
           ),
         ],
