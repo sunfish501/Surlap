@@ -112,7 +112,10 @@ class DayCell extends StatelessWidget {
       child: Container(
         clipBehavior: Clip.hardEdge,
         decoration: BoxDecoration(
-          color: Colors.transparent,
+          // 오늘 칸은 은은한 브랜드 틴트로 강조(따뜻한 톤).
+          color: isToday
+              ? sh.accent.withValues(alpha: sh.dark ? 0.12 : 0.06)
+              : Colors.transparent,
           // 세로선 제거 — 가로선만 아주 약하게(planner 느낌)
           border: Border(
             bottom: BorderSide(

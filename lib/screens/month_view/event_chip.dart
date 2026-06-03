@@ -23,13 +23,14 @@ class EventChip extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        margin: const EdgeInsets.only(bottom: 1.5),
-        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1.5),
+        margin: const EdgeInsets.only(bottom: 2),
+        padding: const EdgeInsets.fromLTRB(5, 2, 5, 2.5),
         decoration: BoxDecoration(
           color: themeColor != null
-              ? themeColor.withValues(alpha: sh.dark ? 0.22 : 0.15)
-              : sh.card2,
-          borderRadius: BorderRadius.circular(4),
+              ? themeColor.withValues(alpha: sh.dark ? 0.22 : 0.14)
+              // 미분류 일정도 카드보다 한 단계 따뜻한 연한 틴트로.
+              : sh.accent.withValues(alpha: sh.dark ? 0.16 : 0.07),
+          borderRadius: BorderRadius.circular(6),
           boxShadow: (sh.dark && themeColor != null)
               ? [BoxShadow(
                   color: themeColor.withValues(alpha: 0.18),
@@ -39,18 +40,19 @@ class EventChip extends StatelessWidget {
         ),
         child: Row(
           children: [
-            if (themeColor != null)
-              Container(
-                width: 5, height: 5,
-                margin: const EdgeInsets.only(right: 3),
-                decoration: BoxDecoration(
-                  color: themeColor, shape: BoxShape.circle),
-              ),
+            Container(
+              width: 5, height: 5,
+              margin: const EdgeInsets.only(right: 4),
+              decoration: BoxDecoration(
+                color: themeColor ?? sh.accent.withValues(alpha: 0.7),
+                shape: BoxShape.circle),
+            ),
             Expanded(
               child: Text(
                 item.t,
                 style: TextStyle(
                   fontSize: 10.5,
+                  fontWeight: FontWeight.w500,
                   color: sh.ink,
                   height: 1.3,
                 ),

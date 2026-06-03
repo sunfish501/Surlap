@@ -83,13 +83,14 @@ class MonthGrid extends StatelessWidget {
                   child: Text(
                     e.value,
                     style: AppType.label.copyWith(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w600,
+                      fontSize: 11.5,
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: 0.2,
                       color: isSunHeader
-                          ? sh.sun.withValues(alpha: 0.8)
+                          ? sh.sun.withValues(alpha: 0.85)
                           : isSatHeader
-                              ? sh.sat.withValues(alpha: 0.8)
-                              : sh.inkFaint,
+                              ? sh.sat.withValues(alpha: 0.85)
+                              : sh.ink.withValues(alpha: 0.45),
                     ),
                   ),
                 ),

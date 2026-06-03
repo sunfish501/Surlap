@@ -58,8 +58,16 @@ class MonthView extends ConsumerWidget {
       margin: const EdgeInsets.fromLTRB(Gap.md, Gap.xs, Gap.md, 0),
       decoration: BoxDecoration(
         color: sh.card,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
         border: Border.all(color: sh.ink.withValues(alpha: 0.04)),
+        // 캘린더 카드를 살짝 띄우는 부드러운 그림자(따뜻한 톤).
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: sh.dark ? 0.30 : 0.06),
+            blurRadius: 22,
+            offset: const Offset(0, 6),
+          ),
+        ],
       ),
       clipBehavior: Clip.antiAlias,
       child: MonthGrid(
