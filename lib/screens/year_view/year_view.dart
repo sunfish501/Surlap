@@ -7,6 +7,9 @@ import '../../core/utils/date_utils.dart' as du;
 import '../../providers/events_provider.dart';
 import '../../utils/screenshot_util.dart' show screenshotKey;
 
+// 연간 미니 월 카드 라운드(홈·캘린더 톤과 통일).
+const double _yRadius = 18;
+
 class YearView extends ConsumerWidget {
   const YearView({super.key});
 
@@ -78,15 +81,15 @@ class _MiniMonthCard extends StatelessWidget {
       child: Container(
         decoration: BoxDecoration(
           color: sh.card,
-          borderRadius: BorderRadius.circular(Radii.card),
+          borderRadius: BorderRadius.circular(_yRadius),
           border: isCurrentMonth
               ? Border.all(color: sh.accent, width: 1.5)
-              : Border.all(color: sh.border, width: 0.5),
+              : Border.all(color: sh.ink.withValues(alpha: 0.05)),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.04),
-              blurRadius: 6,
-              offset: const Offset(0, 2),
+              color: Colors.black.withValues(alpha: sh.dark ? 0.28 : 0.05),
+              blurRadius: 14,
+              offset: const Offset(0, 6),
             ),
           ],
         ),
@@ -94,18 +97,21 @@ class _MiniMonthCard extends StatelessWidget {
           children: [
             // 월 헤더
             Container(
-              padding: const EdgeInsets.symmetric(vertical: 5),
+              padding: const EdgeInsets.symmetric(vertical: 6),
               decoration: BoxDecoration(
-                color: isCurrentMonth ? sh.accentBg : sh.card2,
+                color: isCurrentMonth
+                    ? sh.accent.withValues(alpha: 0.12)
+                    : sh.card2,
                 borderRadius:
-                    const BorderRadius.vertical(top: Radius.circular(Radii.card)),
+                    const BorderRadius.vertical(top: Radius.circular(_yRadius)),
               ),
               child: Center(
                 child: Text(
                   _monthNames[month - 1],
                   style: AppType.label.copyWith(
-                    fontWeight: FontWeight.w700,
-                    color: isCurrentMonth ? sh.accentInk : sh.inkSoft,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w800,
+                    color: isCurrentMonth ? sh.accent : sh.inkSoft,
                   ),
                 ),
               ),
@@ -158,14 +164,21 @@ class _MiniMonthGrid extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
       child: Column(
         children: [
-          // 요일 헤더
+          // 요일 헤더 (일=빨강, 토=파랑 살짝)
           Row(
             children: List.generate(
               7,
               (i) => Expanded(
                 child: Center(
                   child: Text(_dow[i],
-                      style: TextStyle(fontSize: 7, color: sh.inkFaint)),
+                      style: TextStyle(
+                          fontSize: 7,
+                          fontWeight: FontWeight.w600,
+                          color: i == 0
+                              ? sh.sun.withValues(alpha: 0.7)
+                              : i == 6
+                                  ? sh.sat.withValues(alpha: 0.7)
+                                  : sh.inkFaint)),
                 ),
               ),
             ),
@@ -192,11 +205,11 @@ class _MiniMonthGrid extends StatelessWidget {
                       return Expanded(
                         child: Center(
                           child: Container(
-                            width: 14,
-                            height: 14,
+                            width: 15,
+                            height: 15,
                             decoration: isToday
                                 ? BoxDecoration(
-                                    color: sh.accentBg,
+                                    color: sh.accent,
                                     shape: BoxShape.circle,
                                   )
                                 : null,
@@ -207,8 +220,7 @@ class _MiniMonthGrid extends StatelessWidget {
                                   '$day',
                                   style: TextStyle(
                                     fontSize: 7.5,
-                                    color:
-                                        isToday ? sh.accentInk : sh.ink,
+                                    color: isToday ? Colors.white : sh.ink,
                                     fontWeight: isToday
                                         ? FontWeight.w700
                                         : FontWeight.w400,
@@ -216,12 +228,13 @@ class _MiniMonthGrid extends StatelessWidget {
                                 ),
                                 if (hasEvent)
                                   Positioned(
-                                    bottom: 0,
+                                    bottom: isToday ? 1 : 0,
                                     child: Container(
                                       width: 3,
                                       height: 3,
                                       decoration: BoxDecoration(
-                                        color: sh.accent,
+                                        color:
+                                            isToday ? Colors.white : sh.accent,
                                         shape: BoxShape.circle,
                                       ),
                                     ),
@@ -341,9 +354,9 @@ class _ZoomOverlayState extends State<_ZoomOverlay>
       builder: (context, _) {
         final t = Curves.easeInOutCubic.transform(_c.value);
         final rect = Rect.lerp(widget.source, widget.target, t)!;
-        // 반경: 작은 카드(Radii.card) → 가득 찰 때 0
+        // 반경: 작은 카드(_yRadius) → 가득 찰 때 0
         final br =
-            BorderRadius.circular(Radii.card * (1.0 - t).clamp(0.0, 1.0));
+            BorderRadius.circular(_yRadius * (1.0 - t).clamp(0.0, 1.0));
         // 페이드아웃: t=0.6..1.0
         final fade =
             t < 0.6 ? 1.0 : (1 - (t - 0.6) / 0.4).clamp(0.0, 1.0);
@@ -397,14 +410,13 @@ class _ZoomOverlayState extends State<_ZoomOverlay>
               children: [
                 // 월 헤더 (소스 크기 기준으로 렌더, scale로 같이 커짐)
                 Container(
-                  color: sh.accentBg,
-                  padding: const EdgeInsets.symmetric(vertical: 5),
+                  color: sh.accent.withValues(alpha: 0.12),
+                  padding: const EdgeInsets.symmetric(vertical: 6),
                   alignment: Alignment.center,
                   child: Text(
                     widget.monthLabel,
                     style: AppType.label.copyWith(
-                        fontWeight: FontWeight.w700,
-                        color: sh.accentInk),
+                        fontWeight: FontWeight.w800, color: sh.accent),
                   ),
                 ),
                 // 날짜 그리드 (이벤트 dot 없이 날짜만)
