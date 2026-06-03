@@ -11,7 +11,6 @@ import '../providers/birthdays_provider.dart';
 import '../supabase/auth_service.dart';
 import '../utils/vcf_parser.dart';
 import '../modals/neis_setup_modal.dart';
-import '../modals/timetable_template_modal.dart';
 import '../modals/profile_modal.dart';
 import '../modals/login_dialog.dart';
 import '../widgets/coach_mark.dart';
@@ -163,12 +162,6 @@ class SettingsView extends ConsumerWidget {
                       Navigator.of(context, rootNavigator: true).context;
                   showCoachMarks(rootCtx);
                 },
-              ),
-              SettingsRow(
-                sh: sh,
-                icon: Icons.grid_view_rounded,
-                title: '반복 시간표 설정',
-                onTap: () => showTimetableTemplateModal(context),
               ),
               SettingsRow(
                 sh: sh,
