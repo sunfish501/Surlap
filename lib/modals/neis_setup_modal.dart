@@ -8,6 +8,7 @@ Future<void> showNeisSetupModal(BuildContext context) =>
       context: context,
       isScrollControlled: true,
       useSafeArea: true,
+      backgroundColor: Colors.transparent,
       builder: (_) => const NeisSetupModal(),
     );
 
@@ -34,14 +35,30 @@ class _NeisSetupModalState extends State<NeisSetupModal> {
     return Padding(
       padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
       child: Container(
-        color: sh.card,
-        padding: const EdgeInsets.fromLTRB(20, 20, 20, 32),
+        decoration: BoxDecoration(
+          color: sh.card,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+        ),
+        padding: const EdgeInsets.fromLTRB(20, 10, 20, 32),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // 그랩 핸들
+            Center(
+              child: Container(
+                width: 40,
+                height: 4,
+                margin: const EdgeInsets.only(bottom: 16),
+                decoration: BoxDecoration(
+                  color: sh.ink.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+            ),
             Text('🏫 학교 연결',
-                style: AppType.section.copyWith(fontWeight: FontWeight.w700, color: sh.ink)),
+                style: AppType.section.copyWith(
+                    fontSize: 18, fontWeight: FontWeight.w800, color: sh.ink)),
             const SizedBox(height: Gap.lg),
             // 학교명 검색
             Row(children: [
@@ -134,13 +151,24 @@ class _NeisSetupModalState extends State<NeisSetupModal> {
               Expanded(child: OutlinedButton(
                 onPressed: () => Navigator.pop(context),
                 style: OutlinedButton.styleFrom(
-                    foregroundColor: sh.inkSoft, side: BorderSide(color: sh.border)),
-                child: const Text('취소'),
+                    foregroundColor: sh.inkSoft,
+                    side: BorderSide(color: sh.ink.withValues(alpha: 0.12)),
+                    minimumSize: const Size.fromHeight(52),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16))),
+                child: const Text('취소',
+                    style: TextStyle(fontWeight: FontWeight.w700)),
               )),
-              const SizedBox(width: 10),
+              const SizedBox(width: Gap.md),
               Expanded(flex: 2, child: FilledButton(
                 onPressed: _selected == null ? null : _save,
-                child: const Text('연결'),
+                style: FilledButton.styleFrom(
+                    backgroundColor: sh.accent,
+                    minimumSize: const Size.fromHeight(52),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16))),
+                child: const Text('연결',
+                    style: TextStyle(fontSize: 15, fontWeight: FontWeight.w800)),
               )),
             ]),
           ],

@@ -10,6 +10,7 @@ Future<void> showProfileModal(BuildContext context) => showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       useSafeArea: true,
+      backgroundColor: Colors.transparent,
       builder: (_) => const ProfileModal(),
     );
 
@@ -26,14 +27,34 @@ class ProfileModal extends ConsumerWidget {
     return FractionallySizedBox(
       heightFactor: 0.6,
       child: Container(
-        color: sh.card,
+        decoration: BoxDecoration(
+          color: sh.card,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+        ),
         child: Column(
           children: [
+            // 그랩 핸들
             Padding(
-              padding: const EdgeInsets.fromLTRB(20, 18, 12, 10),
+              padding: const EdgeInsets.only(top: 10),
+              child: Center(
+                child: Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: sh.ink.withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 8, 12, 10),
               child: Row(children: [
                 Text('프로필 설정',
-                    style: AppType.section.copyWith(fontWeight: FontWeight.w700, color: sh.ink)),
+                    style: AppType.section.copyWith(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w800,
+                        color: sh.ink)),
                 const Spacer(),
                 IconButton(
                   icon: Icon(Icons.close, color: sh.inkSoft, size: 20),

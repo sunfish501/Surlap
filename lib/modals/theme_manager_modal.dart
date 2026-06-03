@@ -14,6 +14,7 @@ Future<void> showThemeManagerModal(BuildContext context) {
     context: context,
     isScrollControlled: true,
     useSafeArea: true,
+    backgroundColor: Colors.transparent,
     builder: (_) => const ThemeManagerModal(),
   );
 }
@@ -34,16 +35,37 @@ class ThemeManagerModal extends ConsumerWidget {
     return FractionallySizedBox(
       heightFactor: 0.88,
       child: Container(
-        color: sh.card,
+        decoration: BoxDecoration(
+          color: sh.card,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+        ),
+        clipBehavior: Clip.antiAlias,
         child: Column(
           children: [
+            // 그랩 핸들
+            Padding(
+              padding: const EdgeInsets.only(top: 10),
+              child: Center(
+                child: Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: sh.ink.withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+              ),
+            ),
             // 헤더
             Padding(
-              padding: const EdgeInsets.fromLTRB(Gap.lg, Gap.lg, Gap.sm, Gap.md),
+              padding: const EdgeInsets.fromLTRB(Gap.lg, Gap.sm, Gap.sm, Gap.md),
               child: Row(
                 children: [
                   Text('테마 관리',
-                      style: AppType.title.copyWith(color: sh.ink)),
+                      style: AppType.title.copyWith(
+                          fontSize: 20,
+                          fontWeight: FontWeight.w800,
+                          color: sh.ink)),
                   const Spacer(),
                   IconButton(
                     icon: Icon(Icons.close, color: sh.inkSoft, size: 22),
@@ -94,9 +116,9 @@ class ThemeManagerModal extends ConsumerWidget {
                       style: OutlinedButton.styleFrom(
                         foregroundColor: sh.accent,
                         side: BorderSide(color: sh.accent),
-                        minimumSize: const Size.fromHeight(kMinTouch),
+                        minimumSize: const Size.fromHeight(50),
                         shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(Radii.card)),
+                            borderRadius: BorderRadius.circular(16)),
                       ),
                     ),
                   ),
@@ -109,9 +131,9 @@ class ThemeManagerModal extends ConsumerWidget {
                       style: OutlinedButton.styleFrom(
                         foregroundColor: sh.inkSoft,
                         side: BorderSide(color: sh.border),
-                        minimumSize: const Size.fromHeight(kMinTouch),
+                        minimumSize: const Size.fromHeight(50),
                         shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(Radii.card)),
+                            borderRadius: BorderRadius.circular(16)),
                       ),
                     ),
                   ),
@@ -258,8 +280,8 @@ class _ThemeRowState extends ConsumerState<_ThemeRow> {
       padding: const EdgeInsets.symmetric(horizontal: Gap.md, vertical: Gap.md),
       decoration: BoxDecoration(
         color: sh.card2,
-        borderRadius: BorderRadius.circular(Radii.card),
-        border: Border.all(color: sh.border),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: sh.ink.withValues(alpha: 0.06)),
       ),
       child: Row(
         children: [
