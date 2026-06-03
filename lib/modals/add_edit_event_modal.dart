@@ -161,6 +161,17 @@ class _AddEditEventModalState extends ConsumerState<AddEditEventModal> {
             ),
             const SizedBox(height: 12),
 
+            // 공부 기록 빠른 추가 — 공부 위젯을 일정에 바로 제시
+            _StudyQuickAdd(
+              sh: sh,
+              onPick: (label) => setState(() {
+                _textCtrl.text = label;
+                _textCtrl.selection =
+                    TextSelection.collapsed(offset: label.length);
+              }),
+            ),
+            const SizedBox(height: 12),
+
             // 시간
             _FieldRow(
               label: '시간 (선택)',
@@ -411,6 +422,58 @@ class _TimeBtn extends StatelessWidget {
               fontWeight: value != null ? FontWeight.w600 : FontWeight.w400),
         ),
       ),
+    );
+  }
+}
+
+// ─── 공부 기록 빠른 추가 칩 ─────────────────────────────────────
+// 공부 위젯(순공시간·과목·회독 등)을 별도 뷰가 아니라 일정 추가 시 제시한다.
+class _StudyQuickAdd extends StatelessWidget {
+  final SpaceHourColors sh;
+  final void Function(String) onPick;
+  const _StudyQuickAdd({required this.sh, required this.onPick});
+
+  static const _items = [
+    '순공시간', '공부 과목', '회독', '오늘 목표', '수행평가', '루틴 체크',
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(children: [
+          Icon(Icons.auto_stories_rounded, size: 14, color: sh.accent),
+          const SizedBox(width: 5),
+          Text('공부 기록 빠르게',
+              style: AppType.label.copyWith(color: sh.inkSoft)),
+        ]),
+        const SizedBox(height: 8),
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: _items
+              .map((label) => GestureDetector(
+                    onTap: () => onPick(label),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 8),
+                      decoration: BoxDecoration(
+                        color: sh.accent.withValues(alpha: 0.08),
+                        borderRadius: BorderRadius.circular(999),
+                        border: Border.all(
+                            color: sh.accent.withValues(alpha: 0.18)),
+                      ),
+                      child: Text(label,
+                          style: AppType.label.copyWith(
+                              fontSize: 12.5,
+                              fontWeight: FontWeight.w700,
+                              color: sh.accent)),
+                    ),
+                  ))
+              .toList(),
+        ),
+      ],
     );
   }
 }
