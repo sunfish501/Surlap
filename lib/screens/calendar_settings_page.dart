@@ -13,6 +13,7 @@ import '../modals/neis_setup_modal.dart';
 import '../modals/timetable_template_modal.dart';
 import '../widgets/app_page_scaffold.dart';
 import '../widgets/coach_mark.dart';
+import 'study_widgets_preview_page.dart';
 
 /// 보기 설정 — 독립 페이지 (bottom sheet 아님).
 class CalendarSettingsPage extends ConsumerWidget {
@@ -151,6 +152,15 @@ class CalendarSettingsPage extends ConsumerWidget {
                     ? '생일 연락처 가져오기 (.vcf)'
                     : '생일 연락처 (${birthdays.length}명)',
                 onTap: () => _importVcf(context, ref),
+              ),
+              SettingsRow(
+                sh: sh,
+                icon: Icons.widgets_outlined,
+                title: '공부 위젯 미리보기',
+                onTap: () => Navigator.of(context).push(
+                  MaterialPageRoute(
+                      builder: (_) => const StudyWidgetsPreviewPage()),
+                ),
               ),
             ],
           ),
