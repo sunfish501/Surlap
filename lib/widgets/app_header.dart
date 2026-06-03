@@ -2,10 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../core/theme/app_theme.dart';
 import '../core/theme/design_tokens.dart';
-import '../core/constants/color_presets.dart';
 import '../providers/view_provider.dart';
 import '../providers/settings_provider.dart';
-import '../providers/color_preset_provider.dart';
 import '../widgets/sidebar_drawer.dart';
 import '../widgets/coach_mark.dart';
 import '../modals/theme_manager_modal.dart';
@@ -227,7 +225,7 @@ class _AppHeaderState extends ConsumerState<AppHeader> {
   void _openMore(BuildContext context, WidgetRef ref, SpaceHourColors sh) {
     showModalBottomSheet<_MoreAction>(
       context: context,
-      builder: (_) => _MoreSheet(ref: ref, sh: sh),
+      builder: (_) => const _MoreSheet(),
     ).then((action) {
       if (action == null || !context.mounted) return;
       switch (action) {
@@ -517,14 +515,12 @@ class _PickerCol extends StatelessWidget {
 }
 
 // ─── 더보기 바텀시트 ─────────────────────────────────────────────
-class _MoreSheet extends ConsumerWidget {
-  final WidgetRef ref;
-  final SpaceHourColors sh;
-  const _MoreSheet({required this.ref, required this.sh});
+class _MoreSheet extends StatelessWidget {
+  const _MoreSheet();
 
   @override
-  Widget build(BuildContext context, WidgetRef watchRef) {
-    final preset = watchRef.watch(colorPresetProvider);
+  Widget build(BuildContext context) {
+    final sh = context.sh;
     return Container(
       color: sh.card,
       padding: const EdgeInsets.fromLTRB(Gap.xl, Gap.md, Gap.xl, Gap.xl),
@@ -532,45 +528,6 @@ class _MoreSheet extends ConsumerWidget {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('색상 테마',
-              style: AppType.caption.copyWith(
-                  fontWeight: FontWeight.w700, color: sh.inkSoft)),
-          const SizedBox(height: Gap.sm),
-          Wrap(
-            spacing: Gap.sm,
-            runSpacing: Gap.sm,
-            children: kColorPresets.map((p) {
-              final selected = p.id == preset.id;
-              return GestureDetector(
-                onTap: () =>
-                    ref.read(colorPresetProvider.notifier).setPreset(p.id),
-                child: Tooltip(
-                  message: p.name,
-                  child: Container(
-                    width: 30,
-                    height: 30,
-                    decoration: BoxDecoration(
-                      color: p.dot,
-                      shape: BoxShape.circle,
-                      border: Border.all(
-                        color: selected ? sh.ink : Colors.transparent,
-                        width: 2.5,
-                      ),
-                      boxShadow: selected
-                          ? [
-                              BoxShadow(
-                                  color: p.dot.withValues(alpha: 0.4),
-                                  blurRadius: 6)
-                            ]
-                          : null,
-                    ),
-                  ),
-                ),
-              );
-            }).toList(),
-          ),
-          const SizedBox(height: Gap.md),
-          Divider(color: sh.border, height: 1),
           ListTile(
             contentPadding: EdgeInsets.zero,
             minLeadingWidth: Gap.xl,
@@ -597,8 +554,7 @@ class _MoreSheet extends ConsumerWidget {
             minLeadingWidth: Gap.xl,
             leading: Icon(Icons.person_outline_rounded,
                 size: 20, color: sh.inkSoft),
-            title:
-                Text('프로필', style: AppType.body.copyWith(color: sh.ink)),
+            title: Text('프로필', style: AppType.body.copyWith(color: sh.ink)),
             trailing: Icon(Icons.chevron_right_rounded,
                 size: 18, color: sh.inkFaint),
             onTap: () => Navigator.pop(context, _MoreAction.profile),

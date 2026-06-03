@@ -20,7 +20,7 @@ void main() {
     await tester.pumpWidget(
       ProviderScope(
         child: MaterialApp(
-          theme: buildTheme(kColorPresets.first),
+          theme: buildTheme(kDefaultPreset),
           home: const Scaffold(
             // 앱과 동일하게 Expanded 안에 배치(상단 바운드 높이 제공)
             body: SafeArea(
