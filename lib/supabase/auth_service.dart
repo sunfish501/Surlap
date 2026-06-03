@@ -36,10 +36,18 @@ class AuthNotifier extends Notifier<User?> {
     final current = sb?.auth.currentUser;
     // Supabase 세션이 복원되지 않았으면 로컬 자격증명으로 자동 로그인 시도.
     if (current == null) {
-      Future.microtask(tryAutoLogin);
+      Future.microtask(ensureAutoLogin);
     }
     return current;
   }
+
+  // 자동 로그인을 앱 프로세스당 1회만 실행하고 그 future를 캐시한다.
+  // 스플래시(SplashGate)가 같은 future를 await 해 전환 타이밍을 맞출 수 있다.
+  Future<void>? _autoLoginOnce;
+
+  /// 자동 로그인 1회 실행 후 그 future 반환(이미 실행됐으면 동일 future).
+  /// 세션이 이미 복원돼 있으면 [tryAutoLogin] 이 즉시 반환한다.
+  Future<void> ensureAutoLogin() => _autoLoginOnce ??= tryAutoLogin();
 
   // ── 자동 로그인용 자격증명 (전역 저장, base64 난독화) ──────────
   Future<void> _saveCredentials(String id, String password) async {
@@ -118,9 +126,13 @@ class AuthNotifier extends Notifier<User?> {
     try {
       await client.auth.signInWithOAuth(
         OAuthProvider.google,
-        redirectTo: Uri.base.origin,   // 웹: 현재 페이지로 복귀
+        // 웹: 현재 페이지로 복귀 / 모바일: 등록된 딥링크 콜백으로 복귀.
+        // (Android의 Uri.base는 file:/// 이라 .origin이 StateError를 던짐 →
+        //  모바일은 AndroidManifest/Info.plist에 등록된 커스텀 스킴 사용)
+        redirectTo: kIsWeb ? Uri.base.origin : 'spacehour://login-callback',
       );
-      // OAuth는 리다이렉트 방식 — onAuthStateChange에서 상태 갱신됨
+      // OAuth는 리다이렉트 방식 — 콜백 딥링크를 supabase_flutter가 받아
+      // 세션을 복원하고 onAuthStateChange에서 상태 갱신됨
     } catch (e, st) {
       debugPrint('[Auth] signInGoogle 실패: ${e.runtimeType} → $e');
       debugPrint('$st');

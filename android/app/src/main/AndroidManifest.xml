@@ -34,6 +34,14 @@
                 <category android:name="android.intent.category.BROWSABLE"/>
                 <data android:scheme="spacehour" android:host="theme"/>
             </intent-filter>
+            <!-- Google OAuth 콜백 딥링크: spacehour://login-callback
+                 (Supabase signInWithOAuth의 redirectTo와 반드시 일치) -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+                <data android:scheme="spacehour" android:host="login-callback"/>
+            </intent-filter>
             <!-- 테마 공유 HTTPS 앱링크(주): https://kev208dev.github.io/theme/<code>
                  autoVerify=true → 도메인 루트 /.well-known/assetlinks.json 검증 -->
             <intent-filter android:autoVerify="true">
