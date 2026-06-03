@@ -13,6 +13,7 @@ import '../widgets/app_top_bar.dart';
 import 'home_view/home_view.dart';
 import 'study_widgets_view.dart';
 import 'settings_view.dart';
+import 'theme_share_page.dart';
 import 'month_view/month_view.dart';
 import 'month_view/continuous_week_view.dart';
 import 'year_view/year_view.dart';
@@ -106,6 +107,7 @@ class MainShell extends ConsumerWidget {
       case ViewMode.home:      return const HomeView();
       case ViewMode.study:     return const StudyWidgetsView();
       case ViewMode.settings:  return const SettingsView();
+      case ViewMode.themes:    return const ThemeSharePage();
       case ViewMode.events:
         return continuous ? const ContinuousWeekView() : const MonthView();
       case ViewMode.year:      return const YearView();

@@ -1,8 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-enum ViewMode { home, events, year, planner, day, timetable, study, settings }
+enum ViewMode { home, events, year, planner, day, timetable, study, settings, themes }
 
-// 슬라이드 순서: home/timetable/study/settings는 방향 없음(-1)
+// 슬라이드 순서: home/timetable/study/settings/themes는 방향 없음(-1)
 const _viewOrder = {
   ViewMode.home: -1,
   ViewMode.year: 0,
@@ -12,6 +12,7 @@ const _viewOrder = {
   ViewMode.timetable: -1,
   ViewMode.study: -1,
   ViewMode.settings: -1,
+  ViewMode.themes: -1,
 };
 
 int viewIndex(ViewMode m) => _viewOrder[m] ?? -1;

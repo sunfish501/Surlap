@@ -6,7 +6,6 @@ import '../models/calendar_theme.dart';
 import '../providers/themes_provider.dart';
 import '../supabase/theme_share_service.dart';
 import '../modals/theme_manager_modal.dart';
-import '../widgets/app_page_scaffold.dart';
 
 /// 테마 공유 — 일정/루틴 테마를 공유받기·공유하기·비공개 보관으로 분류.
 /// 색상 테마·학교 시간표 템플릿·추천 템플릿은 다루지 않는다.
@@ -40,10 +39,24 @@ class _ThemeSharePageState extends ConsumerState<ThemeSharePage> {
       _Tab.private => private,
     };
 
-    return AppPageScaffold(
-      title: '테마 공유',
-      subtitle: '일정·루틴 테마를 공유하고 받아요',
+    return ListView(
+      padding: const EdgeInsets.fromLTRB(Gap.lg, Gap.sm, Gap.lg, 120),
       children: [
+        // ── 자체 헤더 (AppHeader는 themes 모드에서 숨김) ──
+        Padding(
+          padding: const EdgeInsets.fromLTRB(4, 0, 4, 4),
+          child: Text('테마 관리',
+              style: AppType.title.copyWith(
+                  fontSize: 26,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: -0.5,
+                  color: sh.ink)),
+        ),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(4, 0, 4, 16),
+          child: Text('일정·루틴 테마를 공유하고 관리해요',
+              style: AppType.body.copyWith(color: sh.inkSoft)),
+        ),
         // ── 세그먼트 ──
         Container(
           padding: const EdgeInsets.all(4),

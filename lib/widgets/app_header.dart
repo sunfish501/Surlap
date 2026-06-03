@@ -30,7 +30,7 @@ class _AppHeaderState extends ConsumerState<AppHeader> {
     final isHome = view.mode == ViewMode.home;
     final isTimetable = view.mode == ViewMode.timetable;
     final isStudy = view.mode == ViewMode.study;
-    final isSettings = view.mode == ViewMode.settings;
+    final isSettings = view.mode == ViewMode.settings || view.mode == ViewMode.themes;
     final isYear = view.mode == ViewMode.year;
 
     return Container(

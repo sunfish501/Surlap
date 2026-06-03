@@ -47,11 +47,11 @@ class SpaceHourBottomNav extends ConsumerWidget {
         coachKey: coachKeyTabTimetable,
       ),
       _Tab(
-        active: Icons.auto_stories_rounded,
-        inactive: Icons.auto_stories_outlined,
-        label: '공부 위젯',
-        isActive: view.mode == ViewMode.study,
-        onTap: () => notifier.setMode(ViewMode.study),
+        active: Icons.palette_rounded,
+        inactive: Icons.palette_outlined,
+        label: '테마',
+        isActive: view.mode == ViewMode.themes,
+        onTap: () => notifier.setMode(ViewMode.themes),
       ),
       _Tab(
         active: Icons.settings_rounded,
