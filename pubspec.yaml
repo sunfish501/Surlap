@@ -49,5 +49,7 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+  assets:
+    - assets/images/logo.png
   # assets/fonts/ 에 파일이 없으면 빌드 오류 — 폰트는 web/index.html CDN 사용
 

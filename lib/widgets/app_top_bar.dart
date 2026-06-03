@@ -65,12 +65,16 @@ class AppOverlayTopBar extends ConsumerWidget {
                       onTap: captureAndShare,
                     ),
                   ),
-                  // ── 중앙: 로고 ─────────────────────────────
+                  // ── 중앙: 로고 (이미지 + 워드마크) ──────────
                   Center(
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        _AppLogo(color: sh.inkFaint),
+                        Image.asset(
+                          'assets/images/logo.png',
+                          height: 24,
+                          fit: BoxFit.contain,
+                        ),
                         const SizedBox(width: Gap.xs),
                         Text(
                           'HourSpace',
@@ -183,44 +187,4 @@ class _OverlayMoreSheet extends StatelessWidget {
       ),
     );
   }
-}
-
-// ─── HourSpace 로고 ──────────────────────────────────────────────
-class _AppLogo extends StatelessWidget {
-  final Color color;
-  const _AppLogo({required this.color});
-
-  @override
-  Widget build(BuildContext context) =>
-      CustomPaint(size: const Size(14, 14), painter: _LogoPainter(color: color));
-}
-
-class _LogoPainter extends CustomPainter {
-  final Color color;
-  _LogoPainter({required this.color});
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final p = Paint()
-      ..color = color
-      ..strokeWidth = 1.3
-      ..style = PaintingStyle.stroke
-      ..strokeCap = StrokeCap.round;
-    final s = size.width;
-    final rrect = RRect.fromRectAndRadius(
-        Rect.fromLTWH(1, 1.5, s - 2, s - 2.5), const Radius.circular(2.5));
-    canvas.drawRRect(rrect, p);
-    canvas.drawLine(Offset(1, s * 0.36), Offset(s - 1, s * 0.36), p);
-    canvas.drawLine(Offset(s * 0.29, 0), Offset(s * 0.29, s * 0.22), p);
-    canvas.drawLine(Offset(s * 0.71, 0), Offset(s * 0.71, s * 0.22), p);
-    final dp = Paint()..color = color..style = PaintingStyle.fill;
-    for (final x in [s * 0.3, s * 0.5, s * 0.7]) {
-      canvas.drawCircle(Offset(x, s * 0.59), 0.9, dp);
-    }
-    canvas.drawCircle(Offset(s * 0.3, s * 0.78), 0.9, dp);
-    canvas.drawCircle(Offset(s * 0.5, s * 0.78), 0.9, dp);
-  }
-
-  @override
-  bool shouldRepaint(_LogoPainter old) => old.color != color;
 }
