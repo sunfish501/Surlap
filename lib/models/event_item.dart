@@ -13,6 +13,8 @@ class EventItem {
   final String? cid;       // _cid
   final String? author;    // _author
   final String? createdAt;
+  /// NEIS 학사일정 등 외부 표시 전용(읽기 전용) — 저장/편집 대상 아님(직렬화 제외).
+  final bool academic;
 
   const EventItem({
     required this.t,
@@ -24,6 +26,7 @@ class EventItem {
     this.cid,
     this.author,
     this.createdAt,
+    this.academic = false,
   });
 
   bool get isTimetable => tt;
@@ -69,7 +72,7 @@ class EventItem {
 
   EventItem copyWith({
     String? t, String? tm, String? te, dynamic th, bool? tt,
-    String? id, String? cid, String? author, String? createdAt,
+    String? id, String? cid, String? author, String? createdAt, bool? academic,
   }) => EventItem(
     t: t ?? this.t,
     tm: tm ?? this.tm,
@@ -80,6 +83,7 @@ class EventItem {
     cid: cid ?? this.cid,
     author: author ?? this.author,
     createdAt: createdAt ?? this.createdAt,
+    academic: academic ?? this.academic,
   );
 }
 

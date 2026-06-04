@@ -27,6 +27,8 @@ abstract final class StorageKeys {
   static const neisSchool    = 'calendar-neis-school-v1';
   // NEIS 시간표/급식 로컬 캐시(주 단위). 재요청 가능하므로 동기화 대상 아님.
   static const neisCache     = 'calendar-neis-cache-v1';
+  // NEIS 학사일정 로컬 캐시(연 단위). 재요청 가능 — 동기화 대상 아님.
+  static const neisAcademic  = 'calendar-neis-academic-v1';
   static const birthdays     = 'calendar-birthdays-v1';
   static const userProfile   = 'calendar-user-profile-v2';
   static const backupConfig  = 'calendar-backup-config-v1';

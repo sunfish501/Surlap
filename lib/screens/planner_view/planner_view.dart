@@ -9,6 +9,7 @@ import '../../providers/events_provider.dart';
 import '../../providers/themes_provider.dart';
 import '../../providers/view_provider.dart';
 import '../../providers/recurring_provider.dart';
+import '../../providers/academic_schedule_provider.dart';
 import '../../modals/add_edit_event_modal.dart';
 
 class PlannerView extends ConsumerStatefulWidget {
@@ -48,6 +49,7 @@ class _PlannerViewState extends ConsumerState<PlannerView> {
     final sh = context.sh;
     final events = ref.watch(eventsProvider);
     final themes = ref.watch(themesProvider);
+    final academic = ref.watch(academicScheduleProvider);
     final days = _weekDays();
     final dayKeys = days.map(du.toDateKey).toList();
     final now = DateTime.now();
@@ -184,9 +186,13 @@ class _PlannerViewState extends ConsumerState<PlannerView> {
                           height: _allDayH,
                           child: Row(
                             children: List.generate(7, (i) {
-                              final allDay = (events[dayKeys[i]] ?? [])
-                                  .where((e) => !e.hasTime && !e.isTimetable)
-                                  .toList();
+                              final allDay = [
+                                ...(events[dayKeys[i]] ?? [])
+                                    .where((e) => !e.hasTime && !e.isTimetable),
+                                ...(academic[dayKeys[i]] ?? const [])
+                                    .map((n) =>
+                                        EventItem(t: n, academic: true)),
+                              ];
                               return Expanded(
                                 child: Container(
                                   decoration: BoxDecoration(
@@ -205,7 +211,7 @@ class _PlannerViewState extends ConsumerState<PlannerView> {
                                           child: Column(
                                             crossAxisAlignment: CrossAxisAlignment.stretch,
                                             children: allDay
-                                                .take(1)
+                                                .take(2)
                                                 .map((e) => _EventChip(
                                                       item: e,
                                                       themes: themes,
@@ -484,6 +490,28 @@ class _EventChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // 학사일정: 청록 + 학교 아이콘.
+    if (item.academic) {
+      final c = sh.academicColor;
+      return Container(
+        margin: const EdgeInsets.only(bottom: 1),
+        padding: const EdgeInsets.symmetric(horizontal: 3, vertical: 2),
+        decoration: BoxDecoration(
+          color: c.withValues(alpha: 0.16),
+          borderRadius: BorderRadius.circular(4),
+        ),
+        child: Row(children: [
+          Icon(Icons.school_rounded, size: 9, color: c),
+          const SizedBox(width: 2),
+          Expanded(
+            child: Text(item.t,
+                style: TextStyle(
+                    fontSize: 10, color: c, fontWeight: FontWeight.w600),
+                maxLines: 1, overflow: TextOverflow.ellipsis),
+          ),
+        ]),
+      );
+    }
     final color = item.themeIds.isNotEmpty
         ? themes.firstWhere((t) => item.themeIds.contains(t.id),
             orElse: () => CalendarTheme(id:'', name:'', color:'#888888')).colorValue

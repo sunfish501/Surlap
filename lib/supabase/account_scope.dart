@@ -16,6 +16,7 @@ import '../providers/settings_provider.dart';
 import '../providers/recurring_provider.dart';
 import '../providers/cell_design_provider.dart';
 import '../providers/todos_provider.dart';
+import '../providers/academic_schedule_provider.dart';
 import 'events_sync.dart';
 import 'user_data_sync.dart';
 
@@ -83,5 +84,6 @@ class AccountScope {
     ref.invalidate(recurringProvider); // 반복 일정(계정) 재읽기
     ref.invalidate(cellDesignProvider); // 셀 디자인(계정) 재읽기
     ref.invalidate(todosProvider); // 할 일(계정) 재읽기
+    ref.invalidate(academicScheduleProvider); // 학사일정(학교) 재요청
   }
 }

@@ -14,6 +14,7 @@ import '../../providers/extras_provider.dart';
 import '../../providers/day_widget_provider.dart';
 import '../../providers/birthdays_provider.dart';
 import '../../providers/todos_provider.dart';
+import '../../providers/academic_schedule_provider.dart';
 import '../../modals/day_action_sheet.dart';
 import 'month_grid.dart';
 
@@ -63,6 +64,13 @@ class MonthView extends ConsumerWidget {
       final bKey = '${view.viewYear}-${b.month.toString().padLeft(2, '0')}-${b.day.toString().padLeft(2, '0')}';
       mergedEvents[bKey] = [...(mergedEvents[bKey] ?? []), EventItem(t: '🎂 ${b.name}')];
     }
+    // Merge NEIS 학사일정 (academic — 읽기 전용 표시)
+    ref.watch(academicScheduleProvider).forEach((dateKey, names) {
+      mergedEvents[dateKey] = [
+        ...(mergedEvents[dateKey] ?? []),
+        for (final n in names) EventItem(t: n, academic: true),
+      ];
+    });
 
     return Container(
       margin: const EdgeInsets.fromLTRB(Gap.md, Gap.xs, Gap.md, 0),

@@ -142,6 +142,8 @@ class SpaceHourColors extends ThemeExtension<SpaceHourColors> {
   Color get sun      => preset.dark ? const Color(0xFFD98A8A) : const Color(0xFFE86A6A);
   // 파괴적 액션용 (삭제 등)
   Color get danger   => const Color(0xFFD9614E);
+  // NEIS 학사일정 — 기존 일정과 구분되는 청록 톤.
+  Color get academicColor => const Color(0xFF0FB5AE);
 
   @override
   SpaceHourColors copyWith({ColorPreset? preset}) =>

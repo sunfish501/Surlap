@@ -155,6 +155,66 @@ Future<String?> fetchLunch(NeisSchool school, String date) async {
   }
 }
 
+// 학사일정 한 건.
+class AcademicEvent {
+  final String dateKey; // 'YYYY-MM-DD'
+  final String name;    // EVENT_NM
+  final String content; // EVENT_CNTNT
+  const AcademicEvent({
+    required this.dateKey,
+    required this.name,
+    required this.content,
+  });
+}
+
+// 학사일정 조회 (SchoolSchedule) — 시간표/급식과 동일 패턴, 같은 NEIS 설정 재사용.
+// from/to: 'YYYYMMDD'. 학교 미연결(officeCode 비어있음)이면 빈 결과.
+Future<List<AcademicEvent>> fetchSchoolSchedule(
+    NeisSchool school, String from, String to) async {
+  if (school.officeCode.isEmpty) {
+    debugPrint('[NEIS] 학사일정: 교육청코드 없음 — 학교 재연결 필요');
+    return [];
+  }
+  final uri = Uri.parse(
+      '$_base/SchoolSchedule?KEY=$_neisKey&Type=json&pSize=1000'
+      '&ATPT_OFCDC_SC_CODE=${school.officeCode}'
+      '&SD_SCHUL_CODE=${school.code}'
+      '&AA_FROM_YMD=$from&AA_TO_YMD=$to');
+  debugPrint('[NEIS] 학사일정 호출 $from~$to');
+
+  final res = await http.get(uri);
+  if (res.statusCode != 200) {
+    debugPrint('[NEIS] 학사일정 HTTP ${res.statusCode}');
+    return [];
+  }
+  try {
+    final j = jsonDecode(res.body) as Map<String, dynamic>;
+    if (j['RESULT'] != null) {
+      debugPrint('[NEIS] 학사일정 데이터 없음: ${(j['RESULT'] as Map?)?['MESSAGE']}');
+      return [];
+    }
+    final rows = j['SchoolSchedule']?[1]['row'] as List? ?? [];
+    final result = <AcademicEvent>[];
+    for (final row in rows.cast<Map<String, dynamic>>()) {
+      final ymd = (row['AA_YMD']?.toString() ?? '').trim(); // YYYYMMDD
+      if (ymd.length != 8) continue;
+      final name = (row['EVENT_NM']?.toString() ?? '').trim();
+      final content = (row['EVENT_CNTNT']?.toString() ?? '').trim();
+      final label = name.isNotEmpty ? name : content;
+      if (label.isEmpty) continue;
+      final dateKey =
+          '${ymd.substring(0, 4)}-${ymd.substring(4, 6)}-${ymd.substring(6, 8)}';
+      result.add(AcademicEvent(
+          dateKey: dateKey, name: label, content: content));
+    }
+    debugPrint('[NEIS] 학사일정 ${result.length}건 수신');
+    return result;
+  } catch (e) {
+    debugPrint('[NEIS] 학사일정 파싱 오류: $e');
+    return [];
+  }
+}
+
 String? _timetableApiName(String kind) {
   if (kind.contains('고등')) { return 'hisTimetable'; }
   if (kind.contains('중학')) { return 'misTimetable'; }

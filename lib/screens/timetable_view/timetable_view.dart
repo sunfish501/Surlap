@@ -8,6 +8,7 @@ import '../../core/constants/storage_keys.dart';
 import '../../providers/recurring_provider.dart';
 import '../../providers/cell_design_provider.dart';
 import '../../providers/neis_cache_provider.dart';
+import '../../providers/academic_schedule_provider.dart';
 import '../../modals/neis_setup_modal.dart';
 import 'dart:convert';
 
@@ -391,11 +392,12 @@ class _TimetableViewState extends ConsumerState<TimetableView> {
             ListTile(
               contentPadding: EdgeInsets.zero,
               leading: Icon(Icons.refresh_rounded, color: sh.inkSoft),
-              title: Text('시간표 새로고침',
+              title: Text('시간표·학사일정 새로고침',
                   style: AppType.body.copyWith(color: sh.ink)),
               onTap: () {
                 Navigator.pop(mctx);
                 ref.read(neisCacheProvider.notifier).refresh();
+                ref.read(academicScheduleProvider.notifier).refresh();
               },
             ),
           ],

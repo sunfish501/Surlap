@@ -11,6 +11,7 @@ import '../../providers/filter_provider.dart';
 import '../../providers/extras_provider.dart';
 import '../../providers/day_widget_provider.dart';
 import '../../providers/birthdays_provider.dart';
+import '../../providers/academic_schedule_provider.dart';
 import '../../modals/day_action_sheet.dart';
 import 'day_cell.dart';
 
@@ -185,6 +186,7 @@ class _WeekRow extends ConsumerWidget {
     final themes = ref.watch(themesProvider);
     final hiddenThemes = ref.watch(filterProvider);
     final circles = ref.watch(circlesProvider);
+    final academic = ref.watch(academicScheduleProvider);
     final widgetValues = ref.watch(widgetValuesProvider);
     final dayTemplates = ref.watch(dayTemplatesProvider);
     final birthdays = ref.watch(birthdaysProvider);
@@ -209,6 +211,8 @@ class _WeekRow extends ConsumerWidget {
           ...birthdays
               .where((b) => b.month == date.month && b.day == date.day)
               .map((b) => EventItem(t: '🎂 ${b.name}')),
+          ...(academic[key] ?? const [])
+              .map((n) => EventItem(t: n, academic: true)),
         ];
 
         final applicable = dayTemplates

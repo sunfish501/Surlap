@@ -8,6 +8,7 @@ import '../../providers/themes_provider.dart';
 import '../../providers/view_provider.dart';
 import '../../providers/recurring_provider.dart';
 import '../../providers/todos_provider.dart';
+import '../../providers/academic_schedule_provider.dart';
 import '../../core/utils/todo_style.dart';
 import '../../models/event_item.dart';
 import '../../models/todo_item.dart';
@@ -59,7 +60,12 @@ class _DayViewState extends ConsumerState<DayView> {
     final now = DateTime.now();
     final isToday = du.isSameDay(date, now);
 
-    final allDay = items.where((e) => !e.hasTime && !e.isTimetable).toList();
+    final allDay = [
+      ...items.where((e) => !e.hasTime && !e.isTimetable),
+      // NEIS 학사일정(읽기 전용)
+      ...(ref.watch(academicScheduleProvider)[widget.dateKey] ?? const [])
+          .map((n) => EventItem(t: n, academic: true)),
+    ];
     final timed = items.where((e) => e.hasTime && !e.isTimetable).toList()
       ..sort((a, b) => (a.tm ?? '').compareTo(b.tm ?? ''));
     final dayTodos = ref
@@ -501,8 +507,19 @@ class _AllDayBar extends StatelessWidget {
           const SizedBox(height: 2),
           ...items.map((e) => Padding(
                 padding: const EdgeInsets.symmetric(vertical: 1),
-                child: Text(e.t,
-                    style: AppType.body.copyWith(color: sh.ink)),
+                child: e.academic
+                    ? Row(children: [
+                        Icon(Icons.school_rounded,
+                            size: 14, color: sh.academicColor),
+                        const SizedBox(width: 6),
+                        Expanded(
+                          child: Text(e.t,
+                              style: AppType.body.copyWith(
+                                  color: sh.academicColor,
+                                  fontWeight: FontWeight.w600)),
+                        ),
+                      ])
+                    : Text(e.t, style: AppType.body.copyWith(color: sh.ink)),
               )),
         ],
       ),

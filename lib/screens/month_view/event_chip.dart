@@ -19,6 +19,38 @@ class EventChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // 학사일정: 청록 틴트 + 학교 아이콘으로 기존 일정과 구분.
+    if (item.academic) {
+      final c = sh.academicColor;
+      return Container(
+        margin: const EdgeInsets.only(bottom: 2),
+        padding: const EdgeInsets.fromLTRB(4, 2, 5, 2.5),
+        decoration: BoxDecoration(
+          color: c.withValues(alpha: sh.dark ? 0.24 : 0.14),
+          borderRadius: BorderRadius.circular(6),
+        ),
+        child: Row(
+          children: [
+            Icon(Icons.school_rounded, size: 9, color: c),
+            const SizedBox(width: 3),
+            Expanded(
+              child: Text(
+                item.t,
+                style: TextStyle(
+                  fontSize: 10.5,
+                  fontWeight: FontWeight.w600,
+                  color: sh.dark ? c : const Color(0xFF0A7C77),
+                  height: 1.3,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
     final themeColor = _resolveColor();
     return GestureDetector(
       onTap: onTap,
