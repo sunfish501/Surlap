@@ -46,6 +46,13 @@ dependencies:
   # 갤러리 저장 (달력 이미지 저장)
   gal: ^2.3.0
 
+  # 연락처 가져오기 (생일)
+  flutter_contacts: ^1.1.9
+
+  # 로컬 알림 (생일 알림)
+  flutter_local_notifications: ^18.0.1
+  timezone: ^0.9.4
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

@@ -208,9 +208,11 @@ class _WeekRow extends ConsumerWidget {
             if (ids.isEmpty) return !hiddenThemes.contains('__none__');
             return ids.every((id) => !hiddenThemes.contains(id));
           }),
-          ...birthdays
-              .where((b) => b.month == date.month && b.day == date.day)
-              .map((b) => EventItem(t: '🎂 ${b.name}')),
+          if (!hiddenThemes.contains(birthdayThemeId))
+            ...birthdays
+                .where((b) => b.month == date.month && b.day == date.day)
+                .map((b) => EventItem(
+                    t: b.name, th: birthdayThemeId, birthday: true)),
           if (!hiddenThemes.contains(academicThemeId))
             ...(academic[key] ?? const [])
                 .map((n) =>

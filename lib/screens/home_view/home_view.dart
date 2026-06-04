@@ -10,10 +10,12 @@ import '../../providers/events_provider.dart';
 import '../../providers/themes_provider.dart';
 import '../../providers/todos_provider.dart';
 import '../../providers/neis_cache_provider.dart';
+import '../../providers/birthdays_provider.dart';
 import '../../providers/view_provider.dart';
 import '../../core/utils/todo_style.dart';
 import '../../supabase/neis_service.dart';
 import '../../modals/add_todo_modal.dart';
+import '../../modals/birthday_manager_modal.dart';
 import '../../modals/neis_setup_modal.dart';
 
 class HomeView extends ConsumerStatefulWidget {
@@ -106,6 +108,10 @@ class _HomeViewState extends ConsumerState<HomeView> {
     }).toList()
       ..sort((a, b) => (a.tm ?? '').compareTo(b.tm ?? ''));
 
+    // 다가오는 생일 (가까운 순)
+    final upcomingBirthdays = [...ref.watch(birthdaysProvider)]
+      ..sort((a, b) => a.daysUntilNext().compareTo(b.daysUntilNext()));
+
     // 이번 주 이벤트 (오늘 기준 7일)
     final monday = now.subtract(Duration(days: now.weekday - 1));
     final weekKeys = List.generate(7, (i) {
@@ -177,6 +183,15 @@ class _HomeViewState extends ConsumerState<HomeView> {
                   ],
                 ),
               ),
+              // 다가오는 생일
+              if (upcomingBirthdays.isNotEmpty) ...[
+                const SizedBox(height: _cardGap),
+                _UpcomingBirthdaysCard(
+                  sh: sh,
+                  birthdays: upcomingBirthdays.take(4).toList(),
+                  onTap: () => showBirthdayManagerModal(context),
+                ),
+              ],
               const SizedBox(height: _cardGap),
               // 이번 주 미니 스트립
               _WeekStripCard(
@@ -741,6 +756,76 @@ class _TodayTodosCard extends StatelessWidget {
               );
             }),
         ],
+      ),
+    );
+  }
+}
+
+// ─── 다가오는 생일 카드 ──────────────────────────────────────────
+class _UpcomingBirthdaysCard extends StatelessWidget {
+  final SpaceHourColors sh;
+  final List<Birthday> birthdays;
+  final VoidCallback onTap;
+  const _UpcomingBirthdaysCard(
+      {required this.sh, required this.birthdays, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: _softCard(sh, radius: 20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(children: [
+              _badgeLabel(sh, '🎂', '다가오는 생일',
+                  sh.birthdayColor.withValues(alpha: 0.12)),
+              const Spacer(),
+              Icon(Icons.chevron_right_rounded, size: 18, color: sh.inkFaint),
+            ]),
+            const SizedBox(height: 10),
+            ...birthdays.map((b) {
+              final d = b.daysUntilNext();
+              return Padding(
+                padding: const EdgeInsets.symmetric(vertical: 5),
+                child: Row(children: [
+                  Icon(Icons.cake_rounded, size: 16, color: sh.birthdayColor),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Text(b.name,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: AppType.body.copyWith(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w600,
+                            color: sh.ink)),
+                  ),
+                  Text('${b.month}.${b.day}',
+                      style: AppType.label.copyWith(
+                          fontSize: 12, color: sh.inkSoft)),
+                  const SizedBox(width: 8),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 8, vertical: 3),
+                    decoration: BoxDecoration(
+                      color: d == 0
+                          ? sh.birthdayColor
+                          : sh.birthdayColor.withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(999),
+                    ),
+                    child: Text(d == 0 ? '오늘 🎉' : 'D-$d',
+                        style: AppType.label.copyWith(
+                            fontSize: 11.5,
+                            fontWeight: FontWeight.w800,
+                            color: d == 0 ? Colors.white : sh.birthdayColor)),
+                  ),
+                ]),
+              );
+            }),
+          ],
+        ),
       ),
     );
   }

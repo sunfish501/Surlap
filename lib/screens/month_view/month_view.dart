@@ -57,12 +57,18 @@ class MonthView extends ConsumerWidget {
       )),
     );
 
-    // Merge birthday events
+    // Merge birthday events (별도 카테고리 — 필터로 켜고/끔)
     final mergedEvents = Map<String, List<EventItem>>.from(filteredEvents);
-    for (final b in birthdays) {
-      if (b.month < 1 || b.month > 12 || b.day < 1 || b.day > 31) continue;
-      final bKey = '${view.viewYear}-${b.month.toString().padLeft(2, '0')}-${b.day.toString().padLeft(2, '0')}';
-      mergedEvents[bKey] = [...(mergedEvents[bKey] ?? []), EventItem(t: '🎂 ${b.name}')];
+    if (!hiddenThemes.contains(birthdayThemeId)) {
+      for (final b in birthdays) {
+        if (b.month < 1 || b.month > 12 || b.day < 1 || b.day > 31) continue;
+        final bKey =
+            '${view.viewYear}-${b.month.toString().padLeft(2, '0')}-${b.day.toString().padLeft(2, '0')}';
+        mergedEvents[bKey] = [
+          ...(mergedEvents[bKey] ?? []),
+          EventItem(t: b.name, th: birthdayThemeId, birthday: true),
+        ];
+      }
     }
     // Merge NEIS 학사일정 (academic — 읽기 전용 표시, 별도 카테고리로 필터 가능)
     if (!hiddenThemes.contains(academicThemeId)) {

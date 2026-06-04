@@ -9,7 +9,7 @@ List<Birthday> parseVcf(String content) {
 
   void flush() {
     if (name != null && month != null && day != null) {
-      result.add(Birthday(name: name!, month: month!, day: day!));
+      result.add(Birthday.create(name: name!, month: month!, day: day!));
     }
     name = null;
     month = null;

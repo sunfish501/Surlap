@@ -1,5 +1,3 @@
-import 'dart:io';
-import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../core/theme/app_theme.dart';
@@ -11,8 +9,8 @@ import '../providers/birthdays_provider.dart';
 import '../providers/view_provider.dart';
 import '../providers/academic_schedule_provider.dart';
 import '../supabase/auth_service.dart';
-import '../utils/vcf_parser.dart';
 import '../modals/neis_setup_modal.dart';
+import '../modals/birthday_manager_modal.dart';
 import '../modals/profile_modal.dart';
 import '../modals/login_dialog.dart';
 import '../widgets/coach_mark.dart';
@@ -109,6 +107,17 @@ class SettingsView extends ConsumerWidget {
                     onTap: () =>
                         ref.read(filterProvider.notifier).toggle(t.id),
                   )),
+              // 생일 — 별도 카테고리. 등록된 생일이 있을 때만 노출.
+              if (birthdays.isNotEmpty)
+                CategoryFilterChip(
+                  label: '생일',
+                  color: sh.birthdayColor,
+                  selected: !hidden.contains(birthdayThemeId),
+                  sh: sh,
+                  onTap: () => ref
+                      .read(filterProvider.notifier)
+                      .toggle(birthdayThemeId),
+                ),
               // 학사일정(NEIS) — 별도 카테고리. 데이터가 있을 때만 노출.
               if (ref.watch(academicScheduleProvider).isNotEmpty)
                 CategoryFilterChip(
@@ -200,9 +209,9 @@ class SettingsView extends ConsumerWidget {
                 sh: sh,
                 icon: Icons.cake_outlined,
                 title: birthdays.isEmpty
-                    ? '생일 연락처 가져오기 (.vcf)'
-                    : '생일 연락처 (${birthdays.length}명)',
-                onTap: () => _importVcf(context, ref),
+                    ? '생일 챙기기'
+                    : '생일 챙기기 (${birthdays.length}명)',
+                onTap: () => showBirthdayManagerModal(context),
               ),
             ],
           ),
@@ -547,27 +556,3 @@ class _WeekStartPill extends StatelessWidget {
   }
 }
 
-// ─── .vcf 생일 가져오기 ──────────────────────────────────────────
-Future<void> _importVcf(BuildContext context, WidgetRef ref) async {
-  final result = await FilePicker.platform.pickFiles(
-    type: FileType.custom,
-    allowedExtensions: ['vcf'],
-  );
-  if (result == null || result.files.single.path == null) return;
-  try {
-    final content = await File(result.files.single.path!).readAsString();
-    final parsed = parseVcf(content);
-    ref.read(birthdaysProvider.notifier).addAll(parsed);
-    if (context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('생일 ${parsed.length}명 가져오기 완료')),
-      );
-    }
-  } catch (e) {
-    if (context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('가져오기 오류: $e')),
-      );
-    }
-  }
-}

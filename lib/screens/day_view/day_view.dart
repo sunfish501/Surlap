@@ -9,6 +9,7 @@ import '../../providers/view_provider.dart';
 import '../../providers/recurring_provider.dart';
 import '../../providers/todos_provider.dart';
 import '../../providers/academic_schedule_provider.dart';
+import '../../providers/birthdays_provider.dart';
 import '../../providers/filter_provider.dart';
 import '../../core/utils/todo_style.dart';
 import '../../models/event_item.dart';
@@ -61,12 +62,18 @@ class _DayViewState extends ConsumerState<DayView> {
     final now = DateTime.now();
     final isToday = du.isSameDay(date, now);
 
-    final academicHidden =
-        ref.watch(filterProvider).contains(academicThemeId);
+    final filter = ref.watch(filterProvider);
     final allDay = [
       ...items.where((e) => !e.hasTime && !e.isTimetable),
+      // 생일(별도 카테고리)
+      if (!filter.contains(birthdayThemeId))
+        ...ref
+            .watch(birthdaysProvider)
+            .where((b) => b.month == date.month && b.day == date.day)
+            .map((b) =>
+                EventItem(t: b.name, th: birthdayThemeId, birthday: true)),
       // NEIS 학사일정(읽기 전용, 별도 카테고리)
-      if (!academicHidden)
+      if (!filter.contains(academicThemeId))
         ...(ref.watch(academicScheduleProvider)[widget.dateKey] ?? const [])
             .map((n) =>
                 EventItem(t: n, th: academicThemeId, academic: true)),
@@ -510,22 +517,26 @@ class _AllDayBar extends StatelessWidget {
                   color: sh.inkSoft,
                   letterSpacing: 0.4)),
           const SizedBox(height: 2),
-          ...items.map((e) => Padding(
-                padding: const EdgeInsets.symmetric(vertical: 1),
-                child: e.academic
-                    ? Row(children: [
-                        Icon(Icons.school_rounded,
-                            size: 14, color: sh.academicColor),
-                        const SizedBox(width: 6),
-                        Expanded(
-                          child: Text(e.t,
-                              style: AppType.body.copyWith(
-                                  color: sh.academicColor,
-                                  fontWeight: FontWeight.w600)),
-                        ),
-                      ])
-                    : Text(e.t, style: AppType.body.copyWith(color: sh.ink)),
-              )),
+          ...items.map((e) {
+            final tinted = e.birthday || e.academic;
+            final c = e.birthday ? sh.birthdayColor : sh.academicColor;
+            final icon =
+                e.birthday ? Icons.cake_rounded : Icons.school_rounded;
+            return Padding(
+              padding: const EdgeInsets.symmetric(vertical: 1),
+              child: tinted
+                  ? Row(children: [
+                      Icon(icon, size: 14, color: c),
+                      const SizedBox(width: 6),
+                      Expanded(
+                        child: Text(e.t,
+                            style: AppType.body.copyWith(
+                                color: c, fontWeight: FontWeight.w600)),
+                      ),
+                    ])
+                  : Text(e.t, style: AppType.body.copyWith(color: sh.ink)),
+            );
+          }),
         ],
       ),
     );

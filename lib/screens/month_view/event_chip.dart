@@ -19,36 +19,18 @@ class EventChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // 생일: 분홍 틴트 + 케이크 아이콘.
+    if (item.birthday) {
+      return _IconChip(
+          icon: Icons.cake_rounded, color: sh.birthdayColor, text: item.t, sh: sh);
+    }
     // 학사일정: 청록 틴트 + 학교 아이콘으로 기존 일정과 구분.
     if (item.academic) {
-      final c = sh.academicColor;
-      return Container(
-        margin: const EdgeInsets.only(bottom: 2),
-        padding: const EdgeInsets.fromLTRB(4, 2, 5, 2.5),
-        decoration: BoxDecoration(
-          color: c.withValues(alpha: sh.dark ? 0.24 : 0.14),
-          borderRadius: BorderRadius.circular(6),
-        ),
-        child: Row(
-          children: [
-            Icon(Icons.school_rounded, size: 9, color: c),
-            const SizedBox(width: 3),
-            Expanded(
-              child: Text(
-                item.t,
-                style: TextStyle(
-                  fontSize: 10.5,
-                  fontWeight: FontWeight.w600,
-                  color: sh.dark ? c : const Color(0xFF0A7C77),
-                  height: 1.3,
-                ),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ),
-          ],
-        ),
-      );
+      return _IconChip(
+          icon: Icons.school_rounded,
+          color: sh.academicColor,
+          text: item.t,
+          sh: sh);
     }
 
     final themeColor = _resolveColor();
@@ -107,5 +89,51 @@ class EventChip extends StatelessWidget {
     } catch (_) {
       return null;
     }
+  }
+}
+
+/// 생일·학사일정 등 아이콘 칩 공용.
+class _IconChip extends StatelessWidget {
+  final IconData icon;
+  final Color color;
+  final String text;
+  final SpaceHourColors sh;
+  const _IconChip(
+      {required this.icon,
+      required this.color,
+      required this.text,
+      required this.sh});
+
+  @override
+  Widget build(BuildContext context) {
+    final textColor =
+        sh.dark ? color : Color.lerp(color, Colors.black, 0.35)!;
+    return Container(
+      margin: const EdgeInsets.only(bottom: 2),
+      padding: const EdgeInsets.fromLTRB(4, 2, 5, 2.5),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: sh.dark ? 0.24 : 0.14),
+        borderRadius: BorderRadius.circular(6),
+      ),
+      child: Row(
+        children: [
+          Icon(icon, size: 9, color: color),
+          const SizedBox(width: 3),
+          Expanded(
+            child: Text(
+              text,
+              style: TextStyle(
+                fontSize: 10.5,
+                fontWeight: FontWeight.w600,
+                color: textColor,
+                height: 1.3,
+              ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }

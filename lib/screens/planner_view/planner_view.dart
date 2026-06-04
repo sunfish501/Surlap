@@ -10,6 +10,7 @@ import '../../providers/themes_provider.dart';
 import '../../providers/view_provider.dart';
 import '../../providers/recurring_provider.dart';
 import '../../providers/academic_schedule_provider.dart';
+import '../../providers/birthdays_provider.dart';
 import '../../providers/filter_provider.dart';
 import '../../modals/add_edit_event_modal.dart';
 
@@ -51,7 +52,10 @@ class _PlannerViewState extends ConsumerState<PlannerView> {
     final events = ref.watch(eventsProvider);
     final themes = ref.watch(themesProvider);
     final academic = ref.watch(academicScheduleProvider);
-    final academicHidden = ref.watch(filterProvider).contains(academicThemeId);
+    final hidden = ref.watch(filterProvider);
+    final academicHidden = hidden.contains(academicThemeId);
+    final birthdays = ref.watch(birthdaysProvider);
+    final birthdayHidden = hidden.contains(birthdayThemeId);
     final days = _weekDays();
     final dayKeys = days.map(du.toDateKey).toList();
     final now = DateTime.now();
@@ -191,6 +195,15 @@ class _PlannerViewState extends ConsumerState<PlannerView> {
                               final allDay = [
                                 ...(events[dayKeys[i]] ?? [])
                                     .where((e) => !e.hasTime && !e.isTimetable),
+                                if (!birthdayHidden)
+                                  ...birthdays
+                                      .where((b) =>
+                                          b.month == days[i].month &&
+                                          b.day == days[i].day)
+                                      .map((b) => EventItem(
+                                          t: b.name,
+                                          th: birthdayThemeId,
+                                          birthday: true)),
                                 if (!academicHidden)
                                   ...(academic[dayKeys[i]] ?? const [])
                                       .map((n) => EventItem(
@@ -495,9 +508,11 @@ class _EventChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // 학사일정: 청록 + 학교 아이콘.
-    if (item.academic) {
-      final c = sh.academicColor;
+    // 생일·학사일정: 아이콘 칩으로 구분.
+    if (item.birthday || item.academic) {
+      final c = item.birthday ? sh.birthdayColor : sh.academicColor;
+      final icon =
+          item.birthday ? Icons.cake_rounded : Icons.school_rounded;
       return Container(
         margin: const EdgeInsets.only(bottom: 1),
         padding: const EdgeInsets.symmetric(horizontal: 3, vertical: 2),
@@ -506,7 +521,7 @@ class _EventChip extends StatelessWidget {
           borderRadius: BorderRadius.circular(4),
         ),
         child: Row(children: [
-          Icon(Icons.school_rounded, size: 9, color: c),
+          Icon(icon, size: 9, color: c),
           const SizedBox(width: 2),
           Expanded(
             child: Text(item.t,

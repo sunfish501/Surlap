@@ -144,6 +144,8 @@ class SpaceHourColors extends ThemeExtension<SpaceHourColors> {
   Color get danger   => const Color(0xFFD9614E);
   // NEIS 학사일정 — 기존 일정과 구분되는 청록 톤.
   Color get academicColor => const Color(0xFF0FB5AE);
+  // 생일 — 분홍 톤.
+  Color get birthdayColor => const Color(0xFFEC4899);
 
   @override
   SpaceHourColors copyWith({ColorPreset? preset}) =>

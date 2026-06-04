@@ -23,6 +23,9 @@ abstract final class StorageKeys {
   static const todos         = 'calendar-todos-v1';
   // 온보딩 시청 여부 — 기기 설정값(계정 스코프 제외).
   static const hasSeenOnboarding = 'calendar-has-seen-onboarding-v1';
+  // 생일 알림 설정 — 기기 설정값.
+  static const birthdayNotifyEnabled = 'calendar-bday-notify-enabled-v1';
+  static const birthdayNotifyDaysBefore = 'calendar-bday-notify-days-v1';
   static const cellDesign    = 'calendar-cell-design-v1';
   static const neisSchool    = 'calendar-neis-school-v1';
   // NEIS 시간표/급식 로컬 캐시(주 단위). 재요청 가능하므로 동기화 대상 아님.

@@ -12,6 +12,9 @@
 	<!-- 달력 이미지 갤러리 저장(gal) -->
 	<key>NSPhotoLibraryAddUsageDescription</key>
 	<string>달력 이미지를 사진 앨범에 저장합니다.</string>
+	<!-- 연락처에서 생일 가져오기(flutter_contacts) -->
+	<key>NSContactsUsageDescription</key>
+	<string>친구 생일을 가져오기 위해 연락처에 접근합니다.</string>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>
