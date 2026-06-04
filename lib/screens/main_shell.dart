@@ -4,8 +4,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../core/theme/app_theme.dart';
 import '../providers/view_provider.dart';
 import '../providers/settings_provider.dart';
-import '../supabase/auth_service.dart';
-import '../modals/login_dialog.dart';
 import '../modals/add_todo_modal.dart';
 import '../utils/screenshot_util.dart';
 import '../widgets/bottom_nav_bar.dart';
@@ -22,9 +20,6 @@ import 'day_view/day_view.dart';
 import 'planner_view/planner_view.dart';
 import 'timetable_view/timetable_view.dart';
 
-// 첫 진입 로그인 안내를 앱 프로세스당 1회만 띄우기 위한 플래그.
-bool _loginPromptShown = false;
-
 class MainShell extends ConsumerWidget {
   const MainShell({super.key});
 
@@ -38,19 +33,6 @@ class MainShell extends ConsumerWidget {
       statusBarColor: Colors.transparent,
       statusBarIconBrightness: sh.dark ? Brightness.light : Brightness.dark,
     ));
-
-    // 로그인 안 된 첫 진입 → 중앙 floating 로그인 modal (1회).
-    // 저장된 세션/자격증명으로 자동 로그인될 수 있으니 잠시 뒤 재확인.
-    if (!_loginPromptShown) {
-      _loginPromptShown = true;
-      WidgetsBinding.instance.addPostFrameCallback((_) async {
-        await Future<void>.delayed(const Duration(milliseconds: 800));
-        if (!context.mounted) return;
-        final user = ProviderScope.containerOf(context, listen: false)
-            .read(authProvider);
-        if (user == null) showLoginDialog(context);
-      });
-    }
 
     // 투명 overlay 헤더가 status bar 영역까지 덮으므로
     // 콘텐츠는 그 높이만큼 내려서 시작한다.

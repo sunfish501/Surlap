@@ -12,7 +12,7 @@ import '../supabase/auth_service.dart';
 import '../modals/neis_setup_modal.dart';
 import '../modals/birthday_manager_modal.dart';
 import '../modals/profile_modal.dart';
-import '../modals/login_dialog.dart';
+import 'login/login_screen.dart';
 import '../widgets/coach_mark.dart';
 
 /// 보기 설정 — 하단 nav의 한 탭으로, 다른 뷰처럼 좌우 viewer(AnimatedSwitcher)
@@ -73,7 +73,7 @@ class SettingsView extends ConsumerWidget {
               ? '모든 기기에서 안전하게 동기화 중'
               : '일정 · 시간표 · 테마를 기기 간 동기화해요',
           onTap: () =>
-              loggedIn ? showProfileModal(context) : showLoginDialog(context),
+              loggedIn ? showProfileModal(context) : showLoginScreen(context),
         ),
         const SizedBox(height: 18),
 

@@ -9,6 +9,7 @@ import '../providers/events_provider.dart';
 import '../providers/todos_provider.dart';
 import '../providers/view_provider.dart';
 import '../core/utils/todo_style.dart';
+import '../widgets/mascot/mascot.dart';
 
 /// 일정 + 할 일 통합 검색 시트. 결과 탭 → 해당 날짜 일간 뷰로 이동.
 Future<void> showSearchSheet(BuildContext context) => showModalBottomSheet(
@@ -152,7 +153,12 @@ class _SearchSheetState extends ConsumerState<_SearchSheet> {
                 child: _query.trim().isEmpty
                     ? _Hint(sh: sh, text: '검색어를 입력하세요')
                     : hits.isEmpty
-                        ? _Hint(sh: sh, text: '검색 결과가 없어요')
+                        ? const MascotEmptyState(
+                            expression: MascotExpression.thinking,
+                            title: '검색 결과가 없어요',
+                            message: '다른 단어로 찾아볼까요?',
+                            mascotSize: 110,
+                          )
                         : ListView.builder(
                             padding: const EdgeInsets.only(bottom: 24),
                             itemCount: hits.length,

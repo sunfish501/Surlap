@@ -5,6 +5,7 @@ import '../../storage/local_store.dart';
 import '../../core/constants/storage_keys.dart';
 import '../main_shell.dart';
 import '../onboarding/onboarding_screen.dart';
+import '../login/login_screen.dart';
 import 'splash_screen.dart';
 
 /// 앱 진입점 게이트.
@@ -30,6 +31,8 @@ class _SplashGateState extends ConsumerState<SplashGate> {
   bool _ready = false;
   // 온보딩 완료(또는 이미 시청) 여부. 미시청 첫 실행이면 false.
   bool _onboardingDone = false;
+  // 이번 세션에서 로그인 화면을 이미 처리("나중에 하기" 포함)했는지.
+  bool _loginHandled = false;
 
   @override
   void initState() {
@@ -66,14 +69,22 @@ class _SplashGateState extends ConsumerState<SplashGate> {
 
   @override
   Widget build(BuildContext context) {
+    final user = ref.watch(authProvider);
     final Widget child;
     if (!_ready) {
       child = const SplashScreen(key: ValueKey('splash'));
     } else if (!_onboardingDone) {
-      // 첫 실행: 스플래시 끝 → 온보딩 → 완료 시 MainShell(로그인 모달 흐름은 그대로).
+      // 첫 실행: 스플래시 끝 → 온보딩.
       child = OnboardingScreen(
         key: const ValueKey('onboarding'),
         onDone: _finishOnboarding,
+      );
+    } else if (user == null && !_loginHandled) {
+      // 미로그인 → 전체화면 로그인. 성공 또는 "나중에 하기" 시 홈으로.
+      child = LoginScreen(
+        key: const ValueKey('login'),
+        showSkip: true,
+        onDone: () => setState(() => _loginHandled = true),
       );
     } else {
       child = const MainShell(key: ValueKey('main'));

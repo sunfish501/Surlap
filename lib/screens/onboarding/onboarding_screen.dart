@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import '../../widgets/mascot/mascot.dart';
 
 /// 첫 실행(또는 온보딩 미시청) 시 1회 표시되는 전체화면 온보딩.
 /// PageView 3장 + 점 인디케이터 + 다음/시작하기 버튼. 스와이프 지원.
@@ -13,10 +14,11 @@ class OnboardingScreen extends StatefulWidget {
 }
 
 class _Slide {
-  final IconData icon;
+  final MascotExpression expression;
   final String headline;
   final String sub;
-  const _Slide({required this.icon, required this.headline, required this.sub});
+  const _Slide(
+      {required this.expression, required this.headline, required this.sub});
 }
 
 class _OnboardingScreenState extends State<OnboardingScreen> {
@@ -25,17 +27,17 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   static const _slides = [
     _Slide(
-      icon: Icons.calendar_month_rounded,
+      expression: MascotExpression.happy,
       headline: '하루를 한눈에',
       sub: '흩어진 일정도 시간 위에 펼치면 단순해져요.',
     ),
     _Slide(
-      icon: Icons.view_week_rounded,
+      expression: MascotExpression.neutral,
       headline: '시간이 보여요',
       sub: '월·주·일을 오가며 내 시간이 어디로 흐르는지 색으로 확인해요.',
     ),
     _Slide(
-      icon: Icons.rocket_launch_rounded,
+      expression: MascotExpression.cheering,
       headline: '이제 시작할 시간',
       sub: '몇 번의 탭이면 하루가 정리됩니다.',
     ),
@@ -197,19 +199,10 @@ class _SlideView extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          // 큰 아이콘(은은한 흰 원 안에)
-          Container(
-            width: 132,
-            height: 132,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: Colors.white.withValues(alpha: 0.12),
-              border: Border.all(color: Colors.white.withValues(alpha: 0.18)),
-            ),
-            alignment: Alignment.center,
-            child: Icon(slide.icon, size: 60, color: Colors.white),
-          ),
-          const SizedBox(height: 44),
+          // 마스코트
+          MascotView(
+              expression: slide.expression, size: 168, showStars: true),
+          const SizedBox(height: 40),
           Text(
             slide.headline,
             textAlign: TextAlign.center,

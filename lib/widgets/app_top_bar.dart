@@ -72,28 +72,7 @@ class AppOverlayTopBar extends ConsumerWidget {
                           )
                         : const SizedBox(width: kMinTouch),
                   ),
-                  // ── 중앙: 로고 ───────────────────────────────
-                  Center(
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Image.asset(
-                          'assets/images/logo.png',
-                          height: 24,
-                          fit: BoxFit.contain,
-                        ),
-                        const SizedBox(width: Gap.xs),
-                        Text(
-                          'HourSpace',
-                          style: AppType.body.copyWith(
-                            fontWeight: FontWeight.w700,
-                            color: sh.ink,
-                            letterSpacing: -0.3,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
+                  // ── 중앙: (로고 제거 — 추후 다른 요소 배치 예정) ──
                   // ── 오른쪽: 뷰 전환 (달력뷰에서만) ───────────────
                   Align(
                     alignment: Alignment.centerRight,

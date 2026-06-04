@@ -6,7 +6,7 @@ import '../providers/color_preset_provider.dart';
 import '../providers/view_provider.dart';
 import '../supabase/auth_service.dart';
 import '../modals/backup_modal.dart';
-import '../modals/login_dialog.dart';
+import 'login/login_screen.dart';
 import 'settings_view.dart' show SettingsSectionCard, SettingsRow;
 
 /// 프로필 — 하단 nav 5번째 탭의 in-shell 뷰.
@@ -45,7 +45,7 @@ class ProfileView extends ConsumerWidget {
           loggedIn: loggedIn,
           name: loggedIn ? userDisplayName(user) : '로그인하고 동기화하기',
           email: loggedIn ? (user.email ?? '') : '일정·시간표·테마를 기기 간 동기화',
-          onTap: () => loggedIn ? null : showLoginDialog(context),
+          onTap: () => loggedIn ? null : showLoginScreen(context),
         ),
         const SizedBox(height: 18),
 
@@ -101,7 +101,7 @@ class ProfileView extends ConsumerWidget {
                   sh: sh,
                   icon: Icons.login_rounded,
                   title: '로그인하여 클라우드 동기화',
-                  onTap: () => showLoginDialog(context),
+                  onTap: () => showLoginScreen(context),
                 ),
         ),
       ],
