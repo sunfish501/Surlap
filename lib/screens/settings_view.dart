@@ -9,6 +9,7 @@ import '../providers/themes_provider.dart';
 import '../providers/filter_provider.dart';
 import '../providers/birthdays_provider.dart';
 import '../providers/view_provider.dart';
+import '../providers/academic_schedule_provider.dart';
 import '../supabase/auth_service.dart';
 import '../utils/vcf_parser.dart';
 import '../modals/neis_setup_modal.dart';
@@ -108,6 +109,17 @@ class SettingsView extends ConsumerWidget {
                     onTap: () =>
                         ref.read(filterProvider.notifier).toggle(t.id),
                   )),
+              // 학사일정(NEIS) — 별도 카테고리. 데이터가 있을 때만 노출.
+              if (ref.watch(academicScheduleProvider).isNotEmpty)
+                CategoryFilterChip(
+                  label: '학사일정',
+                  color: sh.academicColor,
+                  selected: !hidden.contains(academicThemeId),
+                  sh: sh,
+                  onTap: () => ref
+                      .read(filterProvider.notifier)
+                      .toggle(academicThemeId),
+                ),
             ],
           ),
         ),

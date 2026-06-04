@@ -64,13 +64,16 @@ class MonthView extends ConsumerWidget {
       final bKey = '${view.viewYear}-${b.month.toString().padLeft(2, '0')}-${b.day.toString().padLeft(2, '0')}';
       mergedEvents[bKey] = [...(mergedEvents[bKey] ?? []), EventItem(t: '🎂 ${b.name}')];
     }
-    // Merge NEIS 학사일정 (academic — 읽기 전용 표시)
-    ref.watch(academicScheduleProvider).forEach((dateKey, names) {
-      mergedEvents[dateKey] = [
-        ...(mergedEvents[dateKey] ?? []),
-        for (final n in names) EventItem(t: n, academic: true),
-      ];
-    });
+    // Merge NEIS 학사일정 (academic — 읽기 전용 표시, 별도 카테고리로 필터 가능)
+    if (!hiddenThemes.contains(academicThemeId)) {
+      ref.watch(academicScheduleProvider).forEach((dateKey, names) {
+        mergedEvents[dateKey] = [
+          ...(mergedEvents[dateKey] ?? []),
+          for (final n in names)
+            EventItem(t: n, th: academicThemeId, academic: true),
+        ];
+      });
+    }
 
     return Container(
       margin: const EdgeInsets.fromLTRB(Gap.md, Gap.xs, Gap.md, 0),

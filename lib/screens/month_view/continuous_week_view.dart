@@ -211,8 +211,10 @@ class _WeekRow extends ConsumerWidget {
           ...birthdays
               .where((b) => b.month == date.month && b.day == date.day)
               .map((b) => EventItem(t: '🎂 ${b.name}')),
-          ...(academic[key] ?? const [])
-              .map((n) => EventItem(t: n, academic: true)),
+          if (!hiddenThemes.contains(academicThemeId))
+            ...(academic[key] ?? const [])
+                .map((n) =>
+                    EventItem(t: n, th: academicThemeId, academic: true)),
         ];
 
         final applicable = dayTemplates

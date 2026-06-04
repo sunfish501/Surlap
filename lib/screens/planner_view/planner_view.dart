@@ -10,6 +10,7 @@ import '../../providers/themes_provider.dart';
 import '../../providers/view_provider.dart';
 import '../../providers/recurring_provider.dart';
 import '../../providers/academic_schedule_provider.dart';
+import '../../providers/filter_provider.dart';
 import '../../modals/add_edit_event_modal.dart';
 
 class PlannerView extends ConsumerStatefulWidget {
@@ -50,6 +51,7 @@ class _PlannerViewState extends ConsumerState<PlannerView> {
     final events = ref.watch(eventsProvider);
     final themes = ref.watch(themesProvider);
     final academic = ref.watch(academicScheduleProvider);
+    final academicHidden = ref.watch(filterProvider).contains(academicThemeId);
     final days = _weekDays();
     final dayKeys = days.map(du.toDateKey).toList();
     final now = DateTime.now();
@@ -189,9 +191,12 @@ class _PlannerViewState extends ConsumerState<PlannerView> {
                               final allDay = [
                                 ...(events[dayKeys[i]] ?? [])
                                     .where((e) => !e.hasTime && !e.isTimetable),
-                                ...(academic[dayKeys[i]] ?? const [])
-                                    .map((n) =>
-                                        EventItem(t: n, academic: true)),
+                                if (!academicHidden)
+                                  ...(academic[dayKeys[i]] ?? const [])
+                                      .map((n) => EventItem(
+                                          t: n,
+                                          th: academicThemeId,
+                                          academic: true)),
                               ];
                               return Expanded(
                                 child: Container(

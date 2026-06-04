@@ -5,6 +5,10 @@ import '../core/constants/storage_keys.dart';
 import '../storage/local_store.dart';
 import '../supabase/neis_service.dart';
 
+/// 학사일정 가상 카테고리(테마) id — 카테고리 필터에서 따로 켜고/끌 수 있게.
+/// 실제 사용자 테마가 아니라 표시·필터 전용 sentinel.
+const academicThemeId = '__academic__';
+
 /// NEIS 학사일정 — 날짜키(YYYY-MM-DD) → 행사명 목록.
 /// 작년~내년 범위를 1회 받아 로컬 캐시(연 단위). 학교 미연결이면 비어 있음.
 class AcademicScheduleNotifier extends Notifier<Map<String, List<String>>> {
