@@ -5,12 +5,22 @@ import '../../core/theme/design_tokens.dart';
 import '../../core/utils/date_utils.dart' as du;
 import '../../providers/events_provider.dart';
 import '../../providers/themes_provider.dart';
-import '../../providers/view_provider.dart';
 import '../../providers/recurring_provider.dart';
+import '../../providers/neis_cache_provider.dart';
+import '../../providers/settings_provider.dart';
+import '../../supabase/neis_service.dart'
+    show NeisSchool, academicVisibleForGrade;
+import '../timetable_view/timetable_view.dart'
+    show timetableSubjectsForDate, getDisplaySubjectName;
+import '../../widgets/zoom_button.dart';
+import '../../widgets/view_segment_control.dart';
+import '../../widgets/calendar_filter_strip.dart';
 import '../../providers/todos_provider.dart';
 import '../../providers/academic_schedule_provider.dart';
 import '../../providers/birthdays_provider.dart';
 import '../../providers/filter_provider.dart';
+import '../../providers/sports_provider.dart';
+import '../../providers/shared_theme_events_provider.dart';
 import '../../core/utils/todo_style.dart';
 import '../../widgets/mascot/mascot.dart';
 import '../../widgets/mascot/mascot_feedback.dart';
@@ -32,7 +42,9 @@ class DayView extends ConsumerStatefulWidget {
 
 class _DayViewState extends ConsumerState<DayView> {
   static const _timeColW = 44.0;
-  static const _rowH = 48.0;
+  static const _baseRowH = 48.0;
+  double _zoom = 1.0; // 확대/축소 — 주간 뷰와 동일.
+  double get _rowH => _baseRowH * _zoom;
 
   late final ScrollController _scroll;
 
@@ -65,8 +77,15 @@ class _DayViewState extends ConsumerState<DayView> {
     final isToday = du.isSameDay(date, now);
 
     final filter = ref.watch(filterProvider);
+    final sharedToday =
+        ref.watch(sharedThemeEventsByDateProvider)[widget.dateKey] ??
+            const <EventItem>[];
+    bool sharedVisible(EventItem e) =>
+        e.themeIds.isNotEmpty && !filter.contains(e.themeIds.first);
     final allDay = [
       ...items.where((e) => !e.hasTime && !e.isTimetable),
+      // 구독 공유 테마(종일, 읽기 전용)
+      ...sharedToday.where((e) => !e.hasTime && sharedVisible(e)),
       // 생일(별도 카테고리)
       if (!filter.contains(birthdayThemeId))
         ...ref
@@ -74,14 +93,21 @@ class _DayViewState extends ConsumerState<DayView> {
             .where((b) => b.month == date.month && b.day == date.day)
             .map((b) =>
                 EventItem(t: b.name, th: birthdayThemeId, birthday: true)),
-      // NEIS 학사일정(읽기 전용, 별도 카테고리)
+      // NEIS 학사일정(읽기 전용) — 다른 학년 항목은 숨김.
       if (!filter.contains(academicThemeId))
         ...(ref.watch(academicScheduleProvider)[widget.dateKey] ?? const [])
+            .where((n) => academicVisibleForGrade(n, NeisSchool.load()?.grade))
             .map((n) =>
                 EventItem(t: n, th: academicThemeId, academic: true)),
     ];
-    final timed = items.where((e) => e.hasTime && !e.isTimetable).toList()
-      ..sort((a, b) => (a.tm ?? '').compareTo(b.tm ?? ''));
+    final sportsToday =
+        ref.watch(sportsEventsByDateProvider)[widget.dateKey] ?? const [];
+    final timed = [
+      ...items.where((e) => e.hasTime && !e.isTimetable),
+      ...sportsToday.where((e) => !filter.contains(e.themeIds.first)),
+      // 구독 공유 테마(시간 있음, 읽기 전용)
+      ...sharedToday.where((e) => e.hasTime && sharedVisible(e)),
+    ]..sort((a, b) => (a.tm ?? '').compareTo(b.tm ?? ''));
     final dayTodos = ref
         .watch(todosProvider)
         .where((t) => t.dateKey == widget.dateKey)
@@ -92,8 +118,12 @@ class _DayViewState extends ConsumerState<DayView> {
         return r != 0 ? r : (a.createdAt ?? '').compareTo(b.createdAt ?? '');
       });
     // 이 날짜의 요일에 해당하는 반복 일정(시간표 탭에서 작성).
+    // NEIS·템플릿·주간반복을 합친 그 날 시간표 수업(읽기전용). 토글로 on/off.
+    ref.watch(recurringProvider);
+    ref.watch(neisCacheProvider);
+    final showTt = ref.watch(settingsProvider).showTimetable;
     final recurringForDay =
-        ref.watch(recurringProvider)[weekdayIndex(date)] ?? const {};
+        showTt ? timetableSubjectsForDate(ref, date) : const <int, String>{};
     // 시간/종일/할일/반복 전부 없으면 빈 날 → 마스코트 힌트.
     final dayEmpty = timed.isEmpty &&
         recurringForDay.isEmpty &&
@@ -103,53 +133,80 @@ class _DayViewState extends ConsumerState<DayView> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // 날짜 헤더
+        // 통합 뷰 전환 세그먼트(연·월·주·일)
+        const Padding(
+          padding: EdgeInsets.fromLTRB(Gap.lg, Gap.xs, Gap.lg, Gap.sm),
+          child: ViewSegmentControl(),
+        ),
+        // 날짜 헤더 — 한 줄(날짜 + 스케줄 토글 + 확대축소).
         Padding(
-          padding: const EdgeInsets.fromLTRB(Gap.xl, Gap.sm, Gap.xl, Gap.sm),
+          padding: const EdgeInsets.fromLTRB(Gap.lg, 0, Gap.lg, Gap.sm),
           child: Row(
             children: [
-              GestureDetector(
-                onTap: () =>
-                    ref.read(viewProvider.notifier).setMode(ViewMode.events),
-                child: Icon(Icons.arrow_back_ios_rounded,
-                    size: 16, color: sh.inkSoft),
-              ),
-              const SizedBox(width: Gap.md),
+              const SizedBox(width: 2),
               Text(
                 '${date.month}월 ${date.day}일',
                 style: AppType.title.copyWith(
-                    fontSize: 19,
+                    fontSize: 20,
                     fontWeight: FontWeight.w800,
                     letterSpacing: -0.3,
                     color: sh.ink),
               ),
-              const SizedBox(width: 6),
+              const SizedBox(width: 5),
               Padding(
                 padding: const EdgeInsets.only(top: 2),
                 child: Text(
                   _dowName(date.weekday),
                   style: AppType.body.copyWith(
-                      fontWeight: FontWeight.w600,
+                      fontWeight: FontWeight.w700,
                       color: isToday ? sh.accent : sh.inkSoft),
                 ),
               ),
               const Spacer(),
-              // 추가 — soft accent 원형 버튼(일정/할 일 선택).
+              // 스케줄 표시 토글(아이콘만).
               GestureDetector(
-                onTap: _showAddChooser,
+                behavior: HitTestBehavior.opaque,
+                onTap: () => ref
+                    .read(settingsProvider.notifier)
+                    .setShowTimetable(!showTt),
                 child: Container(
-                  width: 34,
-                  height: 34,
+                  width: 38,
+                  height: 38,
                   decoration: BoxDecoration(
-                    color: sh.accent.withValues(alpha: 0.12),
-                    shape: BoxShape.circle,
+                    color:
+                        showTt ? sh.accent.withValues(alpha: 0.12) : sh.card2,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                        color: showTt
+                            ? sh.accent.withValues(alpha: 0.4)
+                            : sh.ink.withValues(alpha: 0.08)),
                   ),
-                  child: Icon(Icons.add_rounded, size: 20, color: sh.accent),
+                  child: Icon(
+                      showTt
+                          ? Icons.event_available_rounded
+                          : Icons.event_busy_rounded,
+                      size: 20,
+                      color: showTt ? sh.accent : sh.inkSoft),
                 ),
               ),
+              const SizedBox(width: 6),
+              // 컴팩트 줌(+/−).
+              ZoomButton(
+                  icon: Icons.remove_rounded,
+                  sh: sh,
+                  onTap: () =>
+                      setState(() => _zoom = (_zoom - 0.2).clamp(0.6, 2.0))),
+              const SizedBox(width: 6),
+              ZoomButton(
+                  icon: Icons.add_rounded,
+                  sh: sh,
+                  onTap: () =>
+                      setState(() => _zoom = (_zoom + 0.2).clamp(0.6, 2.0))),
             ],
           ),
         ),
+        // 카테고리 필터칩 — 헤더 묶음 안에.
+        const CalendarFilterStrip(),
         // 종일 일정
         if (allDay.isNotEmpty) _AllDayBar(items: allDay, themes: themes, sh: sh),
         // 할 일
@@ -158,10 +215,13 @@ class _DayViewState extends ConsumerState<DayView> {
             todos: dayTodos,
             sh: sh,
             onToggle: (id) {
-              final wasDone =
-                  ref.read(todosProvider).any((t) => t.id == id && t.done);
+              final willComplete = ref
+                  .read(todosProvider)
+                  .any((t) => t.id == id && t.status == 1);
               ref.read(todosProvider.notifier).toggleDone(id);
-              if (!wasDone) MascotToast.success(context, '좋아요! 하나 끝냈어요');
+              if (willComplete) {
+                MascotToast.success(context, '좋아요! 하나 끝냈어요');
+              }
             },
             onTapTodo: (t) => showAddTodoModal(context, edit: t),
           ),
@@ -204,27 +264,23 @@ class _DayViewState extends ConsumerState<DayView> {
                     Expanded(
                       child: Stack(
                         children: [
-                          // 시간 그리드 (탭하면 일정 추가)
-                          GestureDetector(
-                            onTapDown: (_) => showAddEditEventModal(context,
-                                dateKey: widget.dateKey),
-                            child: Container(
-                              decoration: BoxDecoration(
-                                border: Border(
-                                  left:
-                                      BorderSide(color: sh.border, width: 0.5),
-                                ),
+                          // 시간 그리드 — 스크롤만(탭으로 추가하지 않음). 추가는 + 버튼.
+                          Container(
+                            decoration: BoxDecoration(
+                              border: Border(
+                                left:
+                                    BorderSide(color: sh.border, width: 0.5),
                               ),
-                              child: Column(
-                                children: List.generate(
-                                  24,
-                                  (h) => Container(
-                                    height: _rowH,
-                                    decoration: BoxDecoration(
-                                      border: Border(
-                                        top: BorderSide(
-                                            color: sh.border, width: 0.5),
-                                      ),
+                            ),
+                            child: Column(
+                              children: List.generate(
+                                24,
+                                (h) => Container(
+                                  height: _rowH,
+                                  decoration: BoxDecoration(
+                                    border: Border(
+                                      top: BorderSide(
+                                          color: sh.border, width: 0.5),
                                     ),
                                   ),
                                 ),
@@ -285,37 +341,37 @@ class _DayViewState extends ConsumerState<DayView> {
     );
   }
 
-  // 반복 일정 블록 — soft tint + 반복 아이콘으로 일반 일정과 구분.
+  // 시간표 수업 블록(읽기전용) — 주간 뷰와 같은 깔끔한 카드.
   List<Widget> _recurringBlocks(
       Map<int, String> byHour, double colW, SpaceHourColors sh) {
     final blocks = <Widget>[];
     byHour.forEach((hour, title) {
+      final name = getDisplaySubjectName(title);
       blocks.add(Positioned(
-        top: hour * _rowH + 1,
+        top: hour * _rowH + 2,
         left: 4,
         right: 6,
-        height: _rowH - 2,
+        height: _rowH - 4,
         child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: Gap.sm, vertical: Gap.xs),
+          alignment: Alignment.center,
+          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
           decoration: BoxDecoration(
-            color: sh.accent.withValues(alpha: 0.09),
+            color: sh.accent.withValues(alpha: sh.dark ? 0.20 : 0.12),
             borderRadius: BorderRadius.circular(8),
-            border: Border(
-                left: BorderSide(
-                    color: sh.accent.withValues(alpha: 0.5), width: 3)),
+            border: Border.all(color: sh.accent.withValues(alpha: 0.25)),
           ),
-          child: Row(
-            children: [
-              Icon(Icons.repeat_rounded, size: 12, color: sh.accent),
-              const SizedBox(width: 4),
-              Expanded(
-                child: Text(title,
-                    style: AppType.caption.copyWith(
-                        fontWeight: FontWeight.w600, color: sh.accentInk),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis),
-              ),
-            ],
+          child: FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Text(
+              name,
+              textAlign: TextAlign.center,
+              maxLines: 1,
+              softWrap: false,
+              style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w700,
+                  color: sh.dark ? sh.ink : sh.accentInk),
+            ),
           ),
         ),
       ));
@@ -343,15 +399,17 @@ class _DayViewState extends ConsumerState<DayView> {
         final em = int.tryParse(ep[1]) ?? m;
         height = ((eh - h) * 60 + (em - m)) * _rowH / 60;
       }
-      final thColor = e.themeIds.isNotEmpty
-          ? themes
-              .firstWhere(
-                (t) => e.themeIds.contains(t.id),
-                orElse: () =>
-                    const CalendarTheme(id: '', name: '', color: '#6b8ec2'),
-              )
-              .colorValue
-          : sh.accent;
+      final thColor = e.sport && e.sportColor != null
+          ? Color(e.sportColor!)
+          : e.themeIds.isNotEmpty
+              ? themes
+                  .firstWhere(
+                    (t) => e.themeIds.contains(t.id),
+                    orElse: () => const CalendarTheme(
+                        id: '', name: '', color: '#6b8ec2'),
+                  )
+                  .colorValue
+              : sh.accent;
 
       blocks.add(Positioned(
         top: top,
@@ -405,42 +463,6 @@ class _DayViewState extends ConsumerState<DayView> {
   }
 
   String _dowName(int w) => ['월', '화', '수', '목', '금', '토', '일'][w - 1];
-
-  // + 버튼 → 일정/할 일 선택.
-  void _showAddChooser() {
-    final sh = context.sh;
-    showModalBottomSheet(
-      context: context,
-      builder: (ctx) => Container(
-        color: sh.card,
-        padding: const EdgeInsets.fromLTRB(Gap.lg, Gap.md, Gap.lg, Gap.xl),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ListTile(
-              contentPadding: EdgeInsets.zero,
-              leading: Icon(Icons.event_rounded, color: sh.accent),
-              title: Text('일정 추가', style: AppType.body.copyWith(color: sh.ink)),
-              onTap: () {
-                Navigator.pop(ctx);
-                showAddEditEventModal(context, dateKey: widget.dateKey);
-              },
-            ),
-            ListTile(
-              contentPadding: EdgeInsets.zero,
-              leading:
-                  Icon(Icons.check_circle_outline_rounded, color: sh.accent),
-              title: Text('할 일 추가', style: AppType.body.copyWith(color: sh.ink)),
-              onTap: () {
-                Navigator.pop(ctx);
-                showAddTodoModal(context, dateKey: widget.dateKey);
-              },
-            ),
-          ],
-        ),
-      ),
-    );
-  }
 }
 
 // ─── 할 일 바 ────────────────────────────────────────────────────
@@ -487,11 +509,9 @@ class _TodoBar extends StatelessWidget {
                     GestureDetector(
                       onTap: () => onToggle(t.id),
                       child: Icon(
-                        t.done
-                            ? Icons.check_circle_rounded
-                            : Icons.radio_button_unchecked_rounded,
+                        todoStatusIcon(t.status),
                         size: 18,
-                        color: t.done ? sh.accent : c,
+                        color: todoStatusColor(t.status, t.priority, sh),
                       ),
                     ),
                     const SizedBox(width: 8),

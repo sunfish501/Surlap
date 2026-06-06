@@ -109,7 +109,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      '로그인하면 일정·시간표·테마가\n모든 기기에서 안전하게 동기화돼요',
+                      '로그인하면 일정·시간표·캘린더가\n모든 기기에서 안전하게 동기화돼요',
                       textAlign: TextAlign.center,
                       style: TextStyle(
                           fontSize: 14,

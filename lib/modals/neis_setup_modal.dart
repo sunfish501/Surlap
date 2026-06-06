@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../core/theme/app_theme.dart';
 import '../core/theme/design_tokens.dart';
 import '../models/user_type.dart';
+import '../providers/user_type_provider.dart';
+import '../providers/neis_cache_provider.dart';
+import '../providers/academic_schedule_provider.dart';
 import '../supabase/neis_service.dart';
 import '../widgets/mascot/mascot_feedback.dart';
 
@@ -14,12 +18,13 @@ Future<void> showNeisSetupModal(BuildContext context) =>
       builder: (_) => const NeisSetupModal(),
     );
 
-class NeisSetupModal extends StatefulWidget {
+class NeisSetupModal extends ConsumerStatefulWidget {
   const NeisSetupModal({super.key});
-  @override State<NeisSetupModal> createState() => _NeisSetupModalState();
+  @override
+  ConsumerState<NeisSetupModal> createState() => _NeisSetupModalState();
 }
 
-class _NeisSetupModalState extends State<NeisSetupModal> {
+class _NeisSetupModalState extends ConsumerState<NeisSetupModal> {
   final _nameCtrl = TextEditingController();
   final _sloganCtrl = TextEditingController();
   final _logoCtrl = TextEditingController();
@@ -321,6 +326,23 @@ class _NeisSetupModalState extends State<NeisSetupModal> {
       return;
     }
     await school.save();
+    // 유형이 아직 선택 안 됐으면 학교 종류로 자동 설정(고/중/초 학생).
+    if (ref.read(userTypeProvider) == null) {
+      final k = school.kind;
+      final inferred = k.contains('고등')
+          ? UserType.high
+          : k.contains('중학')
+              ? UserType.middle
+              : k.contains('초등')
+                  ? UserType.elementary
+                  : null;
+      if (inferred != null) {
+        await ref.read(userTypeProvider.notifier).set(inferred);
+      }
+    }
+    // 학교가 바뀌었으니 시간표·학사일정을 바로 다시 받아 즉시 반영.
+    ref.read(neisCacheProvider.notifier).refresh();
+    ref.read(academicScheduleProvider.notifier).refresh();
     if (mounted) {
       MascotToast.success(context, '${school.name} 연결 완료!');
       Navigator.pop(context);

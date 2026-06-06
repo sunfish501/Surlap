@@ -57,7 +57,7 @@ final List<CoachStep> kCoachSteps = [
   CoachStep(
     targetKey: coachKeyBtnCategory,
     title: '카테고리',
-    desc: '일정 카테고리(테마)를 만들고 색을 지정할 수 있어요. '
+    desc: '일정 카테고리(캘린더)를 만들고 색을 지정할 수 있어요. '
         '색으로 일정을 한눈에 구분해요.',
   ),
   CoachStep(

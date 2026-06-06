@@ -3,12 +3,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../core/theme/app_theme.dart';
 import '../core/theme/design_tokens.dart';
 import '../providers/color_preset_provider.dart';
-import '../providers/view_provider.dart';
 import '../supabase/auth_service.dart';
 import '../widgets/mascot/mascot.dart';
 import '../modals/backup_modal.dart';
 import 'login/login_screen.dart';
-import 'settings_view.dart' show SettingsSectionCard, SettingsRow;
+import 'settings_view.dart'
+    show SettingsSectionCard, SettingsRow, SettingsSections;
 
 /// 프로필 — 하단 nav 5번째 탭의 in-shell 뷰.
 /// 계정 정보 + 설정 진입 + 다크모드 토글 + 백업/로그인.
@@ -26,7 +26,7 @@ class ProfileView extends ConsumerWidget {
       padding: const EdgeInsets.fromLTRB(Gap.lg, Gap.sm, Gap.lg, 120),
       children: [
         Padding(
-          padding: const EdgeInsets.fromLTRB(4, 0, 4, 4),
+          padding: const EdgeInsets.fromLTRB(4, 0, 4, 16),
           child: Text('프로필',
               style: AppType.title.copyWith(
                   fontSize: 26,
@@ -34,35 +34,27 @@ class ProfileView extends ConsumerWidget {
                   letterSpacing: -0.5,
                   color: sh.ink)),
         ),
-        Padding(
-          padding: const EdgeInsets.fromLTRB(4, 0, 4, 16),
-          child: Text('내 계정과 앱 설정을 한곳에서',
-              style: AppType.body.copyWith(color: sh.inkSoft)),
-        ),
 
         // ── 계정 카드 ──
         _AccountCard(
           sh: sh,
           loggedIn: loggedIn,
           name: loggedIn ? userDisplayName(user) : '로그인하고 동기화하기',
-          email: loggedIn ? (user.email ?? '') : '일정·시간표·테마를 기기 간 동기화',
+          email: loggedIn ? (user.email ?? '') : '일정·시간표·캘린더를 기기 간 동기화',
           onTap: () => loggedIn ? null : showLoginScreen(context),
         ),
         const SizedBox(height: 18),
 
-        // ── 앱 설정 ──
+        // ── 설정 섹션(내 유형·카테고리·보기 옵션·더보기) — 설정 화면 통합 ──
+        const SettingsSections(),
+        const SizedBox(height: 12),
+
+        // ── 앱 ──
         SettingsSectionCard(
           sh: sh,
           title: '앱',
           child: Column(
             children: [
-              SettingsRow(
-                sh: sh,
-                icon: Icons.settings_outlined,
-                title: '설정',
-                onTap: () =>
-                    ref.read(viewProvider.notifier).setMode(ViewMode.settings),
-              ),
               SettingsRow(
                 sh: sh,
                 icon: isDark

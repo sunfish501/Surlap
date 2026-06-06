@@ -17,6 +17,12 @@ class EventItem {
   final bool academic;
   /// 생일(읽기 전용 표시) — 직렬화 제외.
   final bool birthday;
+  /// 스포츠 구독 경기(읽기 전용 표시) — 직렬화 제외.
+  final bool sport;
+  /// 스포츠 구독 색상(ARGB) — 구독별 고유 색.
+  final int? sportColor;
+  /// 스포츠 종목 이모지.
+  final String? sportEmoji;
 
   const EventItem({
     required this.t,
@@ -30,6 +36,9 @@ class EventItem {
     this.createdAt,
     this.academic = false,
     this.birthday = false,
+    this.sport = false,
+    this.sportColor,
+    this.sportEmoji,
   });
 
   bool get isTimetable => tt;
@@ -77,6 +86,7 @@ class EventItem {
     String? t, String? tm, String? te, dynamic th, bool? tt,
     String? id, String? cid, String? author, String? createdAt,
     bool? academic, bool? birthday,
+    bool? sport, int? sportColor, String? sportEmoji,
   }) => EventItem(
     t: t ?? this.t,
     tm: tm ?? this.tm,
@@ -89,6 +99,9 @@ class EventItem {
     createdAt: createdAt ?? this.createdAt,
     academic: academic ?? this.academic,
     birthday: birthday ?? this.birthday,
+    sport: sport ?? this.sport,
+    sportColor: sportColor ?? this.sportColor,
+    sportEmoji: sportEmoji ?? this.sportEmoji,
   );
 }
 

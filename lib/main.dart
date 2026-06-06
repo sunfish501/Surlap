@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'storage/local_store.dart';
 import 'supabase/supabase_client.dart';
 import 'supabase/account_scope.dart';
+import 'providers/record_templates_provider.dart';
 import 'app.dart';
 
 void main() async {
@@ -17,6 +18,8 @@ void main() async {
   // 로컬 저장소 초기화 + 레거시 데이터 백업/마이그레이션(1회)
   await LocalStore.init();
   await LocalStore.instance.migrateLegacyToGuestOnce();
+  // 기록 데이터 일반화 마이그레이션(공부 studyHours→primary 등, 1회)
+  await migrateRecordDataOnce();
 
   // Supabase 초기화 (dart-define 값이 있을 때만)
   await initSupabase();

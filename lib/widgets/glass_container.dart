@@ -11,8 +11,8 @@ class GlassContainer extends StatelessWidget {
     this.borderRadius = 28,
     this.padding = EdgeInsets.zero,
     this.blur = 18,
-    this.tint = const Color(0x29FFFFFF),        // white @ 0.16
-    this.borderColor = const Color(0x47FFFFFF), // white @ 0.28
+    this.tint = const Color(0x14FFFFFF),        // white @ 0.08 (더 투명)
+    this.borderColor = const Color(0x33FFFFFF), // white @ 0.20
     this.shadowColor = const Color(0x14000000), // black @ 0.08
     this.shadowBlur = 20,
     this.shadowOffset = const Offset(0, 8),

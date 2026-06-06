@@ -31,12 +31,14 @@ class SpaceHourBottomNav extends ConsumerWidget {
         active: Icons.calendar_month_rounded,
         inactive: Icons.calendar_month_outlined,
         label: '캘린더',
-        isActive: const {ViewMode.events, ViewMode.year, ViewMode.planner}.contains(view.mode),
-        onTap: () {
-          if (!const {ViewMode.events, ViewMode.year, ViewMode.planner}.contains(view.mode)) {
-            notifier.setMode(ViewMode.events);
-          }
-        },
+        isActive: const {
+          ViewMode.events,
+          ViewMode.year,
+          ViewMode.planner,
+          ViewMode.day,
+        }.contains(view.mode),
+        // 이미 캘린더 계열(연/월/주/일) 안이어도 탭하면 월간으로 복귀.
+        onTap: () => notifier.setMode(ViewMode.events),
       ),
       _Tab(
         active: Icons.grid_view_rounded,
@@ -49,7 +51,7 @@ class SpaceHourBottomNav extends ConsumerWidget {
       _Tab(
         active: Icons.palette_rounded,
         inactive: Icons.palette_outlined,
-        label: '테마',
+        label: '공유 캘린더',
         isActive: view.mode == ViewMode.themes,
         onTap: () => notifier.setMode(ViewMode.themes),
       ),
@@ -67,11 +69,11 @@ class SpaceHourBottomNav extends ConsumerWidget {
     // ── glass 색상 (다크/라이트 분기) ──────────────────────────
     // 밝은 배경에서도 사라지지 않도록 frost·border·shadow를 강하게.
     final tint = dark
-        ? Colors.black.withValues(alpha: 0.58)
-        : Colors.white.withValues(alpha: 0.62);
+        ? Colors.black.withValues(alpha: 0.40)
+        : Colors.white.withValues(alpha: 0.48);
     final borderColor = dark
-        ? Colors.white.withValues(alpha: 0.20)
-        : Colors.white.withValues(alpha: 0.82);
+        ? Colors.white.withValues(alpha: 0.16)
+        : Colors.white.withValues(alpha: 0.70);
     final shadowColor = Colors.black.withValues(alpha: dark ? 0.50 : 0.12);
 
     return Positioned(

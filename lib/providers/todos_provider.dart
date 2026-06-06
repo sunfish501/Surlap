@@ -39,10 +39,11 @@ class TodosNotifier extends Notifier<List<TodoItem>> {
     await _save();
   }
 
+  // 한 번 누를 때마다 없음 → 진행중 → 완료 → 없음 순으로 순환.
   Future<void> toggleDone(String id) async {
     state = [
       for (final t in state)
-        if (t.id == id) t.copyWith(done: !t.done) else t
+        if (t.id == id) t.copyWith(status: (t.status + 1) % 3) else t
     ];
     await _save();
   }

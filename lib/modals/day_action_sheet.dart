@@ -7,11 +7,16 @@ import '../providers/events_provider.dart';
 import '../providers/todos_provider.dart';
 import '../providers/day_widget_provider.dart';
 import '../providers/view_provider.dart';
+import '../providers/template_ranges_provider.dart';
+import '../providers/record_templates_provider.dart';
+import '../models/template_range.dart';
+import '../models/record_template.dart';
 import '../widgets/mascot/mascot.dart';
 import 'add_edit_event_modal.dart';
 import 'add_todo_modal.dart';
 import 'day_widget_input_modal.dart';
 import 'day_template_manager_modal.dart';
+import 'record_entry_sheet.dart';
 
 /// 달력에서 날짜를 탭하면 뜨는 공용 액션 시트.
 /// 월간/연속 보기 양쪽에서 동일하게 사용한다.
@@ -34,6 +39,19 @@ class DayActionSheet extends ConsumerWidget {
         (ref.watch(eventsProvider)[dateKey] ?? []).where((e) => !e.isTimetable).toList();
     final todos = ref.watch(todosProvider).where((t) => t.dateKey == dateKey).toList();
 
+    // 이 날짜에 적용된 기록 템플릿(공부·독서·운동 등) — 빠른 기록 진입.
+    final ranges = ref.watch(templateRangesProvider);
+    final byId = ref.watch(recordTemplatesByIdProvider);
+    final activeRecords = <RecordTemplate>[];
+    final seenTpl = <String>{};
+    for (final TemplateRange r in ranges) {
+      if (!r.covers(dateKey) || seenTpl.contains(r.templateId)) continue;
+      final tpl = byId[r.templateId];
+      if (tpl == null) continue;
+      seenTpl.add(r.templateId);
+      activeRecords.add(tpl);
+    }
+
     return Container(
       color: sh.card,
       padding: const EdgeInsets.fromLTRB(Gap.lg, Gap.md, Gap.lg, Gap.xl),
@@ -46,6 +64,42 @@ class DayActionSheet extends ConsumerWidget {
                 style: AppType.body
                     .copyWith(fontWeight: FontWeight.w700, color: sh.ink)),
             const SizedBox(height: Gap.md),
+            // 기록 템플릿 적용 기간이면 맨 위에 눈에 띄는 "기록하기" 진입.
+            ...activeRecords.map((tpl) => Padding(
+                  padding: const EdgeInsets.only(bottom: 8),
+                  child: InkWell(
+                    onTap: () {
+                      Navigator.pop(context);
+                      showRecordEntrySheet(context, tpl.id, dateKey);
+                    },
+                    borderRadius: BorderRadius.circular(14),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 14, vertical: 12),
+                      decoration: BoxDecoration(
+                        color: sh.accent.withValues(alpha: 0.12),
+                        borderRadius: BorderRadius.circular(14),
+                        border: Border.all(
+                            color: sh.accent.withValues(alpha: 0.30)),
+                      ),
+                      child: Row(
+                        children: [
+                          Text(tpl.emoji,
+                              style: const TextStyle(fontSize: 20)),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: Text('${tpl.name} 기록하기',
+                                style: AppType.body.copyWith(
+                                    fontWeight: FontWeight.w800,
+                                    color: sh.accent)),
+                          ),
+                          Icon(Icons.chevron_right_rounded,
+                              size: 20, color: sh.accent),
+                        ],
+                      ),
+                    ),
+                  ),
+                )),
             _Tile(
               icon: Icons.event_rounded,
               label: '일정 추가',
@@ -120,13 +174,9 @@ class DayActionSheet extends ConsumerWidget {
                       onTap: () =>
                           ref.read(todosProvider.notifier).toggleDone(t.id),
                       child: Icon(
-                        t.done
-                            ? Icons.check_circle_rounded
-                            : Icons.radio_button_unchecked_rounded,
+                        todoStatusIcon(t.status),
                         size: 20,
-                        color: t.done
-                            ? sh.accent
-                            : todoPriorityColor(t.priority, sh),
+                        color: todoStatusColor(t.status, t.priority, sh),
                       ),
                     ),
                     title: Text(t.title,

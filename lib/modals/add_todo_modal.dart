@@ -47,6 +47,7 @@ class _AddTodoModalState extends ConsumerState<AddTodoModal> {
 
   bool _listening = false;
   bool _speechReady = false;
+  String? _speechErr; // 마지막 음성 인식 오류(원인 안내용)
 
   bool get isEdit => widget.edit != null;
 
@@ -77,11 +78,17 @@ class _AddTodoModalState extends ConsumerState<AddTodoModal> {
           }
         },
         onError: (e) {
-          if (mounted) setState(() => _listening = false);
+          if (mounted) {
+            setState(() {
+              _listening = false;
+              _speechErr = e.errorMsg;
+            });
+          }
         },
       );
-    } catch (_) {
+    } catch (e) {
       _speechReady = false;
+      _speechErr = '$e';
     }
     if (mounted) setState(() {});
   }
@@ -97,45 +104,52 @@ class _AddTodoModalState extends ConsumerState<AddTodoModal> {
   String? get _effDate => _dateTouched ? _dateOverride : _parsed.dateKey;
   int get _effPriority => _prioTouched ? (_prioOverride ?? 0) : _parsed.priority;
 
-  // ── 음성 입력 ──────────────────────────────────────────────────
-  Future<void> _toggleListen() async {
-    if (_listening) {
-      await _speech.stop();
-      if (mounted) setState(() => _listening = false);
-      return;
-    }
+  // ── 음성 입력 (마이크를 꾹 누르고 있는 동안 듣기) ──────────────
+  Future<void> _startListen() async {
+    if (_listening) return;
     if (!_speechReady) {
       await _initSpeech();
     }
     if (!_speechReady) {
       if (mounted) {
-        _snack('음성 인식을 사용할 수 없어요. 마이크 권한을 확인해 주세요.');
+        final detail = _speechErr != null ? ' ($_speechErr)' : '';
+        _snack('음성 인식을 사용할 수 없어요. 설정에서 마이크·음성 인식 권한을 허용해 주세요.$detail');
       }
       return;
     }
     setState(() => _listening = true);
-    await _speech.listen(
-      // 충분히 듣도록 시간을 넉넉히 — 바로 끊기지 않게.
-      listenOptions: SpeechListenOptions(
-        partialResults: true,
-        localeId: 'ko_KR',
-        listenFor: const Duration(seconds: 30),
-        pauseFor: const Duration(seconds: 5),
-      ),
-      onResult: (res) {
-        if (!mounted) return;
-        setState(() {
-          _textCtrl.text = res.recognizedWords;
-          _textCtrl.selection =
-              TextSelection.collapsed(offset: _textCtrl.text.length);
-          // 음성으로 채울 땐 파싱값을 다시 따르도록 override 해제.
-          _dateTouched = false;
-          _prioTouched = false;
-          // 인식이 끝나면 듣기 종료(자동 추가하지 않고 확인 후 '추가').
-          if (res.finalResult) _listening = false;
-        });
-      },
-    );
+    try {
+      await _speech.listen(
+        listenOptions: SpeechListenOptions(
+          partialResults: true,
+          localeId: 'ko_KR',
+          listenFor: const Duration(seconds: 60),
+          pauseFor: const Duration(seconds: 10),
+        ),
+        onResult: (res) {
+          if (!mounted) return;
+          setState(() {
+            _textCtrl.text = res.recognizedWords;
+            _textCtrl.selection =
+                TextSelection.collapsed(offset: _textCtrl.text.length);
+            // 음성으로 채울 땐 파싱값을 다시 따르도록 override 해제.
+            _dateTouched = false;
+            _prioTouched = false;
+          });
+        },
+      );
+    } catch (e) {
+      if (mounted) {
+        setState(() => _listening = false);
+        _snack('음성 인식을 시작하지 못했어요 ($e)');
+      }
+    }
+  }
+
+  Future<void> _stopListen() async {
+    if (!_listening) return;
+    await _speech.stop();
+    if (mounted) setState(() => _listening = false);
   }
 
   void _snack(String m) =>
@@ -280,7 +294,8 @@ class _AddTodoModalState extends ConsumerState<AddTodoModal> {
                   _MicButton(
                     listening: _listening,
                     sh: sh,
-                    onTap: _toggleListen,
+                    onStart: _startListen,
+                    onStop: _stopListen,
                   ),
                 ],
               ),
@@ -289,8 +304,8 @@ class _AddTodoModalState extends ConsumerState<AddTodoModal> {
               padding: const EdgeInsets.only(top: 6, left: 2),
               child: Text(
                 _listening
-                    ? '🎤 듣고 있어요… 말한 뒤 잠시 기다리면 입력돼요'
-                    : '🎤 마이크를 누르고 말하면 자동으로 받아써요 (예: "내일 p1 빨래하기"). 첫 사용 시 권한 허용 필요',
+                    ? '듣고 있어요… 말한 뒤 손을 떼세요'
+                    : '마이크를 꾹 누른 채로 말하고 떼면 입력돼요 (예: "내일 p1 빨래하기"). 첫 사용 시 권한 허용 필요',
                 style: AppType.caption.copyWith(
                     color: _listening ? sh.accent : sh.inkFaint,
                     height: 1.3),
@@ -417,24 +432,31 @@ class _AddTodoModalState extends ConsumerState<AddTodoModal> {
 class _MicButton extends StatelessWidget {
   final bool listening;
   final SpaceHourColors sh;
-  final VoidCallback onTap;
+  final VoidCallback onStart;
+  final VoidCallback onStop;
   const _MicButton(
-      {required this.listening, required this.sh, required this.onTap});
+      {required this.listening,
+      required this.sh,
+      required this.onStart,
+      required this.onStop});
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
+    // 누르고 있는 동안 듣고, 떼면 멈춘다(push-to-talk).
+    return Listener(
+      onPointerDown: (_) => onStart(),
+      onPointerUp: (_) => onStop(),
+      onPointerCancel: (_) => onStop(),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 160),
-        width: 38,
-        height: 38,
+        width: 40,
+        height: 40,
         decoration: BoxDecoration(
           color: listening ? sh.danger : sh.accent.withValues(alpha: 0.12),
           shape: BoxShape.circle,
         ),
         child: Icon(
-          listening ? Icons.stop_rounded : Icons.mic_rounded,
+          listening ? Icons.graphic_eq_rounded : Icons.mic_rounded,
           size: 20,
           color: listening ? Colors.white : sh.accent,
         ),

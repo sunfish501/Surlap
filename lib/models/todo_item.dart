@@ -7,7 +7,7 @@ class TodoItem {
   final String title;
   final int priority;       // 1=높음, 2=보통, 3=낮음 (0=없음)
   final String? dateKey;    // 'YYYY-MM-DD' (없으면 날짜 미지정)
-  final bool done;
+  final int status;         // 0=없음, 1=진행중, 2=완료
   final String? createdAt;  // ISO8601
 
   const TodoItem({
@@ -15,18 +15,20 @@ class TodoItem {
     required this.title,
     this.priority = 0,
     this.dateKey,
-    this.done = false,
+    this.status = 0,
     this.createdAt,
   });
 
   bool get hasPriority => priority >= 1 && priority <= 3;
+  bool get done => status >= 2;
+  bool get inProgress => status == 1;
 
   TodoItem copyWith({
     String? id,
     String? title,
     int? priority,
     Object? dateKey = _noChange,
-    bool? done,
+    int? status,
     String? createdAt,
   }) =>
       TodoItem(
@@ -34,7 +36,7 @@ class TodoItem {
         title: title ?? this.title,
         priority: priority ?? this.priority,
         dateKey: dateKey == _noChange ? this.dateKey : dateKey as String?,
-        done: done ?? this.done,
+        status: status ?? this.status,
         createdAt: createdAt ?? this.createdAt,
       );
 
@@ -43,7 +45,8 @@ class TodoItem {
         't': title,
         if (priority != 0) 'p': priority,
         if (dateKey != null) 'd': dateKey,
-        if (done) 'done': true,
+        if (status != 0) 'status': status,
+        if (done) 'done': true, // 구버전 호환
         if (createdAt != null) 'created_at': createdAt,
       };
 
@@ -52,7 +55,8 @@ class TodoItem {
         title: (j['t'] ?? '').toString(),
         priority: (j['p'] as num?)?.toInt() ?? 0,
         dateKey: j['d'] as String?,
-        done: j['done'] == true,
+        status: (j['status'] as num?)?.toInt() ??
+            (j['done'] == true ? 2 : 0),
         createdAt: j['created_at'] as String?,
       );
 }

@@ -85,6 +85,17 @@ class NeisSchool {
   }
 }
 
+/// 학사일정 표시 필터 — 다른 학년만 언급한 항목은 숨긴다.
+/// 학년 표기가 없으면(=전체 일정) 항상 표시. 내 학년이 포함되면 표시.
+bool academicVisibleForGrade(String title, int? grade) {
+  if (grade == null || grade <= 0) return true;
+  final mentioned = RegExp(r'([1-6])\s*학년')
+      .allMatches(title)
+      .map((m) => int.parse(m.group(1)!))
+      .toSet();
+  return mentioned.isEmpty || mentioned.contains(grade);
+}
+
 /// 홈페이지 주소에서 도메인을 뽑아 파비콘 URL을 만든다.
 /// Google 파비콘 서비스(sz=128)를 쓰면 대부분의 학교 사이트에서 안정적으로
 /// 작은 로고를 얻을 수 있다. 주소가 비었거나 파싱 실패면 null.

@@ -95,9 +95,6 @@ class _BackupModalState extends ConsumerState<BackupModal> {
                       Expanded(child: _Btn('⬇️ 클라우드 내려받기', sh,
                           onTap: _cloudPull, loading: _loading)),
                     ]),
-                    const SizedBox(height: Gap.sm),
-                    Text('일정·테마·설정 전체를 Supabase에 저장/복원합니다.',
-                        style: AppType.label.copyWith(color: sh.inkFaint)),
                   ],
                   if (_msg != null) ...[
                     const SizedBox(height: 10),

@@ -15,6 +15,10 @@ import '../../providers/day_widget_provider.dart';
 import '../../providers/birthdays_provider.dart';
 import '../../providers/todos_provider.dart';
 import '../../providers/academic_schedule_provider.dart';
+import '../../providers/template_ranges_provider.dart';
+import '../../providers/record_templates_provider.dart';
+import '../../providers/sports_provider.dart';
+import '../../providers/shared_theme_events_provider.dart';
 import '../../modals/day_action_sheet.dart';
 import 'month_grid.dart';
 
@@ -35,6 +39,8 @@ class MonthView extends ConsumerWidget {
     final dayTemplates = ref.watch(dayTemplatesProvider);
     final birthdays = ref.watch(birthdaysProvider);
     final todos = ref.watch(todosProvider);
+    final templateRanges = ref.watch(templateRangesProvider);
+    final templatesById = ref.watch(recordTemplatesByIdProvider);
     final sh = context.sh;
 
     // 날짜별 할 일 묶음 (날짜 지정된 것만 캘린더에 표시).
@@ -80,6 +86,23 @@ class MonthView extends ConsumerWidget {
         ];
       });
     }
+    // Merge 스포츠 구독 경기 (구독별 필터 — th=구독id).
+    ref.watch(sportsEventsByDateProvider).forEach((dateKey, items) {
+      final vis = items
+          .where((e) => !hiddenThemes.contains(e.themeIds.first))
+          .toList();
+      if (vis.isEmpty) return;
+      mergedEvents[dateKey] = [...(mergedEvents[dateKey] ?? []), ...vis];
+    });
+    // Merge 구독 중인 공유 테마 일정 (읽기 전용 — th=구독 테마id).
+    ref.watch(sharedThemeEventsByDateProvider).forEach((dateKey, items) {
+      final vis = items
+          .where((e) =>
+              e.themeIds.isNotEmpty && !hiddenThemes.contains(e.themeIds.first))
+          .toList();
+      if (vis.isEmpty) return;
+      mergedEvents[dateKey] = [...(mergedEvents[dateKey] ?? []), ...vis];
+    });
 
     return Container(
       margin: const EdgeInsets.fromLTRB(Gap.md, Gap.xs, Gap.md, 0),
@@ -111,6 +134,8 @@ class MonthView extends ConsumerWidget {
         memos: memos,
         dayTemplates: dayTemplates,
         widgetValues: widgetValues,
+        templateRanges: templateRanges,
+        templatesById: templatesById,
         // 월간: 날짜 탭 → 추가/액션 시트(일정·할일·위젯·자세히 보기).
         onDayTap: (date) => _handleDayTap(context, ref, date),
         // 길게 누르면 동일 시트.

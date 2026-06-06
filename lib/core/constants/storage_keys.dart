@@ -10,11 +10,24 @@ abstract final class StorageKeys {
   static const memos         = 'calendar-memos-v1';
   static const circles       = 'calendar-circles-v1';
   static const continuousView = 'calendar-continuous-view-v1';
+  static const showTimetable = 'calendar-show-timetable-v1';
   static const weekStart     = 'calendar-week-start-v1';
   static const notifyEnabled = 'calendar-notify-enabled-v1';
   static const themeFilter   = 'calendar-theme-filter-v1';
   static const dayTemplates  = 'calendar-day-templates-v1';
   static const dayWidgetValues = 'calendar-day-widget-values-v1';
+  // 기록 템플릿 적용 기간 — { id, templateId, start, end } 배열.
+  static const recordTemplateRanges = 'calendar-record-template-ranges-v1';
+  // 사용자 정의 기록 템플릿(프리셋 제외 — 커스텀만 저장).
+  static const recordTemplates = 'calendar-record-templates-v1';
+  // 기록 데이터 필드 마이그레이션(공부 studyHours→primary 등) 완료 플래그.
+  static const recordMigratedV1 = 'calendar-record-migrated-v1';
+  // 스포츠 구독 — { id, sport, leagueId, teamId, color, enabled, ... } 배열.
+  static const sportsSubscriptions = 'calendar-sports-subscriptions-v1';
+  // 스포츠 경기 일정 로컬 캐시(구독별). 재요청 가능 — 동기화 대상 아님.
+  static const sportsEventsCache = 'calendar-sports-events-cache-v1';
+  // 구독 중인 공유 테마의 일정 캐시(테마id별). 재수신 가능 — 동기화 대상 아님.
+  static const sharedThemeEvents = 'calendar-shared-theme-events-v1';
   static const timetableTemplate  = 'calendar-timetable-template-v1';
   static const timetableOverrides = 'calendar-timetable-overrides-v1';
   // 시간표 직접 입력 — 요일(0=월..6=일)×시각으로 매주 반복 저장.
@@ -23,6 +36,8 @@ abstract final class StorageKeys {
   static const todos         = 'calendar-todos-v1';
   // 온보딩 시청 여부 — 기기 설정값(계정 스코프 제외).
   static const hasSeenOnboarding = 'calendar-has-seen-onboarding-v1';
+  // 테마 관리 활용 팁 — 처음 1회만 노출.
+  static const themeTipSeen  = 'calendar-theme-tip-seen-v1';
   // 생일 알림 설정 — 기기 설정값.
   static const birthdayNotifyEnabled = 'calendar-bday-notify-enabled-v1';
   static const birthdayNotifyDaysBefore = 'calendar-bday-notify-days-v1';
@@ -49,15 +64,18 @@ abstract final class StorageKeys {
   /// show-past)는 제외 — 기기에 그대로 남는다.
   static const Set<String> accountKeys = {
     events, themes, memos, starred, circles, themeFilter, cellDesign,
-    motto, mottoIcon, dayTemplates, dayWidgetValues,
+    motto, mottoIcon, dayTemplates, dayWidgetValues, recordTemplateRanges,
+    recordTemplates,
     timetableTemplate, timetableOverrides, timetableWeekly, birthdays, neisSchool,
-    todos,
+    todos, sportsSubscriptions,
   };
 
   /// user_data KV 테이블로 동기화하는 키 (events 는 별도 events 테이블이라 제외).
   static const Set<String> userDataKeys = {
     themes, memos, starred, circles, themeFilter, cellDesign,
-    motto, mottoIcon, dayTemplates, dayWidgetValues,
+    motto, mottoIcon, dayTemplates, dayWidgetValues, recordTemplateRanges,
+    recordTemplates,
     timetableTemplate, timetableOverrides, timetableWeekly, birthdays, neisSchool,
+    sportsSubscriptions,
   };
 }

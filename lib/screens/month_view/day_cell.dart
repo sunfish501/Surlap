@@ -7,6 +7,7 @@ import '../../models/event_item.dart';
 import '../../models/todo_item.dart';
 import '../../models/calendar_theme.dart';
 import '../../models/day_template.dart';
+import '../../models/record_template.dart';
 import '../../day_widgets/widget_cell_renderer.dart';
 import 'event_chip.dart';
 
@@ -21,6 +22,8 @@ class DayCell extends StatelessWidget {
   final bool hasCircle;
   final List<DayTemplate> applicableTemplates;
   final Map<String, Map<String, dynamic>> dateWidgetValues;
+  /// 기록 템플릿(공부 트래커 등) 셀 뱃지: 이모지 + 대표 숫자. 적용 기간에만 채워짐.
+  final List<RecordBadge> recordBadges;
   final VoidCallback onTap;
   final VoidCallback onLongPress;
   /// 더블탭 → 동그라미 토글.
@@ -28,6 +31,8 @@ class DayCell extends StatelessWidget {
   /// 셀 탭 시 날짜 숫자가 액션 시트 헤더로 줌인되는 Hero 전환.
   /// 연속 보기는 같은 날짜가 여러 그리드에 중복 렌더되어 태그가 충돌하므로 끈다.
   final bool heroDateNumber;
+  /// 여러 날 이어지는 일정 막대가 위에 겹쳐 그려질 때, 그만큼 셀 내용을 아래로 민다.
+  final double topReserve;
 
   const DayCell({
     super.key,
@@ -41,10 +46,12 @@ class DayCell extends StatelessWidget {
     this.hasCircle = false,
     this.applicableTemplates = const [],
     this.dateWidgetValues = const {},
+    this.recordBadges = const [],
     required this.onTap,
     required this.onLongPress,
     this.onDoubleTap,
     this.heroDateNumber = false,
+    this.topReserve = 0,
   });
 
   @override
@@ -116,10 +123,12 @@ class DayCell extends StatelessWidget {
       child: Container(
         clipBehavior: Clip.hardEdge,
         decoration: BoxDecoration(
-          // 오늘 칸은 은은한 브랜드 틴트로 강조(따뜻한 톤).
+          // 오늘 칸은 은은한 브랜드 틴트로 강조 / 기록 템플릿 적용 기간은 옅은 배경 하이라이트.
           color: isToday
               ? sh.accent.withValues(alpha: sh.dark ? 0.12 : 0.06)
-              : Colors.transparent,
+              : recordBadges.isNotEmpty
+                  ? sh.accent.withValues(alpha: sh.dark ? 0.06 : 0.04)
+                  : Colors.transparent,
           // 칸 구분 격자선 — 가로+세로 모두, 또렷하게.
           border: Border(
             bottom: BorderSide(
@@ -137,15 +146,24 @@ class DayCell extends StatelessWidget {
             // 날짜 숫자(좌측 정렬)
             Align(alignment: Alignment.centerLeft, child: dayNumber),
             const SizedBox(height: 2),
-            // 이벤트 + 할 일 + 위젯 (남은 공간 채움, 오버플로우 클립)
+            // 이벤트 + 할 일 + 위젯 (남은 공간 채움, 넘치면 잘라 overflow 방지)
             Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  ..._buildEntries(),
-                  if (applicableTemplates.isNotEmpty)
-                    ..._buildWidgetRows(dimmed),
-                ],
+              child: ClipRect(
+                child: SingleChildScrollView(
+                  physics: const NeverScrollableScrollPhysics(),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // 멀티데이 막대 자리 확보(연속 보기에서 위에 오버레이됨).
+                      if (topReserve > 0) SizedBox(height: topReserve),
+                      // 기록 템플릿 뱃지(이모지+대표숫자) — 셀 상단에 1줄, 절대 과밀 X.
+                      ..._buildRecordBadges(dimmed),
+                      ..._buildEntries(),
+                      if (applicableTemplates.isNotEmpty)
+                        ..._buildWidgetRows(dimmed),
+                    ],
+                  ),
+                ),
               ),
             ),
           ],
@@ -173,6 +191,42 @@ class DayCell extends StatelessWidget {
     if (total > shown) {
       out.add(Text('+${total - shown}',
           style: TextStyle(fontSize: 9, color: sh.inkSoft)));
+    }
+    return out;
+  }
+
+  // 기록 템플릿 뱃지: 이모지 1개 + 대표 숫자 1개. 기록 없으면 흐린 이모지(=기록 안 함).
+  List<Widget> _buildRecordBadges(bool dimmed) {
+    if (recordBadges.isEmpty) return const [];
+    final out = <Widget>[];
+    for (final b in recordBadges) {
+      out.add(Padding(
+        padding: const EdgeInsets.only(bottom: 1),
+        child: Opacity(
+          opacity: dimmed ? 0.5 : 1.0,
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // 이모지 폰트는 색칠 불가 → 기록 없는 날은 투명도로 흐리게.
+              Opacity(
+                opacity: b.hasData ? 1.0 : 0.32,
+                child: Text(b.emoji,
+                    style: const TextStyle(fontSize: 12.5, height: 1.0)),
+              ),
+              if (b.hasData) ...[
+                const SizedBox(width: 3),
+                Text(b.primaryText!,
+                    style: TextStyle(
+                      fontSize: 11.5,
+                      height: 1.0,
+                      fontWeight: FontWeight.w800,
+                      color: sh.accent,
+                    )),
+              ],
+            ],
+          ),
+        ),
+      ));
     }
     return out;
   }
@@ -212,17 +266,16 @@ class _TodoLine extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final c = todoPriorityColor(todo.priority, sh);
     return Padding(
       padding: const EdgeInsets.only(bottom: 1),
       child: Row(
         children: [
           Icon(
-            todo.done
-                ? Icons.check_circle_rounded
-                : Icons.circle_outlined,
-            size: 8,
-            color: todo.done ? sh.inkFaint : c,
+            todoStatusIcon(todo.status),
+            size: 9,
+            color: todo.done
+                ? sh.inkFaint
+                : todoStatusColor(todo.status, todo.priority, sh),
           ),
           const SizedBox(width: 3),
           Expanded(

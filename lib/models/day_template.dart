@@ -145,6 +145,10 @@ class DayTemplate {
   final List<DayField> fields;
   final DayTemplateScope scope;
   final bool enabled;
+  /// 기록 템플릿(공부 트래커 등) 셀 표시용 대표 이모지. null이면 일반 위젯.
+  final String? emoji;
+  /// 셀에 숫자로 노출할 대표 지표 필드 id. null이면 대표 숫자 없음.
+  final String? primaryFieldId;
 
   const DayTemplate({
     required this.id,
@@ -152,6 +156,8 @@ class DayTemplate {
     required this.fields,
     this.scope = const DayTemplateScope(),
     this.enabled = true,
+    this.emoji,
+    this.primaryFieldId,
   });
 
   DayTemplate copyWith({
@@ -159,6 +165,8 @@ class DayTemplate {
     List<DayField>? fields,
     DayTemplateScope? scope,
     bool? enabled,
+    String? emoji,
+    String? primaryFieldId,
   }) =>
       DayTemplate(
         id: id,
@@ -166,6 +174,8 @@ class DayTemplate {
         fields: fields ?? this.fields,
         scope: scope ?? this.scope,
         enabled: enabled ?? this.enabled,
+        emoji: emoji ?? this.emoji,
+        primaryFieldId: primaryFieldId ?? this.primaryFieldId,
       );
 
   Map<String, dynamic> toJson() => {
@@ -174,6 +184,8 @@ class DayTemplate {
     'fields': fields.map((f) => f.toJson()).toList(),
     'scope': scope.toJson(),
     'enabled': enabled,
+    if (emoji != null) 'emoji': emoji,
+    if (primaryFieldId != null) 'primaryFieldId': primaryFieldId,
   };
 
   factory DayTemplate.fromJson(Map<String, dynamic> j) => DayTemplate(
@@ -185,6 +197,8 @@ class DayTemplate {
         .toList(),
     scope: DayTemplateScope.fromJson(j['scope'] as Map<String, dynamic>?),
     enabled: j['enabled'] != false,
+    emoji: j['emoji'] as String?,
+    primaryFieldId: j['primaryFieldId'] as String?,
   );
 
   static List<DayTemplate> listFromJson(String raw) {

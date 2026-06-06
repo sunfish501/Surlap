@@ -1,6 +1,8 @@
 import 'dart:math';
 import 'package:flutter/foundation.dart';
 import '../models/calendar_theme.dart';
+import '../models/event_item.dart';
+import '../models/shared_theme_payload.dart';
 import 'supabase_client.dart';
 
 /// 테마 공유 — Supabase `theme_shares` 테이블 사용.
@@ -20,8 +22,20 @@ class ThemeShareService {
     return List.generate(8, (_) => chars[rng.nextInt(chars.length)]).join();
   }
 
-  // 테마를 theme_shares 에 업로드 → 공유 코드 반환
-  static Future<String> shareTheme(CalendarTheme theme) async {
+  // payload v2: 테마 메타 + 그 테마 소속 일정 동봉.
+  static Map<String, dynamic> _payloadV2(
+          String code,
+          CalendarTheme theme,
+          Map<String, List<EventItem>> events) =>
+      {
+        'theme': theme.copyWith(shareCode: code, shareRole: 'owner').toJson(),
+        'events': eventsToPayloadJson(events),
+        'v': 2,
+      };
+
+  // 테마 + 일정을 theme_shares 에 업로드 → 공유 코드 반환
+  static Future<String> shareTheme(
+      CalendarTheme theme, Map<String, List<EventItem>> events) async {
     final client = sb;
     if (client == null) throw Exception('Supabase에 연결되지 않았습니다');
     final uid = client.auth.currentUser?.id;
@@ -31,11 +45,7 @@ class ThemeShareService {
     try {
       await client.from('theme_shares').insert({
         'code': code,
-        'payload': {
-          'theme':
-              theme.copyWith(shareCode: code, shareRole: 'owner').toJson(),
-          'v': 1,
-        },
+        'payload': _payloadV2(code, theme, events),
         'created_by': uid,
       });
     } catch (e, st) {
@@ -46,20 +56,17 @@ class ThemeShareService {
     return code;
   }
 
-  // owner가 테마를 수정하면 theme_shares.payload 갱신.
+  // owner가 테마/일정을 수정하면 theme_shares.payload 갱신.
   // RLS상 created_by == auth.uid() 인 행만 update 가능(=owner만).
-  static Future<void> updateShare(String code, CalendarTheme theme) async {
+  static Future<void> updateShare(String code, CalendarTheme theme,
+      Map<String, List<EventItem>> events) async {
     final client = sb;
     if (client == null) throw Exception('Supabase에 연결되지 않았습니다');
     final uid = client.auth.currentUser?.id;
     if (uid == null) throw Exception('로그인이 필요합니다');
     try {
       await client.from('theme_shares').update({
-        'payload': {
-          'theme':
-              theme.copyWith(shareCode: code, shareRole: 'owner').toJson(),
-          'v': 1,
-        },
+        'payload': _payloadV2(code, theme, events),
       }).eq('code', code).eq('created_by', uid);
     } catch (e, st) {
       debugPrint('[ThemeShare] updateShare 실패: ${e.runtimeType} → $e');
@@ -68,29 +75,26 @@ class ThemeShareService {
     }
   }
 
-  // 공유 코드로 테마 가져오기
-  static Future<CalendarTheme?> fetchByCode(String code) async {
+  // 공유 코드로 payload(테마 + 일정) 가져오기. v1(테마만)도 폴백 파싱.
+  static Future<SharedThemePayload?> fetchPayloadByCode(String code) async {
     final client = sb;
     if (client == null) throw Exception('Supabase에 연결되지 않았습니다');
-
     try {
       final result = await client
           .from('theme_shares')
           .select('payload')
           .eq('code', code.toUpperCase().trim())
           .maybeSingle();
-
       if (result == null) return null;
-      final payload = result['payload'];
-      // payload = { theme: {...}, v: 1 } (웹 호환). 혹시 payload 자체가 테마면 폴백.
-      final themeJson = (payload is Map && payload['theme'] is Map)
-          ? Map<String, dynamic>.from(payload['theme'] as Map)
-          : Map<String, dynamic>.from(payload as Map);
-      return CalendarTheme.fromJson(themeJson);
+      return SharedThemePayload.fromPayload(result['payload']);
     } catch (e, st) {
-      debugPrint('[ThemeShare] fetchByCode 실패: ${e.runtimeType} → $e');
+      debugPrint('[ThemeShare] fetchPayloadByCode 실패: ${e.runtimeType} → $e');
       debugPrint('$st');
       rethrow;
     }
   }
+
+  // 공유 코드로 테마만 가져오기(기존 호출 호환).
+  static Future<CalendarTheme?> fetchByCode(String code) async =>
+      (await fetchPayloadByCode(code))?.theme;
 }

@@ -1,16 +1,17 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:share_plus/share_plus.dart';
 import 'package:uuid/uuid.dart';
 import '../core/theme/app_theme.dart';
 import '../core/theme/design_tokens.dart';
 import '../models/calendar_theme.dart';
+import '../models/shared_theme_payload.dart';
 import '../providers/themes_provider.dart';
+import '../providers/events_provider.dart';
 import '../supabase/auth_service.dart';
 import '../supabase/theme_share_service.dart';
 import '../widgets/mascot/mascot.dart';
 import '../widgets/mascot/mascot_feedback.dart';
+import 'share_code_modal.dart';
 
 Future<void> showThemeManagerModal(BuildContext context) {
   return showModalBottomSheet(
@@ -62,15 +63,11 @@ class ThemeManagerModal extends ConsumerWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('테마 관리',
+                        Text('공유 캘린더',
                             style: AppType.title.copyWith(
                                 fontSize: 20,
                                 fontWeight: FontWeight.w800,
                                 color: sh.ink)),
-                        const SizedBox(height: 2),
-                        Text('카테고리를 만들고 색을 정하거나, 코드로 공유·구독해요',
-                            style: AppType.label.copyWith(
-                                fontSize: 12.5, color: sh.inkSoft)),
                       ],
                     ),
                   ),
@@ -119,15 +116,13 @@ class ThemeManagerBody extends ConsumerWidget {
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // ── 요약 카드 ──
-        _SummaryCard(count: themes.length, sh: sh),
         if (allEmpty)
           const Padding(
             padding: EdgeInsets.only(top: 8),
             child: MascotEmptyState(
               expression: MascotExpression.neutral,
-              title: '아직 만든 테마가 없어요',
-              message: '카테고리를 만들어 일정을 색으로 구분해요',
+              title: '아직 만든 캘린더가 없어요',
+              message: '캘린더를 만들어 일정을 색으로 구분해요',
               mascotSize: 92,
               showStars: false,
             ),
@@ -153,43 +148,54 @@ class ThemeManagerBody extends ConsumerWidget {
               shareCode: t.shareCode)),
         ],
         const SizedBox(height: 18),
-        // ── primary: 새 테마 만들기 ──
-        SizedBox(
-          width: double.infinity,
-          child: FilledButton.icon(
-            onPressed: () => _addTheme(ref),
-            icon: const Icon(Icons.add_rounded, size: 20),
-            label: const Text('새 테마 만들기',
-                style: TextStyle(fontSize: 15, fontWeight: FontWeight.w800)),
-            style: FilledButton.styleFrom(
-              backgroundColor: sh.accent,
-              foregroundColor: Colors.white,
-              minimumSize: const Size.fromHeight(54),
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16)),
+        // ── primary: 새 캘린더 만들기(텍스트 CTA) + 가져오기(아이콘) ──
+        Row(
+          children: [
+            Expanded(
+              child: FilledButton.icon(
+                onPressed: () => _addTheme(ref),
+                icon: const Icon(Icons.add_rounded, size: 20),
+                label: const Text('새 캘린더 만들기',
+                    style:
+                        TextStyle(fontSize: 15, fontWeight: FontWeight.w800)),
+                style: FilledButton.styleFrom(
+                  backgroundColor: sh.accent,
+                  foregroundColor: Colors.white,
+                  minimumSize: const Size.fromHeight(54),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16)),
+                ),
+              ),
             ),
-          ),
-        ),
-        const SizedBox(height: 10),
-        // ── secondary: 초대 링크로 가져오기 ──
-        SizedBox(
-          width: double.infinity,
-          child: TextButton.icon(
-            onPressed: () => _importTheme(context, ref, sh),
-            icon: Icon(Icons.download_rounded, size: 18, color: sh.inkSoft),
-            label: Text('초대 링크로 가져오기',
-                style: AppType.body.copyWith(
-                    fontWeight: FontWeight.w700, color: sh.inkSoft)),
-            style: TextButton.styleFrom(
-              minimumSize: const Size.fromHeight(48),
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16)),
+            const SizedBox(width: 10),
+            // 가져오기 — 아이콘 버튼.
+            Tooltip(
+              message: '공유 코드로 가져오기',
+              child: Semantics(
+                button: true,
+                label: '공유 코드로 가져오기',
+                child: SizedBox(
+                  width: 54,
+                  height: 54,
+                  child: OutlinedButton(
+                    onPressed: () => _importTheme(context, ref, sh),
+                    style: OutlinedButton.styleFrom(
+                      padding: EdgeInsets.zero,
+                      backgroundColor:
+                          sh.ink.withValues(alpha: sh.dark ? 0.04 : 0.02),
+                      side:
+                          BorderSide(color: sh.ink.withValues(alpha: 0.12)),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16)),
+                    ),
+                    child: Icon(Icons.download_rounded,
+                        size: 22, color: sh.inkSoft),
+                  ),
+                ),
+              ),
             ),
-          ),
+          ],
         ),
-        const SizedBox(height: 18),
-        // ── 활용 팁 ──
-        _TipCard(sh: sh),
       ],
     );
   }
@@ -210,7 +216,7 @@ class ThemeManagerBody extends ConsumerWidget {
       builder: (ctx) => AlertDialog(
         backgroundColor: sh.card,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: Text('초대 코드 입력', style: AppType.section.copyWith(color: sh.ink)),
+        title: Text('공유 코드 입력', style: AppType.section.copyWith(color: sh.ink)),
         content: TextField(
           controller: ctrl,
           autofocus: true,
@@ -231,7 +237,7 @@ class ThemeManagerBody extends ConsumerWidget {
                 final theme = await ThemeShareService.fetchByCode(code);
                 if (theme == null) {
                   if (context.mounted) {
-                    MascotToast.error(context, '해당 코드의 테마를 찾을 수 없어요');
+                    MascotToast.error(context, '해당 코드의 캘린더를 찾을 수 없어요');
                   }
                   return;
                 }
@@ -239,7 +245,7 @@ class ThemeManagerBody extends ConsumerWidget {
                 final subTheme = theme.copyWith(shareRole: 'subscriber');
                 ref.read(themesProvider.notifier).add(subTheme);
                 if (context.mounted) {
-                  MascotToast.success(context, '테마 "${theme.name}" 가져왔어요');
+                  MascotToast.success(context, '캘린더 "${theme.name}" 가져왔어요');
                 }
               } catch (e) {
                 if (context.mounted) {
@@ -269,97 +275,6 @@ class _GroupLabel extends StatelessWidget {
   );
 }
 
-// ─── 요약 카드(테마 개수 + 한 줄 설명) ────────────────────────────
-class _SummaryCard extends StatelessWidget {
-  final int count;
-  final SpaceHourColors sh;
-  const _SummaryCard({required this.count, required this.sh});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: sh.accent.withValues(alpha: sh.dark ? 0.12 : 0.07),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: sh.accent.withValues(alpha: 0.18)),
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 46,
-            height: 46,
-            decoration: BoxDecoration(
-              color: sh.accent.withValues(alpha: sh.dark ? 0.24 : 0.16),
-              borderRadius: BorderRadius.circular(14),
-            ),
-            child: Icon(Icons.palette_rounded, color: sh.accent, size: 24),
-          ),
-          const SizedBox(width: 14),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text('내 테마 $count개',
-                    style: AppType.body.copyWith(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w800,
-                        color: sh.ink)),
-                const SizedBox(height: 3),
-                Text('색상으로 일정을 구분하고 링크로 친구와 공유할 수 있어요',
-                    style: AppType.label.copyWith(
-                        fontSize: 12.5, color: sh.inkSoft, height: 1.35)),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-// ─── 하단 활용 팁 카드 ────────────────────────────────────────────
-class _TipCard extends StatelessWidget {
-  final SpaceHourColors sh;
-  const _TipCard({required this.sh});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: sh.ink.withValues(alpha: sh.dark ? 0.04 : 0.025),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: sh.ink.withValues(alpha: 0.06)),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Icon(Icons.lightbulb_outline_rounded, size: 18, color: sh.accent),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text('활용 팁',
-                    style: AppType.label.copyWith(
-                        fontSize: 12.5,
-                        fontWeight: FontWeight.w800,
-                        color: sh.ink)),
-                const SizedBox(height: 3),
-                Text('색상을 다르게 설정하면 월간·주간 화면에서 일정을 더 빠르게 구분할 수 있어요',
-                    style: AppType.caption.copyWith(
-                        color: sh.inkSoft, height: 1.4)),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
 
 class _ThemeRow extends ConsumerStatefulWidget {
   final CalendarTheme theme;
@@ -429,8 +344,8 @@ class _ThemeRowState extends ConsumerState<_ThemeRow> {
             : '공유 안 됨';
 
     return Container(
-      margin: const EdgeInsets.only(bottom: 10),
-      padding: const EdgeInsets.all(14),
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
         color: sh.card2,
         borderRadius: BorderRadius.circular(18),
@@ -489,7 +404,7 @@ class _ThemeRowState extends ConsumerState<_ThemeRow> {
   // 이름 — 평소엔 카드 제목 텍스트, 탭하면 편집 모드.
   Widget _nameField(SpaceHourColors sh) {
     final titleStyle = AppType.body.copyWith(
-        fontSize: 16, fontWeight: FontWeight.w800, color: sh.ink);
+        fontSize: 20, fontWeight: FontWeight.w800, color: sh.ink);
     if (_editing) {
       return TextField(
         controller: _nameCtrl,
@@ -501,7 +416,7 @@ class _ThemeRowState extends ConsumerState<_ThemeRow> {
           filled: false,
           border: InputBorder.none,
           contentPadding: EdgeInsets.zero,
-          hintText: '테마 이름',
+          hintText: '캘린더 이름',
           hintStyle: TextStyle(color: sh.inkFaint),
         ),
         onSubmitted: (v) {
@@ -512,7 +427,7 @@ class _ThemeRowState extends ConsumerState<_ThemeRow> {
     }
     final empty = widget.theme.name.trim().isEmpty;
     final title = Text(
-      empty ? '테마 이름' : widget.theme.name,
+      empty ? '캘린더 이름' : widget.theme.name,
       maxLines: 1,
       overflow: TextOverflow.ellipsis,
       style: empty ? titleStyle.copyWith(color: sh.inkFaint) : titleStyle,
@@ -537,7 +452,7 @@ class _ThemeRowState extends ConsumerState<_ThemeRow> {
     }
     final chips = <Widget>[];
     if (widget.shareCode != null) {
-      chips.add(_chip(Icons.link_rounded, '링크 복사', sh.accent,
+      chips.add(_chip(Icons.ios_share_rounded, '공유', sh.accent,
           () => _shareLink(t.name, widget.shareCode!), sh));
     } else if (widget.editable) {
       chips.add(_chip(
@@ -547,25 +462,26 @@ class _ThemeRowState extends ConsumerState<_ThemeRow> {
     return chips;
   }
 
+  // 아이콘 버튼(라벨 없음). 접근성 위해 Tooltip + Semantics 유지.
   Widget _chip(IconData icon, String label, Color color, VoidCallback onTap,
       SpaceHourColors sh) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-        decoration: BoxDecoration(
-          color: color.withValues(alpha: sh.dark ? 0.16 : 0.10),
-          borderRadius: BorderRadius.circular(10),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(icon, size: 15, color: color),
-            const SizedBox(width: 5),
-            Text(label,
-                style: AppType.caption.copyWith(
-                    fontWeight: FontWeight.w700, color: color)),
-          ],
+    return Tooltip(
+      message: label,
+      child: Semantics(
+        button: true,
+        label: label,
+        child: GestureDetector(
+          onTap: onTap,
+          behavior: HitTestBehavior.opaque,
+          child: Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: sh.dark ? 0.16 : 0.10),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Icon(icon, size: 20, color: color),
+          ),
         ),
       ),
     );
@@ -578,10 +494,13 @@ class _ThemeRowState extends ConsumerState<_ThemeRow> {
     _syncOwned(updated);
   }
 
-  // owner가 소유 테마를 수정하면 클라우드 payload도 갱신(실패해도 로컬은 유지).
+  // owner가 소유 테마를 수정하면 클라우드 payload도 갱신(테마 + 일정).
+  // 실제 업로드는 themeSharingProvider 가 themesProvider 변경을 듣고 디바운스 처리한다.
   void _syncOwned(CalendarTheme t) {
     if (t.shareCode != null && t.shareRole == 'owner') {
-      ThemeShareService.updateShare(t.shareCode!, t).catchError((Object e) {
+      final events = eventsForTheme(ref.read(eventsProvider), t.id);
+      ThemeShareService.updateShare(t.shareCode!, t, events)
+          .catchError((Object e) {
         debugPrint('[ThemeShare] 소유 테마 수정 동기화 실패: $e');
       });
     }
@@ -596,7 +515,7 @@ class _ThemeRowState extends ConsumerState<_ThemeRow> {
       final latest = await ThemeShareService.fetchByCode(code);
       if (latest == null) {
         messenger.showSnackBar(
-            const SnackBar(content: Text('원본 테마를 찾을 수 없습니다(삭제됨?)')));
+            const SnackBar(content: Text('원본 캘린더를 찾을 수 없어요(삭제됨?)')));
         return;
       }
       // id/역할/코드는 유지, 내용(이름·색·이미지)만 최신으로.
@@ -622,7 +541,7 @@ class _ThemeRowState extends ConsumerState<_ThemeRow> {
       // shareCode/shareRole 없음 → 내가 편집할 수 있는 로컬 테마
     );
     ref.read(themesProvider.notifier).add(copy);
-    MascotToast.success(context, '"${copy.name}" 내 테마로 복제했어요');
+    MascotToast.success(context, '"${copy.name}" 내 캘린더로 복제했어요');
   }
 
   void _pickColor() async {
@@ -676,7 +595,8 @@ class _ThemeRowState extends ConsumerState<_ThemeRow> {
       return;
     }
     try {
-      final code = await ThemeShareService.shareTheme(widget.theme);
+      final events = eventsForTheme(ref.read(eventsProvider), widget.theme.id);
+      final code = await ThemeShareService.shareTheme(widget.theme, events);
       ref.read(themesProvider.notifier).update(
           widget.theme.copyWith(shareCode: code, shareRole: 'owner'));
       if (context.mounted) _shareLink(widget.theme.name, code);
@@ -689,17 +609,9 @@ class _ThemeRowState extends ConsumerState<_ThemeRow> {
     }
   }
 
-  // 공유 코드 + 링크를 시스템 공유 시트로 내보낸다(링크는 클립보드에도 복사).
-  // https 앱링크를 주로, 커스텀 스킴/코드를 폴백으로 함께 담는다.
+  // OS 공유창 대신 앱 자체 모달(코드창)을 띄운다 — 코드/링크 각각 클립보드 복사.
   void _shareLink(String name, String code) {
     final httpsLink = ThemeShareService.httpsLinkForCode(code);
-    Clipboard.setData(ClipboardData(text: httpsLink));
-    Share.share(
-      '📅 HourSpace에서 "$name" 테마를 공유했어요!\n\n'
-      '아래 링크를 누르면 앱에서 바로 추가돼요 👇\n'
-      '$httpsLink\n\n'
-      '(앱이 안 열리면 코드 입력: $code)',
-      subject: 'HourSpace 테마 공유',
-    );
+    showShareCodeModal(context, name, code, httpsLink);
   }
 }

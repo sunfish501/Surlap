@@ -6,7 +6,10 @@ import '../../models/event_item.dart';
 import '../../models/todo_item.dart';
 import '../../models/calendar_theme.dart';
 import '../../models/day_template.dart';
+import '../../models/template_range.dart';
+import '../../models/record_template.dart';
 import 'day_cell.dart';
+import 'multiday_span.dart';
 
 class MonthGrid extends StatelessWidget {
   final int year;
@@ -22,6 +25,10 @@ class MonthGrid extends StatelessWidget {
   final Map<String, String> memos;
   final List<DayTemplate> dayTemplates;
   final Map<String, Map<String, Map<String, dynamic>>> widgetValues;
+  /// 기록 템플릿 적용 기간 — 셀 뱃지/하이라이트 계산용.
+  final List<TemplateRange> templateRanges;
+  /// 기록 템플릿 id→정의(셀 뱃지 이모지 조회).
+  final Map<String, RecordTemplate> templatesById;
   final void Function(DateTime) onDayTap;
   final void Function(DateTime) onDayLongPress;
   final void Function(DateTime)? onDayDoubleTap;
@@ -44,6 +51,8 @@ class MonthGrid extends StatelessWidget {
     this.memos = const {},
     this.dayTemplates = const [],
     this.widgetValues = const {},
+    this.templateRanges = const [],
+    this.templatesById = const {},
     required this.onDayTap,
     required this.onDayLongPress,
     this.onDayDoubleTap,
@@ -148,14 +157,12 @@ class MonthGrid extends StatelessWidget {
                 return Expanded(child: Row(children: cells));
               }
 
-              // ── 일반 행 ──
+              // ── 일반 행 (같은 이름 연속 일정 = 가로 막대 병합) ──
               return Expanded(
-                child: Row(
-                  children: List.generate(7, (col) {
-                    final cellDate =
-                        firstCell.add(Duration(days: row * 7 + col));
-                    return _buildDayCell(cellDate, viewMonth);
-                  }),
+                child: _buildSpanningRow(
+                  List.generate(
+                      7, (col) => firstCell.add(Duration(days: row * 7 + col))),
+                  viewMonth,
                 ),
               );
             }),
@@ -165,12 +172,15 @@ class MonthGrid extends StatelessWidget {
     );
   }
 
-  Widget _buildDayCell(DateTime cellDate, DateTime viewMonth) {
+  Widget _buildDayCell(DateTime cellDate, DateTime viewMonth,
+      {List<EventItem>? eventsOverride, double topReserve = 0}) {
     final key = du.toDateKey(cellDate);
-    final cellEvents = events[key] ?? [];
+    final cellEvents = eventsOverride ?? (events[key] ?? const <EventItem>[]);
     final applicable =
         dayTemplates.where((t) => t.enabled && t.scope.appliesTo(key)).toList();
     final dateWidgetValues = widgetValues[key] ?? {};
+    final badges = recordBadgesForDate(
+        key, templateRanges, dateWidgetValues, templatesById);
     return Expanded(
       child: DayCell(
         date: cellDate,
@@ -183,14 +193,54 @@ class MonthGrid extends StatelessWidget {
         hasCircle: circles.contains(key),
         applicableTemplates: applicable,
         dateWidgetValues: dateWidgetValues,
+        recordBadges: badges,
         onTap: () => onDayTap(cellDate),
         onLongPress: () => onDayLongPress(cellDate),
         onDoubleTap: onDayDoubleTap == null
             ? null
             : () => onDayDoubleTap!(cellDate),
         heroDateNumber: heroCells,
+        topReserve: topReserve,
       ),
     );
+  }
+
+  // 한 주(7일) 행 — 같은 이름이 연속된 날을 가로 막대로 병합해 올린다.
+  Widget _buildSpanningRow(List<DateTime> weekDates, DateTime viewMonth) {
+    final colEvents = [
+      for (final d in weekDates)
+        (events[du.toDateKey(d)] ?? const <EventItem>[])
+            .where((e) => !e.isTimetable)
+            .toList()
+    ];
+    final res = computeDaySpans(colEvents, themes, sh);
+    final reserve = spanSlotCount(res.spans) * kSpanBarH;
+    final rowW = Row(
+      children: List.generate(7, (col) {
+        final cellEvents = colEvents[col]
+            .where((e) => !res.spanned.contains('$col|${e.t}'))
+            .toList();
+        return _buildDayCell(weekDates[col], viewMonth,
+            eventsOverride: cellEvents, topReserve: reserve);
+      }),
+    );
+    if (res.spans.isEmpty) return rowW;
+    return LayoutBuilder(builder: (ctx, c) {
+      final colW = c.maxWidth / 7;
+      const top = 36.0; // 날짜 숫자 아래(이벤트 영역 시작)
+      return Stack(
+        children: [
+          rowW,
+          ...res.spans.map((s) => Positioned(
+                top: top + s.slot * kSpanBarH,
+                left: s.start * colW + 1.5,
+                width: (s.end - s.start + 1) * colW - 3,
+                height: kSpanBarH - 2,
+                child: SpanBar(span: s, sh: sh),
+              )),
+        ],
+      );
+    });
   }
 }
 

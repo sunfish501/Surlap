@@ -1,5 +1,13 @@
+import 'dart:convert';
+import 'dart:io';
+import 'dart:typed_data';
+import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart' show RenderRepaintBoundary;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:gal/gal.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:share_plus/share_plus.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/theme/design_tokens.dart';
 import '../../core/utils/date_utils.dart' as du;
@@ -10,7 +18,7 @@ import '../../providers/cell_design_provider.dart';
 import '../../providers/neis_cache_provider.dart';
 import '../../providers/academic_schedule_provider.dart';
 import '../../modals/neis_setup_modal.dart';
-import 'dart:convert';
+import '../../widgets/zoom_button.dart';
 
 // ─── Row definition ───────────────────────────────────────────────
 
@@ -50,8 +58,12 @@ String getDisplaySubjectName(String raw, {bool lunch = false}) {
   if (s.isEmpty) return '';
   // 점심 행은 급식 메뉴를 줄별로 정리해 그대로 보여준다.
   if (lunch) return _formatLunchMenu(s);
+  // 선두 주석 제거: [보강]·(1)·【...】 등 → 본 과목명만 남겨 줄바꿈 방지.
+  var t = s.replaceFirst(
+      RegExp(r'^\s*[\[\(（【][^\]\)）】]*[\]\)）】]\s*'), '');
+  if (t.trim().isEmpty) t = s; // 통째로 주석뿐이면 원본 유지
   // 다중 공백 → 단일 공백.
-  var t = s.replaceAll(RegExp(r'\s+'), ' ');
+  t = t.replaceAll(RegExp(r'\s+'), ' ');
   // 흔한 군더더기 접미사 제거(결과가 2자 이상일 때만).
   for (final suf in const ['일반', '기초', '입문', '개론']) {
     final stripped = t.replaceAll(' ', '');
@@ -78,6 +90,7 @@ String _formatLunchMenu(String raw) {
 /// "넓게 보기 / 촘촘히 보기" 같은 밀도 값을 한곳에 모아 둔다.
 class _Density {
   final double dayColW;
+  final double labelW;
   final double headerH;
   final double schoolH;
   final double lunchH;
@@ -88,6 +101,7 @@ class _Density {
   final double subjectFont;
   const _Density({
     required this.dayColW,
+    required this.labelW,
     required this.headerH,
     required this.schoolH,
     required this.lunchH,
@@ -98,15 +112,31 @@ class _Density {
     required this.subjectFont,
   });
 
-  // 넓지만 꽉 찬 시간표 — 카드가 셀 대부분을 채우도록 여백은 작게.
+  // 넓게(t=0) 기준값.
   static const wide = _Density(
-    dayColW: 92, headerH: 60, schoolH: 82, lunchH: 96, freeH: 50,
+    dayColW: 92, labelW: 70, headerH: 60, schoolH: 82, lunchH: 96, freeH: 50,
     cardMargin: 3, cardRadius: 10, subjectMaxLines: 2, subjectFont: 13,
   );
-  static const compact = _Density(
-    dayColW: 74, headerH: 46, schoolH: 60, lunchH: 76, freeH: 40,
-    cardMargin: 2.5, cardRadius: 9, subjectMaxLines: 1, subjectFont: 11.5,
-  );
+
+  /// 슬라이더 t(0=넓게 … 1=최대압축)로 치수를 보간.
+  /// 최대압축에서는 7일이 화면폭(availW)에 딱 맞아 가로 스크롤이 사라진다.
+  static _Density forSlider(double t, double availW) {
+    double lp(double a, double b) => a + (b - a) * t;
+    final labelW = lp(70, 48);
+    final fitColW = ((availW - labelW) / 7).clamp(40.0, 92.0);
+    return _Density(
+      dayColW: lp(92, fitColW),
+      labelW: labelW,
+      headerH: lp(60, 40),
+      schoolH: lp(82, 40),
+      lunchH: lp(96, 52),
+      freeH: lp(50, 30),
+      cardMargin: lp(3, 1.5),
+      cardRadius: lp(10, 7),
+      subjectMaxLines: t > 0.5 ? 1 : 2,
+      subjectFont: lp(13, 9.5),
+    );
+  }
 }
 
 // ─── Main widget ──────────────────────────────────────────────────
@@ -124,8 +154,9 @@ class _TimetableViewState extends ConsumerState<TimetableView> {
 
   // 디자인 모드(셀 꾸미기) — 화면 로컬 UI 상태.
   bool _designMode = false;
-  // 보기 모드 — 넓게(기본) / 압축.
-  bool _compact = false;
+  // 밀도 — 0=넓게 … 1=최대압축(한 화면). 슬라이더로 연속 조절.
+  double _density = 0;
+  _Density _dim = _Density.wide;
 
   // 가로/세로 스크롤 — 고정 라벨열·헤더가 본문을 따라가도록 동기화.
   final _bodyV = ScrollController();
@@ -139,16 +170,15 @@ class _TimetableViewState extends ConsumerState<TimetableView> {
     Color(0xFFE2D9F3), Color(0xFFFFF5EE), Color(0xFFF0F0F0), Color(0xFFFFE8D6),
   ];
 
-  // ── 보기 모드별 치수(밀도 프리셋) ──────────────────────────────
-  _Density get _d => _compact ? _Density.compact : _Density.wide;
-  double get _dayColW => _d.dayColW;
-  double get _labelW => _compact ? 54 : 70;
-  double get _headerBandH => _d.headerH;
-  double get _schoolH => _d.schoolH;
-  double get _lunchH => _d.lunchH;
-  double get _freeH => _d.freeH;
-  int get _maxLines => _d.subjectMaxLines;
-  double get _subjectFont => _d.subjectFont;
+  // ── 치수는 현재 밀도(_dim)에서 읽는다(build에서 화면폭 반영해 갱신). ──
+  bool get _tight => _density > 0.5;
+  double get _dayColW => _dim.dayColW;
+  double get _labelW => _dim.labelW;
+  double get _headerBandH => _dim.headerH;
+  double get _schoolH => _dim.schoolH;
+  double get _lunchH => _dim.lunchH;
+  double get _freeH => _dim.freeH;
+  double get _subjectFont => _dim.subjectFont;
 
   @override
   void initState() {
@@ -194,13 +224,13 @@ class _TimetableViewState extends ConsumerState<TimetableView> {
 
   // ── Data builders ─────────────────────────────────────────────
 
-  List<DateTime> _weekDays() {
+  static List<DateTime> _weekDays() {
     final today = DateTime.now();
     final monday = today.subtract(Duration(days: today.weekday - 1));
     return List.generate(7, (i) => DateTime(monday.year, monday.month, monday.day + i));
   }
 
-  int _maxPeriod(Map<int, Map<int, String>> neis) {
+  static int _maxPeriod(Map<int, Map<int, String>> neis) {
     int mp = 7;
     for (final pm in neis.values) {
       for (final p in pm.keys) {
@@ -210,7 +240,7 @@ class _TimetableViewState extends ConsumerState<TimetableView> {
     return mp;
   }
 
-  List<_RowDef> _buildRows(int maxPeriod) {
+  static List<_RowDef> _buildRows(int maxPeriod) {
     final rows = <_RowDef>[];
     for (int h = 0; h <= 8; h++) {
       rows.add(_RowDef(type: _RType.free, label: '$h:00', hour: h));
@@ -243,7 +273,7 @@ class _TimetableViewState extends ConsumerState<TimetableView> {
   List<double> _rowHeights(List<_RowDef> rows) =>
       [for (final r in rows) _heightFor(r)];
 
-  List<double> _rowOffsets(List<double> heights) {
+  static List<double> _rowOffsets(List<double> heights) {
     final offsets = <double>[];
     double acc = 0;
     for (final h in heights) {
@@ -254,7 +284,7 @@ class _TimetableViewState extends ConsumerState<TimetableView> {
     return offsets;
   }
 
-  Map<int, Map<int, String>> _buildTemplateData(List<DateTime> days) {
+  static Map<int, Map<int, String>> _buildTemplateData(List<DateTime> days) {
     final result = <int, Map<int, String>>{};
     for (int di = 0; di < 7; di++) { result[di] = {}; }
 
@@ -313,7 +343,7 @@ class _TimetableViewState extends ConsumerState<TimetableView> {
     return result;
   }
 
-  Map<int, Map<int, String>> _buildNeisHourData(Map<int, Map<int, String>> neis) {
+  static Map<int, Map<int, String>> _buildNeisHourData(Map<int, Map<int, String>> neis) {
     final result = <int, Map<int, String>>{};
     neis.forEach((di, periodMap) {
       result[di] = {};
@@ -325,7 +355,7 @@ class _TimetableViewState extends ConsumerState<TimetableView> {
     return result;
   }
 
-  Map<int, Map<int, String>> _buildDisplayData(
+  static Map<int, Map<int, String>> _buildDisplayData(
     Map<int, Map<int, String>> neisData,
     Map<int, Map<int, String>> tplData,
     Map<int, Map<int, String>> freeData,
@@ -354,7 +384,7 @@ class _TimetableViewState extends ConsumerState<TimetableView> {
     return result;
   }
 
-  List<_MergeGroup> _computeMerges(
+  static List<_MergeGroup> _computeMerges(
     List<_RowDef> rows,
     List<double> offsets,
     Map<int, Map<int, String>> displayData,
@@ -385,7 +415,7 @@ class _TimetableViewState extends ConsumerState<TimetableView> {
     return groups;
   }
 
-  Set<(int, int)> _buildMergeSet(List<_MergeGroup> groups) {
+  static Set<(int, int)> _buildMergeSet(List<_MergeGroup> groups) {
     final set = <(int, int)>{};
     for (final g in groups) {
       for (int k = g.startRow; k < g.startRow + g.span; k++) {
@@ -471,6 +501,18 @@ class _TimetableViewState extends ConsumerState<TimetableView> {
           children: [
             ListTile(
               contentPadding: EdgeInsets.zero,
+              leading: Icon(Icons.ios_share_rounded, color: sh.accent),
+              title: Text('이미지로 공유',
+                  style: AppType.body.copyWith(color: sh.ink)),
+              subtitle: Text('시간표를 깔끔한 이미지로 내보내요',
+                  style: AppType.caption.copyWith(color: sh.inkSoft)),
+              onTap: () {
+                Navigator.pop(mctx);
+                openTimetableExport(context);
+              },
+            ),
+            ListTile(
+              contentPadding: EdgeInsets.zero,
               leading: Icon(Icons.palette_outlined,
                   color: _designMode ? sh.accent : sh.inkSoft),
               title: Text('셀 디자인',
@@ -525,6 +567,10 @@ class _TimetableViewState extends ConsumerState<TimetableView> {
     final days = _weekDays();
     final now = DateTime.now();
 
+    // 슬라이더 밀도 → 화면폭 반영해 치수 갱신(최대압축 시 7일 화면맞춤).
+    final availW = MediaQuery.of(context).size.width - 24;
+    _dim = _Density.forSlider(_density, availW);
+
     final neis = ref.watch(neisCacheProvider);
     final designs = ref.watch(cellDesignProvider);
     CellDesign designOf(int col, int hour) =>
@@ -561,30 +607,28 @@ class _TimetableViewState extends ConsumerState<TimetableView> {
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text('스케줄표',
-                        style: AppType.title.copyWith(
-                            fontSize: 22,
-                            fontWeight: FontWeight.w800,
-                            color: sh.ink)),
-                    const SizedBox(height: 2),
-                    Text(
-                        _designMode
-                            ? '디자인 모드 — 셀을 눌러 꾸며요'
-                            : '좌우로 넘겨 일주일을 봐요',
-                        style: AppType.label.copyWith(
-                            color: _designMode ? sh.accent : sh.inkSoft)),
-                  ],
-                ),
+                child: Text(
+                    _designMode ? '스케줄표 · 디자인' : '스케줄표',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: AppType.title.copyWith(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w800,
+                        color: _designMode ? sh.accent : sh.ink)),
               ),
-              _ViewModeToggle(
-                compact: _compact,
+              // 확대/축소 — 슬라이더 + %.
+              ZoomControl(
+                value: 1 - _density,
+                percent: (100 - _density * 50).round(),
+                onMinus: () =>
+                    setState(() => _density = (_density + 0.25).clamp(0.0, 1.0)),
+                onPlus: () =>
+                    setState(() => _density = (_density - 0.25).clamp(0.0, 1.0)),
+                onChanged: (v) =>
+                    setState(() => _density = (1 - v).clamp(0.0, 1.0)),
                 sh: sh,
-                onChanged: (v) => setState(() => _compact = v),
               ),
-              const SizedBox(width: Gap.sm),
+              const SizedBox(width: Gap.xs),
               _HamburgerBtn(onTap: () => _openMenu(context, sh)),
             ],
           ),
@@ -717,15 +761,18 @@ class _TimetableViewState extends ConsumerState<TimetableView> {
     final isTodayDow = now.weekday - 1 == i;
     final isSat = i == 5;
     final isSun = i == 6;
+    // 오늘은 동그라미(pill) 대신 accent 색으로만 강조. 날짜 숫자는 표시하지 않음.
     final nameColor = isTodayDow
-        ? Colors.white
+        ? sh.accent
         : isSun ? sh.sun : isSat ? sh.sat : sh.ink;
     return SizedBox(
       width: _dayColW,
       child: Container(
         alignment: Alignment.center,
         decoration: BoxDecoration(
-          color: sh.card2.withValues(alpha: sh.dark ? 1 : 0.6),
+          color: isTodayDow
+              ? sh.accent.withValues(alpha: sh.dark ? 0.14 : 0.08)
+              : sh.card2.withValues(alpha: sh.dark ? 1 : 0.6),
           border: Border(
             left: BorderSide(color: _gridLine(sh), width: 1),
             right: i == 6
@@ -734,35 +781,11 @@ class _TimetableViewState extends ConsumerState<TimetableView> {
             bottom: BorderSide(color: _gridLine(sh), width: 1.5),
           ),
         ),
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-          decoration: isTodayDow
-              ? BoxDecoration(
-                  color: sh.accent,
-                  borderRadius: BorderRadius.circular(999),
-                )
-              : null,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(_dowNames[i],
-                  style: AppType.body.copyWith(
-                      fontSize: _compact ? 13 : 15,
-                      fontWeight: FontWeight.w800,
-                      color: nameColor)),
-              if (!_compact) ...[
-                const SizedBox(height: 1),
-                Text('${date.day}',
-                    style: TextStyle(
-                        fontSize: 10.5,
-                        fontWeight: FontWeight.w600,
-                        color: isTodayDow
-                            ? Colors.white.withValues(alpha: 0.85)
-                            : sh.inkFaint)),
-              ],
-            ],
-          ),
-        ),
+        child: Text(_dowNames[i],
+            style: AppType.body.copyWith(
+                fontSize: _tight ? 14 : 16,
+                fontWeight: FontWeight.w800,
+                color: nameColor)),
       ),
     );
   }
@@ -795,7 +818,7 @@ class _TimetableViewState extends ConsumerState<TimetableView> {
               children: [
                 Text('${row.period}',
                     style: TextStyle(
-                        fontSize: _compact ? 14 : 17,
+                        fontSize: _tight ? 14 : 17,
                         fontWeight: FontWeight.w800,
                         color: sh.accentInk,
                         height: 1.0)),
@@ -895,8 +918,7 @@ class _TimetableViewState extends ConsumerState<TimetableView> {
     final display = getDisplaySubjectName(text, lunch: isLunch);
     // 급식 메뉴는 줄별로 더 많이 보이게(작은 폰트·여러 줄).
     final isMenu = isLunch;
-    final maxLines = isMenu ? (_compact ? 4 : 6) : _maxLines;
-    final font = isMenu ? (_compact ? 8.5 : 10.0) : _subjectFont;
+    final font = isMenu ? (_tight ? 8.5 : 10.0) : _subjectFont;
 
     final baseBg = isLunch
         ? (isToday
@@ -912,7 +934,7 @@ class _TimetableViewState extends ConsumerState<TimetableView> {
     return Container(
       width: double.infinity,
       height: double.infinity,
-      margin: EdgeInsets.all(_d.cardMargin),
+      margin: EdgeInsets.all(_dim.cardMargin),
       padding: EdgeInsets.symmetric(horizontal: 6, vertical: isMenu ? 5 : 6),
       alignment: Alignment.center,
       decoration: BoxDecoration(
@@ -929,7 +951,7 @@ class _TimetableViewState extends ConsumerState<TimetableView> {
                 ],
               )
             : null,
-        borderRadius: BorderRadius.circular(_d.cardRadius),
+        borderRadius: BorderRadius.circular(_dim.cardRadius),
         border: Border.all(
           color: isToday
               ? sh.accent.withValues(alpha: 0.55)
@@ -937,20 +959,41 @@ class _TimetableViewState extends ConsumerState<TimetableView> {
           width: isToday ? 1.2 : 1,
         ),
       ),
-      child: Text(
-        display,
-        maxLines: maxLines,
-        overflow: TextOverflow.ellipsis,
-        softWrap: true,
-        textAlign: TextAlign.center,
-        style: TextStyle(
-          fontSize: font,
-          height: isMenu ? 1.18 : 1.2,
-          letterSpacing: -0.2,
-          color: textColor,
-          fontWeight: design.bold ? FontWeight.w800 : FontWeight.w700,
-        ),
-      ),
+      child: isMenu
+          // 급식 메뉴: 각 항목을 한 줄로 유지하고(글자단위 쪼갬 방지)
+          // 칸 크기에 맞춰 통째로 살짝 줄여 표시.
+          ? FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Text(
+                display,
+                softWrap: false,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: font + 1,
+                  height: 1.28,
+                  letterSpacing: -0.2,
+                  color: textColor,
+                  fontWeight: design.bold ? FontWeight.w800 : FontWeight.w700,
+                ),
+              ),
+            )
+          // 과목명: 한 줄로 유지하되 길면 살짝만 줄여 글자단위 줄바꿈 방지.
+          : FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Text(
+                display,
+                maxLines: 1,
+                softWrap: false,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: font,
+                  height: 1.1,
+                  letterSpacing: -0.3,
+                  color: textColor,
+                  fontWeight: design.bold ? FontWeight.w800 : FontWeight.w700,
+                ),
+              ),
+            ),
     );
   }
 
@@ -987,54 +1030,6 @@ class _TimetableViewState extends ConsumerState<TimetableView> {
   // 그리드 선은 은은하게 — 카드가 주인공이 되도록.
   Color _gridLine(SpaceHourColors sh) =>
       sh.ink.withValues(alpha: sh.dark ? 0.10 : 0.07);
-}
-
-// ─── 보기 모드 토글 (넓게 / 압축) ─────────────────────────────────
-class _ViewModeToggle extends StatelessWidget {
-  final bool compact;
-  final SpaceHourColors sh;
-  final ValueChanged<bool> onChanged;
-  const _ViewModeToggle(
-      {required this.compact, required this.sh, required this.onChanged});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      height: 34,
-      padding: const EdgeInsets.all(3),
-      decoration: BoxDecoration(
-        color: sh.card2,
-        borderRadius: BorderRadius.circular(11),
-        border: Border.all(color: sh.ink.withValues(alpha: 0.06)),
-      ),
-      child: Row(
-        children: [
-          _seg('넓게', !compact, () => onChanged(false)),
-          _seg('압축', compact, () => onChanged(true)),
-        ],
-      ),
-    );
-  }
-
-  Widget _seg(String label, bool active, VoidCallback onTap) {
-    return GestureDetector(
-      onTap: onTap,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 150),
-        alignment: Alignment.center,
-        padding: const EdgeInsets.symmetric(horizontal: 11),
-        decoration: BoxDecoration(
-          color: active ? sh.accent : Colors.transparent,
-          borderRadius: BorderRadius.circular(8),
-        ),
-        child: Text(label,
-            style: TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.w700,
-                color: active ? Colors.white : sh.inkSoft)),
-      ),
-    );
-  }
 }
 
 // ─── 햄버거 버튼 ──────────────────────────────────────────────────
@@ -1196,4 +1191,518 @@ class _DesignPanelState extends State<_DesignPanel> {
       ),
     );
   }
+}
+
+// ─── 시간표 내보내기(인쇄 미리보기형 공유) ─────────────────────────
+
+/// 시간표를 깔끔한 이미지로 미리보고 공유/저장하는 페이지를 띄운다.
+void openTimetableExport(BuildContext context) {
+  Navigator.of(context).push(MaterialPageRoute(
+    fullscreenDialog: true,
+    builder: (_) => const TimetableExportPage(),
+  ));
+}
+
+class TimetableExportPage extends ConsumerStatefulWidget {
+  const TimetableExportPage({super.key});
+
+  @override
+  ConsumerState<TimetableExportPage> createState() =>
+      _TimetableExportPageState();
+}
+
+class _TimetableExportPageState extends ConsumerState<TimetableExportPage> {
+  final _boundaryKey = GlobalKey();
+  bool _weekend = false; // 토·일 포함
+  bool _light = true;    // 밝게/어둡게
+  bool _full = false;    // 0~24시 전체 시간 포함
+  bool _busy = false;
+
+  static const _accent = Color(0xFF8B7FF5);
+  static const _dow = ['월', '화', '수', '목', '금', '토', '일'];
+
+  double get _dayColW => _weekend ? 92 : 104;
+  static const _labelW = 52.0;
+  static const _headerH = 50.0;
+  static const _schoolH = 84.0;
+
+  Future<Uint8List?> _capture() async {
+    final boundary = _boundaryKey.currentContext?.findRenderObject()
+        as RenderRepaintBoundary?;
+    if (boundary == null) return null;
+    final image = await boundary.toImage(pixelRatio: 3.0);
+    final bytes = await image.toByteData(format: ui.ImageByteFormat.png);
+    return bytes?.buffer.asUint8List();
+  }
+
+  Future<void> _share() async {
+    if (_busy) return;
+    // iPad 시트 위치 기준 — async 전에 미리 계산.
+    final box = context.findRenderObject() as RenderBox?;
+    final origin = box != null
+        ? (box.localToGlobal(Offset.zero) & box.size)
+        : (Offset.zero & MediaQuery.of(context).size);
+    setState(() => _busy = true);
+    try {
+      final bytes = await _capture();
+      if (bytes == null) {
+        _toast('이미지를 만들지 못했어요');
+        return;
+      }
+      final dir = await getTemporaryDirectory();
+      final file = File(
+          '${dir.path}/HourSpace_timetable_${DateTime.now().millisecondsSinceEpoch}.png');
+      await file.writeAsBytes(bytes);
+      await Share.shareXFiles(
+        [XFile(file.path, mimeType: 'image/png')],
+        text: 'HourSpace 시간표',
+        sharePositionOrigin: origin,
+      );
+    } catch (e) {
+      _toast('공유 실패: $e');
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  Future<void> _save() async {
+    if (_busy) return;
+    setState(() => _busy = true);
+    try {
+      final bytes = await _capture();
+      if (bytes == null) return;
+      await Gal.putImageBytes(bytes,
+          name: 'HourSpace_timetable_${DateTime.now().millisecondsSinceEpoch}');
+      _toast('이미지를 갤러리에 저장했어요');
+    } catch (_) {
+      _toast('저장하지 못했어요');
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  void _toast(String m) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(SnackBar(content: Text(m)));
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final sh = context.sh;
+    final neis = ref.watch(neisCacheProvider);
+    final recurring = ref.watch(recurringProvider);
+
+    final maxPeriod = _TimetableViewState._maxPeriod(neis.timetable);
+    final days = _TimetableViewState._weekDays();
+    // 전체 시간(_full): 0~24시 전부 / 기본: 교시+점심만.
+    final allRows = _TimetableViewState._buildRows(maxPeriod)
+        .where((r) => _full
+            ? !r.isDivider
+            : (r.type == _RType.school || r.type == _RType.lunch))
+        .toList();
+    final neisHour = _TimetableViewState._buildNeisHourData(neis.timetable);
+    final weekly = {
+      for (int c = 0; c < 7; c++)
+        c: Map<int, String>.from(recurring[c] ?? const {}),
+    };
+    final tplData = _TimetableViewState._buildTemplateData(days);
+    final displayData = _TimetableViewState._buildDisplayData(
+        neisHour, tplData, weekly, neis.lunch, allRows);
+
+    return Scaffold(
+      backgroundColor: sh.bg,
+      appBar: AppBar(
+        backgroundColor: sh.bg,
+        elevation: 0,
+        leading: IconButton(
+          icon: Icon(Icons.close_rounded, color: sh.ink),
+          onPressed: () => Navigator.pop(context),
+        ),
+        title: Text('시간표 공유',
+            style: AppType.title.copyWith(
+                fontSize: 18, fontWeight: FontWeight.w800, color: sh.ink)),
+      ),
+      body: Column(
+        children: [
+          // ── 옵션 ──
+          Padding(
+            padding: const EdgeInsets.fromLTRB(Gap.lg, 4, Gap.lg, 8),
+            child: Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                _toggleChip('주말 포함', _weekend,
+                    () => setState(() => _weekend = !_weekend), sh),
+                _toggleChip('전체 시간', _full,
+                    () => setState(() => _full = !_full), sh),
+                _toggleChip(_light ? '밝게' : '어둡게', true,
+                    () => setState(() => _light = !_light), sh),
+              ],
+            ),
+          ),
+          // ── 미리보기 ──
+          Expanded(
+            child: Container(
+              width: double.infinity,
+              color: sh.dark ? const Color(0xFF0E0D14) : const Color(0xFFEDEAF5),
+              padding: const EdgeInsets.all(16),
+              alignment: Alignment.center,
+              child: SingleChildScrollView(
+                child: FittedBox(
+                  fit: BoxFit.contain,
+                  child: RepaintBoundary(
+                    key: _boundaryKey,
+                    child: _buildExportImage(allRows, displayData, days),
+                  ),
+                ),
+              ),
+            ),
+          ),
+          // ── 액션 ──
+          SafeArea(
+            top: false,
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(Gap.lg, 10, Gap.lg, 12),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      onPressed: _busy ? null : _save,
+                      icon: const Icon(Icons.download_rounded, size: 19),
+                      label: const Text('저장'),
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: sh.inkSoft,
+                        side: BorderSide(color: sh.ink.withValues(alpha: 0.14)),
+                        minimumSize: const Size.fromHeight(52),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16)),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    flex: 2,
+                    child: FilledButton.icon(
+                      onPressed: _busy ? null : _share,
+                      icon: _busy
+                          ? const SizedBox(
+                              width: 18, height: 18,
+                              child: CircularProgressIndicator(
+                                  strokeWidth: 2, color: Colors.white))
+                          : const Icon(Icons.ios_share_rounded, size: 19),
+                      label: const Text('공유하기',
+                          style: TextStyle(
+                              fontSize: 15, fontWeight: FontWeight.w800)),
+                      style: FilledButton.styleFrom(
+                        backgroundColor: sh.accent,
+                        foregroundColor: Colors.white,
+                        minimumSize: const Size.fromHeight(52),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16)),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _toggleChip(String label, bool active, VoidCallback onTap,
+      SpaceHourColors sh) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
+        decoration: BoxDecoration(
+          color: active
+              ? sh.accent.withValues(alpha: sh.dark ? 0.22 : 0.12)
+              : sh.card2,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+              color: active
+                  ? sh.accent.withValues(alpha: 0.5)
+                  : sh.ink.withValues(alpha: 0.08)),
+        ),
+        child: Text(label,
+            style: AppType.label.copyWith(
+                fontSize: 13,
+                fontWeight: FontWeight.w700,
+                color: active ? sh.accent : sh.inkSoft)),
+      ),
+    );
+  }
+
+  // 캡처 대상 — 깔끔한 시간표 카드 이미지(고정 크기).
+  Widget _buildExportImage(
+    List<_RowDef> rows,
+    Map<int, Map<int, String>> displayData,
+    List<DateTime> days,
+  ) {
+    final cols = _weekend ? 7 : 5;
+    final bg = _light ? const Color(0xFFFBFAFF) : const Color(0xFF1A1726);
+    final ink = _light ? const Color(0xFF26203F) : Colors.white;
+    final inkSoft = _light
+        ? const Color(0xFF6B6480)
+        : Colors.white.withValues(alpha: 0.6);
+    final line = (_light ? Colors.black : Colors.white).withValues(alpha: 0.07);
+
+    // 점심 행 높이(메뉴 줄 수 반영).
+    final heights = <double>[];
+    for (final r in rows) {
+      if (r.type == _RType.lunch) {
+        int lines = 1;
+        for (int c = 0; c < cols; c++) {
+          final t = displayData[c]?[r.hour] ?? '';
+          if (t.isEmpty) continue;
+          final n = getDisplaySubjectName(t, lunch: true).split('\n').length;
+          if (n > lines) lines = n;
+        }
+        heights.add((26 + lines * 15).clamp(_schoolH, 220).toDouble());
+      } else if (r.type == _RType.free) {
+        heights.add(46); // 전체 시간 모드의 빈 시간 행
+      } else {
+        heights.add(_schoolH);
+      }
+    }
+    final offsets = _TimetableViewState._rowOffsets(heights);
+    final totalH = offsets.last;
+    final mergeGroups = _TimetableViewState._computeMerges(rows, offsets, displayData)
+        .where((g) => g.col < cols)
+        .toList();
+    final mergeSet = _TimetableViewState._buildMergeSet(mergeGroups);
+    final tableW = _labelW + cols * _dayColW;
+
+    final now = DateTime.now();
+    final dateLabel =
+        '${days.first.month}.${days.first.day} ~ ${days[cols - 1].month}.${days[cols - 1].day}';
+
+    return Container(
+      width: tableW + 32,
+      color: bg,
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // 제목
+          Row(
+            children: [
+              const Icon(Icons.calendar_view_week_rounded,
+                  size: 18, color: _accent),
+              const SizedBox(width: 6),
+              Text('내 시간표',
+                  style: TextStyle(
+                      fontSize: 17,
+                      fontWeight: FontWeight.w800,
+                      color: ink,
+                      letterSpacing: -0.3)),
+              const Spacer(),
+              Text(dateLabel,
+                  style: TextStyle(
+                      fontSize: 11.5,
+                      fontWeight: FontWeight.w600,
+                      color: inkSoft)),
+            ],
+          ),
+          const SizedBox(height: 12),
+          // 요일 헤더
+          Row(
+            children: [
+              SizedBox(width: _labelW),
+              ...List.generate(cols, (i) {
+                final isToday = du.isSameDay(days[i], now);
+                return SizedBox(
+                  width: _dayColW,
+                  child: Container(
+                    height: _headerH,
+                    alignment: Alignment.center,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 5),
+                      decoration: isToday
+                          ? BoxDecoration(
+                              color: _accent,
+                              borderRadius: BorderRadius.circular(999))
+                          : null,
+                      child: Text(_dow[i],
+                          style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w800,
+                              color: isToday ? Colors.white : ink)),
+                    ),
+                  ),
+                );
+              }),
+            ],
+          ),
+          // 그리드
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // 라벨열
+              SizedBox(
+                width: _labelW,
+                child: Column(
+                  children: [
+                    for (int ri = 0; ri < rows.length; ri++)
+                      SizedBox(
+                        height: heights[ri],
+                        child: Center(
+                          child: rows[ri].type == _RType.lunch
+                              ? Text('점심',
+                                  style: TextStyle(
+                                      fontSize: 11.5,
+                                      fontWeight: FontWeight.w700,
+                                      color: _accent))
+                              : rows[ri].type == _RType.free
+                                  // 전체 시간 모드의 빈 시간 — 시각 라벨.
+                                  ? Text('${rows[ri].hour}시',
+                                      style: TextStyle(
+                                          fontSize: 11,
+                                          fontWeight: FontWeight.w600,
+                                          color: inkSoft))
+                                  : Column(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Text('${rows[ri].period}',
+                                            style: TextStyle(
+                                                fontSize: 16,
+                                                fontWeight: FontWeight.w800,
+                                                color: ink,
+                                                height: 1)),
+                                        Text('교시',
+                                            style: TextStyle(
+                                                fontSize: 9,
+                                                fontWeight: FontWeight.w600,
+                                                color: inkSoft)),
+                                      ],
+                                    ),
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+              // 셀
+              SizedBox(
+                width: cols * _dayColW,
+                height: totalH,
+                child: Stack(
+                  children: [
+                    Column(
+                      children: List.generate(rows.length, (ri) {
+                        return SizedBox(
+                          height: heights[ri],
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: List.generate(cols, (c) {
+                              final isMerged = mergeSet.contains((c, ri));
+                              final text = displayData[c]?[rows[ri].hour] ?? '';
+                              return SizedBox(
+                                width: _dayColW,
+                                child: DecoratedBox(
+                                  decoration: BoxDecoration(
+                                    border: Border(
+                                      left: BorderSide(color: line, width: 0.5),
+                                      bottom:
+                                          BorderSide(color: line, width: 0.5),
+                                    ),
+                                  ),
+                                  child: (!isMerged && text.isNotEmpty)
+                                      ? _expCard(text,
+                                          rows[ri].type == _RType.lunch, ink)
+                                      : null,
+                                ),
+                              );
+                            }),
+                          ),
+                        );
+                      }),
+                    ),
+                    ...mergeGroups.map((g) {
+                      final row = rows[g.startRow];
+                      return Positioned(
+                        top: offsets[g.startRow],
+                        left: g.col * _dayColW,
+                        width: _dayColW,
+                        height:
+                            offsets[g.startRow + g.span] - offsets[g.startRow],
+                        child: _expCard(g.text, row.type == _RType.lunch, ink),
+                      );
+                    }),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _expCard(String text, bool isLunch, Color ink) {
+    final display = getDisplaySubjectName(text, lunch: isLunch);
+    final cardBg = isLunch
+        ? (_light ? const Color(0xFFFFF1E8) : const Color(0xFF2A2436))
+        : _accent.withValues(alpha: _light ? 0.13 : 0.24);
+    final textColor = isLunch ? ink : (_light ? const Color(0xFF3A2E6B) : Colors.white);
+    return Container(
+      width: double.infinity,
+      height: double.infinity,
+      margin: const EdgeInsets.all(3),
+      padding: EdgeInsets.symmetric(horizontal: 5, vertical: isLunch ? 4 : 6),
+      alignment: Alignment.center,
+      decoration: BoxDecoration(
+        color: cardBg,
+        borderRadius: BorderRadius.circular(9),
+        border: Border.all(color: _accent.withValues(alpha: 0.28)),
+      ),
+      child: Text(
+        display,
+        textAlign: TextAlign.center,
+        maxLines: isLunch ? 7 : 2,
+        overflow: TextOverflow.ellipsis,
+        style: TextStyle(
+          fontSize: isLunch ? 9 : 12.5,
+          height: 1.2,
+          letterSpacing: -0.2,
+          fontWeight: FontWeight.w700,
+          color: textColor,
+        ),
+      ),
+    );
+  }
+}
+
+/// 특정 날짜의 시간표 수업(시각 hour → 과목명) — 주간/일간 뷰 읽기전용 표시용.
+/// NEIS·템플릿·주간반복을 모두 합쳐, 그 날 요일의 교시 수업만 돌려준다(점심 제외).
+Map<int, String> timetableSubjectsForDate(WidgetRef ref, DateTime date) {
+  final neis = ref.read(neisCacheProvider);
+  final recurring = ref.read(recurringProvider);
+  final maxP = _TimetableViewState._maxPeriod(neis.timetable);
+  final rows = _TimetableViewState._buildRows(maxP);
+  final monday = date.subtract(Duration(days: date.weekday - 1));
+  final days = List.generate(
+      7, (i) => DateTime(monday.year, monday.month, monday.day + i));
+  final di = date.weekday - 1; // 월=0
+  final neisHour = _TimetableViewState._buildNeisHourData(neis.timetable);
+  final weekly = {
+    for (int c = 0; c < 7; c++)
+      c: Map<int, String>.from(recurring[c] ?? const {}),
+  };
+  final tpl = _TimetableViewState._buildTemplateData(days);
+  final display = _TimetableViewState._buildDisplayData(
+      neisHour, tpl, weekly, neis.lunch, rows);
+  final out = <int, String>{};
+  for (final r in rows) {
+    if (r.type != _RType.school) continue;
+    final t = display[di]?[r.hour] ?? '';
+    if (t.trim().isNotEmpty) out[r.hour] = t;
+  }
+  return out;
 }

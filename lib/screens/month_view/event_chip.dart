@@ -32,6 +32,14 @@ class EventChip extends StatelessWidget {
           text: item.t,
           sh: sh);
     }
+    // 스포츠 구독 경기: 종목 이모지 + 구독 색.
+    if (item.sport) {
+      return _EmojiChip(
+          emoji: item.sportEmoji ?? '🏅',
+          color: Color(item.sportColor ?? 0xFF6C63FF),
+          text: item.t,
+          sh: sh);
+    }
 
     final themeColor = _resolveColor();
     return GestureDetector(
@@ -89,6 +97,52 @@ class EventChip extends StatelessWidget {
     } catch (_) {
       return null;
     }
+  }
+}
+
+/// 스포츠 구독 경기 칩 — 종목 이모지 + 구독 색.
+class _EmojiChip extends StatelessWidget {
+  final String emoji;
+  final Color color;
+  final String text;
+  final SpaceHourColors sh;
+  const _EmojiChip(
+      {required this.emoji,
+      required this.color,
+      required this.text,
+      required this.sh});
+
+  @override
+  Widget build(BuildContext context) {
+    final textColor =
+        sh.dark ? Color.lerp(color, Colors.white, 0.25)! : Color.lerp(color, Colors.black, 0.35)!;
+    return Container(
+      margin: const EdgeInsets.only(bottom: 2),
+      padding: const EdgeInsets.fromLTRB(4, 2, 5, 2.5),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: sh.dark ? 0.24 : 0.14),
+        borderRadius: BorderRadius.circular(6),
+      ),
+      child: Row(
+        children: [
+          Text(emoji, style: const TextStyle(fontSize: 9, height: 1.3)),
+          const SizedBox(width: 3),
+          Expanded(
+            child: Text(
+              text,
+              style: TextStyle(
+                fontSize: 10.5,
+                fontWeight: FontWeight.w600,
+                color: textColor,
+                height: 1.3,
+              ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }
 

@@ -3,6 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/utils/date_utils.dart' as du;
 import '../../models/event_item.dart';
+import '../../models/calendar_theme.dart';
+import '../../models/record_template.dart';
+import '../../supabase/neis_service.dart';
 import '../../providers/view_provider.dart';
 import '../../providers/events_provider.dart';
 import '../../providers/themes_provider.dart';
@@ -12,6 +15,10 @@ import '../../providers/extras_provider.dart';
 import '../../providers/day_widget_provider.dart';
 import '../../providers/birthdays_provider.dart';
 import '../../providers/academic_schedule_provider.dart';
+import '../../providers/template_ranges_provider.dart';
+import '../../providers/record_templates_provider.dart';
+import '../../providers/sports_provider.dart';
+import '../../providers/shared_theme_events_provider.dart';
 import '../../modals/day_action_sheet.dart';
 import 'day_cell.dart';
 
@@ -181,73 +188,140 @@ class _WeekRow extends ConsumerWidget {
     final academic = ref.watch(academicScheduleProvider);
     final widgetValues = ref.watch(widgetValuesProvider);
     final dayTemplates = ref.watch(dayTemplatesProvider);
+    final templateRanges = ref.watch(templateRangesProvider);
+    final templatesById = ref.watch(recordTemplatesByIdProvider);
     final birthdays = ref.watch(birthdaysProvider);
+    final sportsByDate = ref.watch(sportsEventsByDateProvider);
+    final sharedByDate = ref.watch(sharedThemeEventsByDateProvider);
     final sh = context.sh;
 
-    // 월 경계 구분선 — 윗칸(7일 전)이 지난달인 셀 상단에 또렷한 라인(계단형).
-    final monthEdge =
-        BorderSide(color: sh.accent.withValues(alpha: 0.55), width: 2);
+    // 월 경계 구분선 색 — 부드러운 계단선은 아래 CustomPaint로 그린다.
+    final edgeColor = sh.accent.withValues(alpha: 0.6);
+
+    final weekDates = List.generate(
+        7, (i) => DateTime(weekStart.year, weekStart.month, weekStart.day + i));
+    final keys = weekDates.map(du.toDateKey).toList();
+
+    bool visible(EventItem item) {
+      if (hiddenThemes.isEmpty) return true;
+      final ids = item.themeIds;
+      if (ids.isEmpty) return !hiddenThemes.contains('__none__');
+      return ids.every((id) => !hiddenThemes.contains(id));
+    }
+
+    // 내 학년 — 다른 학년 학사일정 숨김용.
+    final grade = NeisSchool.load()?.grade;
+    // 칸별 일정(필터 + 생일/학사 병합).
+    final colEvents = <List<EventItem>>[
+      for (int i = 0; i < 7; i++)
+        <EventItem>[
+          ...(events[keys[i]] ?? []).where(visible),
+          if (!hiddenThemes.contains(birthdayThemeId))
+            ...birthdays
+                .where((b) =>
+                    b.month == weekDates[i].month && b.day == weekDates[i].day)
+                .map((b) =>
+                    EventItem(t: b.name, th: birthdayThemeId, birthday: true)),
+          if (!hiddenThemes.contains(academicThemeId))
+            ...(academic[keys[i]] ?? const [])
+                .where((n) => academicVisibleForGrade(n, grade))
+                .map((n) =>
+                    EventItem(t: n, th: academicThemeId, academic: true)),
+          ...(sportsByDate[keys[i]] ?? const <EventItem>[])
+              .where((e) => !hiddenThemes.contains(e.themeIds.first)),
+          ...(sharedByDate[keys[i]] ?? const <EventItem>[]).where((e) =>
+              e.themeIds.isNotEmpty &&
+              !hiddenThemes.contains(e.themeIds.first)),
+        ],
+    ];
+
+    // 같은 이름이 연속된 날에 있으면 하나의 긴 막대로 병합.
+    final present = <String, List<bool>>{};
+    final firstOf = <String, EventItem>{};
+    for (int i = 0; i < 7; i++) {
+      for (final e in colEvents[i]) {
+        (present[e.t] ??= List.filled(7, false))[i] = true;
+        firstOf.putIfAbsent(e.t, () => e);
+      }
+    }
+    final spans = <_DaySpan>[];
+    present.forEach((title, arr) {
+      int i = 0;
+      while (i < 7) {
+        if (!arr[i]) { i++; continue; }
+        int j = i;
+        while (j + 1 < 7 && arr[j + 1]) {
+          j++;
+        }
+        if (j > i) {
+          spans.add(_DaySpan(
+            title: title,
+            start: i,
+            end: j,
+            color: _eventColor(firstOf[title]!, themes, sh),
+          ));
+        }
+        i = j + 1;
+      }
+    });
+    // 슬롯 배정(겹치는 막대는 다른 줄로).
+    spans.sort((a, b) => a.start.compareTo(b.start));
+    final slotEnds = <int>[];
+    for (final s in spans) {
+      int slot = 0;
+      while (slot < slotEnds.length && slotEnds[slot] >= s.start) {
+        slot++;
+      }
+      if (slot == slotEnds.length) {
+        slotEnds.add(s.end);
+      } else {
+        slotEnds[slot] = s.end;
+      }
+      s.slot = slot;
+    }
+    const barH = 16.0;
+    final reserve = slotEnds.length * barH;
+    // 막대로 표시된 (칸,제목)은 셀 내부에서 중복 표시하지 않는다.
+    final spanned = <String>{};
+    for (final s in spans) {
+      for (int c = s.start; c <= s.end; c++) {
+        spanned.add('$c|${s.title}');
+      }
+    }
+
     Widget row = Row(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: List.generate(7, (i) {
-        final date = DateTime(
-            weekStart.year, weekStart.month, weekStart.day + i);
-        final key = du.toDateKey(date);
-
-        // 카테고리 필터 적용 + 생일 병합
-        final dayEvents = <EventItem>[
-          ...(events[key] ?? []).where((item) {
-            if (hiddenThemes.isEmpty) return true;
-            final ids = item.themeIds;
-            if (ids.isEmpty) return !hiddenThemes.contains('__none__');
-            return ids.every((id) => !hiddenThemes.contains(id));
-          }),
-          if (!hiddenThemes.contains(birthdayThemeId))
-            ...birthdays
-                .where((b) => b.month == date.month && b.day == date.day)
-                .map((b) => EventItem(
-                    t: b.name, th: birthdayThemeId, birthday: true)),
-          if (!hiddenThemes.contains(academicThemeId))
-            ...(academic[key] ?? const [])
-                .map((n) =>
-                    EventItem(t: n, th: academicThemeId, academic: true)),
-        ];
+        final date = weekDates[i];
+        final key = keys[i];
+        final cellEvents = colEvents[i]
+            .where((e) => !spanned.contains('$i|${e.t}'))
+            .toList();
 
         final applicable = dayTemplates
             .where((t) => t.enabled && t.scope.appliesTo(key))
             .toList();
+        final badges = recordBadgesForDate(
+            key, templateRanges, widgetValues[key], templatesById);
 
         Widget cell = DayCell(
           date: date,
           viewMonth: date, // 연속 보기에선 흐리게 처리하지 않음
-          events: dayEvents,
+          events: cellEvents,
           themes: themes,
           sh: sh,
           showPast: true,
           hasCircle: circles.contains(key),
           applicableTemplates: applicable,
           dateWidgetValues: widgetValues[key] ?? {},
-          onTap: () => _handleDayTap(context, ref, date),
+          recordBadges: badges,
+          topReserve: reserve,
+          // 탭: 그 주(주간 뷰)로 이동. 꾹누름: 위젯/일정 추가 메뉴.
+          onTap: () => ref.read(viewProvider.notifier).setWeekView(key),
           onLongPress: () => _handleDayTap(context, ref, date),
           onDoubleTap: () =>
               ref.read(circlesProvider.notifier).toggle(key),
         );
-
-        // 월 경계 계단선 — 윗칸(7일 전)이 지난달인 셀(=day<=7) 상단에 라인.
-        // 1일 셀은 왼쪽(계단의 세로 연결부)에도 같은 색 라인.
-        // 단, 1일이 주의 첫 칸(i==0, 화면 맨 끝)이면 세로선 생략.
-        if (date.day <= 7) {
-          cell = DecoratedBox(
-            position: DecorationPosition.foreground,
-            decoration: BoxDecoration(
-              border: Border(
-                top: monthEdge,
-                left: (date.day == 1 && i > 0) ? monthEdge : BorderSide.none,
-              ),
-            ),
-            child: cell,
-          );
-        }
 
         // 매월 1일 셀에 월 라벨 오버레이 (달 경계 표시)
         if (date.day == 1) {
@@ -279,10 +353,142 @@ class _WeekRow extends ConsumerWidget {
       }),
     );
 
-    return row;
+    // 멀티데이 막대를 셀 위에 오버레이 + 월 경계 계단선.
+    return CustomPaint(
+      foregroundPainter:
+          _MonthEdgePainter(weekStart: weekStart, color: edgeColor),
+      child: LayoutBuilder(builder: (ctx, c) {
+        final colW = c.maxWidth / 7;
+        const top = 36.0; // 날짜 숫자 아래(=이벤트 영역 시작)
+        return Stack(
+          children: [
+            row,
+            ...spans.map((s) => Positioned(
+                  top: top + s.slot * barH,
+                  left: s.start * colW + 1.5,
+                  width: (s.end - s.start + 1) * colW - 3,
+                  height: barH - 2,
+                  child: _SpanBar(span: s, sh: sh),
+                )),
+          ],
+        );
+      }),
+    );
   }
 
   void _handleDayTap(BuildContext context, WidgetRef ref, DateTime date) {
     showDayActionSheet(context, du.toDateKey(date), date);
+  }
+}
+
+/// 월 경계 계단선 — 직각 대신 둥근 코너로 부드럽게 잇는다.
+/// 윗칸(7일 전)이 지난달인 셀(=day<=7) 상단에 수평선을,
+/// 1일 셀(주의 첫 칸 제외) 왼쪽에 세로선을 두고, 꺾이는 지점을 곡선으로 연결.
+class _MonthEdgePainter extends CustomPainter {
+  final DateTime weekStart;
+  final Color color;
+  const _MonthEdgePainter({required this.weekStart, required this.color});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final colW = size.width / 7;
+    int minTop = -1, maxTop = -1, vertCol = -1;
+    for (int i = 0; i < 7; i++) {
+      final d = DateTime(weekStart.year, weekStart.month, weekStart.day + i);
+      if (d.day <= 7) {
+        if (minTop < 0) minTop = i;
+        maxTop = i;
+        if (d.day == 1 && i > 0) vertCol = i;
+      }
+    }
+    if (minTop < 0) return; // 이 주엔 월 경계 없음
+
+    final paint = Paint()
+      ..color = color
+      ..strokeWidth = 2
+      ..style = PaintingStyle.stroke
+      ..strokeCap = StrokeCap.round
+      ..strokeJoin = StrokeJoin.round
+      ..isAntiAlias = true;
+
+    const y = 1.0;
+    const r = 9.0; // 코너 반경
+    final xRight = (maxTop + 1) * colW;
+    final path = Path();
+
+    if (vertCol > 0) {
+      // 수평(오른쪽→코너) → 둥근 코너 → 수직(아래)
+      final xc = vertCol * colW;
+      path.moveTo(xRight, y);
+      path.lineTo(xc + r, y);
+      path.quadraticBezierTo(xc, y, xc, y + r);
+      path.lineTo(xc, size.height);
+    } else {
+      // 세로 없이 수평만(연속 주)
+      path.moveTo(minTop * colW, y);
+      path.lineTo(xRight, y);
+    }
+    canvas.drawPath(path, paint);
+  }
+
+  @override
+  bool shouldRepaint(covariant _MonthEdgePainter old) =>
+      old.weekStart != weekStart || old.color != color;
+}
+
+// 여러 날 이어지는 같은 이름 일정의 가로 막대.
+class _DaySpan {
+  final String title;
+  final int start;
+  final int end;
+  final Color color;
+  int slot = 0;
+  _DaySpan({
+    required this.title,
+    required this.start,
+    required this.end,
+    required this.color,
+  });
+}
+
+Color _eventColor(
+    EventItem e, List<CalendarTheme> themes, SpaceHourColors sh) {
+  if (e.birthday) return sh.birthdayColor;
+  if (e.academic) return sh.academicColor;
+  final ids = e.themeIds;
+  if (ids.isNotEmpty) {
+    try {
+      return themes.firstWhere((t) => ids.contains(t.id)).colorValue;
+    } catch (_) {}
+  }
+  return sh.accent;
+}
+
+class _SpanBar extends StatelessWidget {
+  final _DaySpan span;
+  final SpaceHourColors sh;
+  const _SpanBar({required this.span, required this.sh});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6),
+      alignment: Alignment.centerLeft,
+      decoration: BoxDecoration(
+        color: span.color.withValues(alpha: sh.dark ? 0.30 : 0.18),
+        borderRadius: BorderRadius.circular(5),
+        border: Border(left: BorderSide(color: span.color, width: 3)),
+      ),
+      child: Text(
+        span.title,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+        style: TextStyle(
+          fontSize: 10,
+          fontWeight: FontWeight.w700,
+          color: sh.dark ? sh.ink : span.color,
+        ),
+      ),
+    );
   }
 }

@@ -20,17 +20,44 @@ Future<void> showSearchSheet(BuildContext context) => showModalBottomSheet(
       builder: (_) => const _SearchSheet(),
     );
 
-class _SearchHit {
+class SearchHit {
   final String dateKey;
   final String title;
   final bool isTodo;
   final int priority;
-  const _SearchHit({
+  const SearchHit({
     required this.dateKey,
     required this.title,
     required this.isTodo,
     this.priority = 0,
   });
+}
+
+/// 일정+할 일 통합 검색 — 헤더 인라인 검색·검색 시트 공용.
+List<SearchHit> searchHits(WidgetRef ref, String query) {
+  final q = query.trim().toLowerCase();
+  if (q.isEmpty) return const [];
+  final hits = <SearchHit>[];
+  ref.read(eventsProvider).forEach((dateKey, list) {
+    for (final EventItem e in list) {
+      if (e.isTimetable) continue;
+      if (e.t.toLowerCase().contains(q)) {
+        hits.add(SearchHit(dateKey: dateKey, title: e.t, isTodo: false));
+      }
+    }
+  });
+  for (final TodoItem t in ref.read(todosProvider)) {
+    if (t.title.toLowerCase().contains(q)) {
+      hits.add(SearchHit(
+        dateKey: t.dateKey ?? '',
+        title: t.title,
+        isTodo: true,
+        priority: t.priority,
+      ));
+    }
+  }
+  hits.sort((a, b) => b.dateKey.compareTo(a.dateKey));
+  return hits;
 }
 
 class _SearchSheet extends ConsumerStatefulWidget {
@@ -50,35 +77,7 @@ class _SearchSheetState extends ConsumerState<_SearchSheet> {
     super.dispose();
   }
 
-  List<_SearchHit> _search() {
-    final q = _query.trim().toLowerCase();
-    if (q.isEmpty) return [];
-    final hits = <_SearchHit>[];
-
-    final events = ref.read(eventsProvider);
-    events.forEach((dateKey, list) {
-      for (final EventItem e in list) {
-        if (e.isTimetable) continue;
-        if (e.t.toLowerCase().contains(q)) {
-          hits.add(_SearchHit(dateKey: dateKey, title: e.t, isTodo: false));
-        }
-      }
-    });
-
-    for (final TodoItem t in ref.read(todosProvider)) {
-      if (t.title.toLowerCase().contains(q)) {
-        hits.add(_SearchHit(
-          dateKey: t.dateKey ?? '',
-          title: t.title,
-          isTodo: true,
-          priority: t.priority,
-        ));
-      }
-    }
-
-    hits.sort((a, b) => b.dateKey.compareTo(a.dateKey)); // 최신 날짜 먼저
-    return hits;
-  }
+  List<SearchHit> _search() => searchHits(ref, _query);
 
   @override
   Widget build(BuildContext context) {
@@ -169,7 +168,7 @@ class _SearchSheetState extends ConsumerState<_SearchSheet> {
                             padding: const EdgeInsets.only(bottom: 24),
                             itemCount: hits.length,
                             itemBuilder: (_, i) =>
-                                _HitTile(hit: hits[i], sh: sh, onTap: () {
+                                SearchHitTile(hit: hits[i], sh: sh, onTap: () {
                               if (hits[i].dateKey.isNotEmpty) {
                                 ref
                                     .read(viewProvider.notifier)
@@ -187,11 +186,12 @@ class _SearchSheetState extends ConsumerState<_SearchSheet> {
   }
 }
 
-class _HitTile extends StatelessWidget {
-  final _SearchHit hit;
+class SearchHitTile extends StatelessWidget {
+  final SearchHit hit;
   final SpaceHourColors sh;
   final VoidCallback onTap;
-  const _HitTile({required this.hit, required this.sh, required this.onTap});
+  const SearchHitTile(
+      {super.key, required this.hit, required this.sh, required this.onTap});
 
   @override
   Widget build(BuildContext context) {

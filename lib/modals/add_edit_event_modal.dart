@@ -198,9 +198,9 @@ class _AddEditEventModalState extends ConsumerState<AddEditEventModal> {
             ),
             const SizedBox(height: 14),
 
-            // 테마 선택
+            // 캘린더(카테고리) 선택
             if (themes.isNotEmpty) ...[
-              Text('테마 (여러 개 선택 가능)',
+              Text('캘린더 (여러 개 선택 가능)',
                   style: AppType.label.copyWith(color: sh.inkSoft)),
               const SizedBox(height: Gap.sm),
               Wrap(

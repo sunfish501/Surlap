@@ -66,18 +66,18 @@ class _SpaceHourAppState extends ConsumerState<SpaceHourApp> {
     try {
       final theme = await ThemeShareService.fetchByCode(code);
       if (theme == null) {
-        snack('테마를 찾을 수 없습니다: $code');
+        snack('캘린더를 찾을 수 없어요: $code');
         return;
       }
       final existing = ref.read(themesProvider);
       if (existing.any((t) => t.shareCode == theme.shareCode)) {
-        snack('이미 구독 중인 테마예요: ${theme.name}');
+        snack('이미 구독 중인 캘린더예요: ${theme.name}');
         return;
       }
       await ref
           .read(themesProvider.notifier)
           .add(theme.copyWith(shareRole: 'subscriber'));
-      snack('테마 "${theme.name}" 구독 완료');
+      snack('캘린더 "${theme.name}" 구독 완료');
     } catch (e) {
       snack('링크 처리 오류: $e');
     }
