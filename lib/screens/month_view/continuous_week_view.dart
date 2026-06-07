@@ -19,6 +19,7 @@ import '../../providers/template_ranges_provider.dart';
 import '../../providers/record_templates_provider.dart';
 import '../../providers/sports_provider.dart';
 import '../../providers/shared_theme_events_provider.dart';
+import '../../widgets/header_collapse.dart';
 import '../../modals/day_action_sheet.dart';
 import 'day_cell.dart';
 
@@ -116,7 +117,8 @@ class _ContinuousWeekViewState extends ConsumerState<ContinuousWeekView> {
 
     final headers = du.weekdayHeaders(_weekStartDow);
 
-    return Container(
+    return CollapseOnScroll(
+      child: Container(
       decoration: BoxDecoration(
         border: Border(top: BorderSide(color: sh.border, width: 0.5)),
       ),
@@ -170,6 +172,7 @@ class _ContinuousWeekViewState extends ConsumerState<ContinuousWeekView> {
             ),
           ),
         ],
+      ),
       ),
     );
   }

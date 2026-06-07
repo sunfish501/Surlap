@@ -4,6 +4,7 @@ import '../core/theme/app_theme.dart';
 import '../core/theme/design_tokens.dart';
 import '../models/record_template.dart';
 import '../providers/record_templates_provider.dart';
+import '../widgets/record_glyph.dart';
 
 /// 새 템플릿 만들기 / 커스텀 템플릿 편집.
 /// [base] 가 있으면 그 값으로 시작(복제/편집), 없으면 빈 새 템플릿.
@@ -19,11 +20,6 @@ Future<void> showRecordTemplateEditSheet(
       backgroundColor: Colors.transparent,
       builder: (_) => _EditSheet(base: base, editingId: editingId),
     );
-
-const List<String> _emojis = [
-  '📚', '📖', '🏃', '✍️', '💪', '🧘', '🎯', '💧',
-  '😴', '🍎', '💊', '🎹', '🎨', '💻', '📝', '⏱️', '🔥', '⭐',
-];
 
 class _EditSheet extends ConsumerStatefulWidget {
   final RecordTemplate? base;
@@ -47,7 +43,7 @@ class _EditSheetState extends ConsumerState<_EditSheet> {
   void initState() {
     super.initState();
     final b = widget.base;
-    _emoji = b?.emoji ?? '⭐';
+    _emoji = b?.emoji ?? kRecordIconIds.first;
     _name = TextEditingController(text: b?.name ?? '');
     _primaryLabel = TextEditingController(text: b?.primaryLabel ?? '');
     _unit = TextEditingController(text: b?.primaryUnit ?? '');
@@ -121,31 +117,34 @@ class _EditSheetState extends ConsumerState<_EditSheet> {
                       .copyWith(fontWeight: FontWeight.w800, color: sh.ink)),
               const SizedBox(height: 16),
 
-              _label('이모지', sh),
+              _label('아이콘', sh),
               const SizedBox(height: 8),
               Wrap(
-                spacing: 8,
-                runSpacing: 8,
+                spacing: 10,
+                runSpacing: 10,
                 children: [
-                  for (final e in _emojis)
+                  for (final id in kRecordIconIds)
                     GestureDetector(
-                      onTap: () => setState(() => _emoji = e),
+                      onTap: () => setState(() => _emoji = id),
                       behavior: HitTestBehavior.opaque,
                       child: Container(
-                        width: 42,
-                        height: 42,
+                        width: 46,
+                        height: 46,
                         alignment: Alignment.center,
                         decoration: BoxDecoration(
-                          color: _emoji == e
-                              ? sh.accent.withValues(alpha: 0.18)
+                          color: _emoji == id
+                              ? sh.accent.withValues(alpha: 0.16)
                               : sh.card2,
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(13),
                           border: Border.all(
-                              color: _emoji == e
+                              width: _emoji == id ? 1.5 : 1,
+                              color: _emoji == id
                                   ? sh.accent
                                   : sh.ink.withValues(alpha: 0.06)),
                         ),
-                        child: Text(e, style: const TextStyle(fontSize: 20)),
+                        child: Icon(kRecordIcons[id],
+                            size: 23,
+                            color: _emoji == id ? sh.accent : sh.inkSoft),
                       ),
                     ),
                 ],
@@ -238,7 +237,12 @@ class _EditSheetState extends ConsumerState<_EditSheet> {
           onChanged: onChanged,
           decoration: InputDecoration(
             isCollapsed: true,
+            // 이중 배경 방지 — 바깥 컨테이너 하나만 배경.
+            filled: false,
             border: InputBorder.none,
+            enabledBorder: InputBorder.none,
+            focusedBorder: InputBorder.none,
+            contentPadding: EdgeInsets.zero,
             hintText: hint,
             hintStyle: TextStyle(color: sh.inkFaint),
           ),

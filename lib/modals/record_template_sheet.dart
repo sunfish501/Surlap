@@ -5,6 +5,7 @@ import '../core/theme/design_tokens.dart';
 import '../core/utils/date_utils.dart' as du;
 import '../models/record_template.dart';
 import '../models/template_range.dart';
+import '../widgets/record_glyph.dart';
 import '../providers/template_ranges_provider.dart';
 import '../providers/record_templates_provider.dart';
 import 'record_template_edit_sheet.dart';
@@ -180,8 +181,10 @@ class _RecordTemplateSheet extends ConsumerWidget {
                   ),
                   child: Row(
                     children: [
-                      Text(tpl?.emoji ?? '📌',
-                          style: const TextStyle(fontSize: 18)),
+                      tpl != null
+                          ? recordGlyph(tpl.emoji, size: 18, color: sh.inkSoft)
+                          : Icon(Icons.bookmark_border_rounded,
+                              size: 18, color: sh.inkSoft),
                       const SizedBox(width: 10),
                       Expanded(
                         child: Column(
@@ -254,7 +257,7 @@ class _TemplateCard extends StatelessWidget {
       ),
       child: Row(
         children: [
-          Text(tpl.emoji, style: const TextStyle(fontSize: 24)),
+          recordGlyph(tpl.emoji, size: 24, color: sh.accent),
           const SizedBox(width: 12),
           Expanded(
             child: Column(

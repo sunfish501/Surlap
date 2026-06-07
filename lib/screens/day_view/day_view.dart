@@ -15,6 +15,7 @@ import '../timetable_view/timetable_view.dart'
 import '../../widgets/zoom_button.dart';
 import '../../widgets/view_segment_control.dart';
 import '../../widgets/calendar_filter_strip.dart';
+import '../../widgets/header_collapse.dart';
 import '../../providers/todos_provider.dart';
 import '../../providers/academic_schedule_provider.dart';
 import '../../providers/birthdays_provider.dart';
@@ -130,9 +131,17 @@ class _DayViewState extends ConsumerState<DayView> {
         allDay.isEmpty &&
         dayTodos.isEmpty;
 
-    return Column(
+    return CollapseOnScroll(
+      child: Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        // 헤더(세그먼트 + 날짜 이동 + 필터칩) — 스크롤 시 부드럽게 접힘.
+        CollapsibleHeader(
+          collapsed: ref.watch(headerCollapsedProvider),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
         // 통합 뷰 전환 세그먼트(연·월·주·일)
         const Padding(
           padding: EdgeInsets.fromLTRB(Gap.lg, Gap.xs, Gap.lg, Gap.sm),
@@ -207,6 +216,9 @@ class _DayViewState extends ConsumerState<DayView> {
         ),
         // 카테고리 필터칩 — 헤더 묶음 안에.
         const CalendarFilterStrip(),
+            ],
+          ),
+        ),
         // 종일 일정
         if (allDay.isNotEmpty) _AllDayBar(items: allDay, themes: themes, sh: sh),
         // 할 일
@@ -338,6 +350,7 @@ class _DayViewState extends ConsumerState<DayView> {
           }),
         ),
       ],
+      ),
     );
   }
 

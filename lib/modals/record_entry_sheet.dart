@@ -6,6 +6,7 @@ import '../core/theme/design_tokens.dart';
 import '../models/record_template.dart';
 import '../providers/day_widget_provider.dart';
 import '../providers/record_templates_provider.dart';
+import '../widgets/record_glyph.dart';
 
 /// 기록 입력 바텀시트 — 그 날의 기록 템플릿 값을 빠르게 입력/수정.
 /// 저장은 widgetValuesProvider 에 즉시 write-through → 달력 셀 바로 반영.
@@ -126,7 +127,7 @@ class _RecordEntrySheetState extends ConsumerState<_RecordEntrySheet> {
               ),
               Row(
                 children: [
-                  Text(tpl.emoji, style: const TextStyle(fontSize: 22)),
+                  recordGlyph(tpl.emoji, size: 22, color: sh.accent),
                   const SizedBox(width: 8),
                   Expanded(
                     child: Column(

@@ -3,9 +3,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../core/theme/app_theme.dart';
 import '../core/theme/design_tokens.dart';
 import '../providers/view_provider.dart';
+import '../providers/settings_provider.dart';
 import '../screens/search_view.dart';
 import 'calendar_filter_strip.dart';
 import 'view_segment_control.dart';
+import 'header_collapse.dart';
 
 // ─── 서브 헤더 (날짜 앵커) ────────────────────────────────────────
 // 월간/연간에서만 표시. 주간/일간은 자체 헤더, 그 외 뷰는 자체 제목.
@@ -54,7 +56,15 @@ class _AppHeaderState extends ConsumerState<AppHeader> {
     final searching = _query.trim().isNotEmpty;
     final hits = searching ? searchHits(ref, _query) : const <SearchHit>[];
 
-    return Container(
+    // 스크롤 접힘: 연속 월간에서만(고정 월간/연간은 스크롤 없음 → 항상 펼침).
+    // 검색 입력 중에는 절대 접지 않음.
+    final scrollable = isMonth && ref.watch(settingsProvider).continuousView;
+    final collapsed =
+        scrollable && !searching && ref.watch(headerCollapsedProvider);
+
+    return CollapsibleHeader(
+      collapsed: collapsed,
+      child: Container(
       color: sh.bg,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -232,6 +242,7 @@ class _AppHeaderState extends ConsumerState<AppHeader> {
             const SizedBox(height: 10),
           ],
         ],
+      ),
       ),
     );
   }

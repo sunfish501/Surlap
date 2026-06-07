@@ -100,7 +100,7 @@ class RecordTemplate {
 const RecordTemplate kPresetStudy = RecordTemplate(
   id: 'study-tracker',
   name: '공부 트래커',
-  emoji: '📚',
+  emoji: 'menu_book',
   primaryLabel: '순공시간',
   primaryUnit: 'h',
   hasTags: true,
@@ -111,7 +111,7 @@ const RecordTemplate kPresetStudy = RecordTemplate(
 const RecordTemplate kPresetReading = RecordTemplate(
   id: 'reading-tracker',
   name: '집중 독서',
-  emoji: '📖',
+  emoji: 'auto_stories',
   primaryLabel: '읽은 페이지',
   primaryUnit: 'p',
   hasTags: true,
@@ -122,7 +122,7 @@ const RecordTemplate kPresetReading = RecordTemplate(
 const RecordTemplate kPresetExercise = RecordTemplate(
   id: 'exercise-tracker',
   name: '운동',
-  emoji: '🏃',
+  emoji: 'directions_run',
   primaryLabel: '운동 시간',
   primaryUnit: '분',
   hasTags: false,

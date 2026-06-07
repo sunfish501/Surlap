@@ -1,9 +1,12 @@
+import 'dart:convert';
 import 'package:flutter/foundation.dart';
+import 'package:http/http.dart' as http;
+import '../core/constants/sports_config.dart';
 import '../models/sports.dart';
 import 'balldontlie_client.dart';
 
 /// 종목별 어댑터 인터페이스 — 응답을 공통 SportsEvent로 변환.
-/// 나중에 종목 단위로 다른 API(국내리그 등)로 갈아끼울 수 있게 일반화한 계층.
+/// 나중에 종목 단위로 다른 API로 갈아끼울 수 있게 일반화한 계층.
 abstract class SportsAdapter {
   Future<List<SportsEvent>> fetchGames({
     required SportSubscription sub,
@@ -16,20 +19,20 @@ abstract class SportsAdapter {
 SportsAdapter adapterForSport(SportKind kind) {
   switch (kind) {
     case SportKind.basketball:
-      return const BallDontLieAdapter(segment: '');
-    case SportKind.baseball:
-      return const BallDontLieAdapter(segment: 'mlb');
-    case SportKind.football:
-      return const BallDontLieAdapter(segment: 'nfl');
+      return const BallDontLieAdapter(segment: ''); // NBA
     case SportKind.soccer:
-      return const BallDontLieAdapter(segment: 'epl');
-    // 아래 종목은 BallDontLie 미커버 — 소스 추가 시 어댑터만 교체.
-    case SportKind.hockey:
+      return const FootballDataAdapter(); // EPL 등
     case SportKind.f1:
+      return const JolpicaAdapter(); // 무인증
+    case SportKind.esports:
+      return const PandaScoreAdapter(); // LoL
+    // 무료 소스 없음 — 구독은 되지만 경기는 비어 있음.
+    case SportKind.baseball:
+    case SportKind.football:
+    case SportKind.hockey:
     case SportKind.tennis:
     case SportKind.ufc:
     case SportKind.golf:
-    case SportKind.esports:
       return const _UnsupportedAdapter();
   }
 }
@@ -37,9 +40,11 @@ SportsAdapter adapterForSport(SportKind kind) {
 String _dk(DateTime d) =>
     '${d.year}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
 
-/// BallDontLie 공통 어댑터 — NBA(v1)/MLB/NFL/EPL의 /games 응답을 변환.
+// ════════════════════════════════════════════════════════════════════════
+// 🏀 BallDontLie 어댑터 — NBA(v1)의 /games 응답을 변환.
+// ════════════════════════════════════════════════════════════════════════
 class BallDontLieAdapter implements SportsAdapter {
-  final String segment; // '' | 'mlb' | 'nfl' | 'epl'
+  final String segment; // '' = NBA
   const BallDontLieAdapter({required this.segment});
 
   @override
@@ -54,7 +59,6 @@ class BallDontLieAdapter implements SportsAdapter {
       'end_date': [_dk(to)],
       'per_page': ['100'],
     };
-    // 팀 id가 숫자(NBA 등)면 team_ids 필터 적용. 슬러그면 클라이언트 측에서 이름 필터.
     final numericTeam = int.tryParse(sub.teamId);
     if (numericTeam != null) {
       query['team_ids[]'] = [sub.teamId];
@@ -67,17 +71,12 @@ class BallDontLieAdapter implements SportsAdapter {
       final home = _teamName(g['home_team']);
       final away = _teamName(g['visitor_team'] ?? g['away_team']);
       if (home == null || away == null) continue;
-
-      // 슬러그 구독이면 이름으로 우리 팀 포함 경기만 추림.
-      if (numericTeam == null && !_matchesSlug(sub, home, away)) continue;
-
       final start = _parseStart(g);
       if (start == null) continue;
-      final title = '$home vs $away';
       out.add(SportsEvent(
-        id: '${sub.id}:${g['id'] ?? title}',
+        id: '${sub.id}:${g['id'] ?? '$home vs $away'}',
         subscriptionId: sub.id,
-        title: title,
+        title: '$home vs $away',
         startAt: start.toUtc(),
         sport: sub.sport,
       ));
@@ -93,23 +92,226 @@ class BallDontLieAdapter implements SportsAdapter {
     return null;
   }
 
-  bool _matchesSlug(SportSubscription sub, String home, String away) {
-    final n = sub.teamName.toLowerCase();
-    final h = home.toLowerCase();
-    final a = away.toLowerCase();
-    // 한글 팀명은 영문 응답과 직접 매칭 어려움 → 슬러그 일부로 느슨 매칭.
-    final slug = sub.teamId.toLowerCase();
-    return h.contains(slug) ||
-        a.contains(slug) ||
-        h.contains(n) ||
-        a.contains(n);
-  }
-
   DateTime? _parseStart(Map g) {
-    // datetime(시간 포함) 우선, 없으면 date(자정).
     final iso = (g['datetime'] ?? g['date'] ?? g['game_time'])?.toString();
     if (iso == null || iso.isEmpty) return null;
     return DateTime.tryParse(iso);
+  }
+}
+
+// ════════════════════════════════════════════════════════════════════════
+// ⚽ football-data.org 어댑터 — /teams/{id}/matches.
+// ════════════════════════════════════════════════════════════════════════
+class FootballDataAdapter implements SportsAdapter {
+  const FootballDataAdapter();
+
+  /// EPL 팀 슬러그 → football-data.org 팀 ID.
+  static const Map<String, int> _teamIds = {
+    'tottenham': 73,
+    'arsenal': 57,
+    'mancity': 65,
+    'manutd': 66,
+    'liverpool': 64,
+    'chelsea': 61,
+    'newcastle': 67,
+  };
+
+  @override
+  Future<List<SportsEvent>> fetchGames({
+    required SportSubscription sub,
+    required DateTime from,
+    required DateTime to,
+  }) async {
+    if (!hasFootballDataKey) {
+      debugPrint('[FootballData] API 키 없음 — FOOTBALL_DATA_API_KEY 필요.');
+      return const [];
+    }
+    final teamId = _teamIds[sub.teamId];
+    if (teamId == null) {
+      debugPrint('[FootballData] ${sub.teamName}(${sub.teamId}) 팀 id 매핑 없음.');
+      return const [];
+    }
+    final uri = Uri.parse('$footballDataHost/teams/$teamId/matches').replace(
+      queryParameters: {'dateFrom': _dk(from), 'dateTo': _dk(to)},
+    );
+    try {
+      final res =
+          await http.get(uri, headers: {'X-Auth-Token': footballDataApiKey});
+      if (res.statusCode != 200) {
+        debugPrint('[FootballData] ${res.statusCode}: ${res.body}');
+        return const [];
+      }
+      final body = jsonDecode(res.body);
+      final matches = (body is Map && body['matches'] is List)
+          ? body['matches'] as List
+          : const [];
+      final out = <SportsEvent>[];
+      for (final m in matches) {
+        if (m is! Map) continue;
+        final home = _name(m['homeTeam']);
+        final away = _name(m['awayTeam']);
+        final iso = m['utcDate']?.toString();
+        if (home == null || away == null || iso == null) continue;
+        final start = DateTime.tryParse(iso);
+        if (start == null) continue;
+        out.add(SportsEvent(
+          id: '${sub.id}:${m['id'] ?? iso}',
+          subscriptionId: sub.id,
+          title: '$home vs $away',
+          startAt: start.toUtc(),
+          sport: sub.sport,
+        ));
+      }
+      debugPrint('[FootballData] ${sub.teamName} 경기 ${out.length}건');
+      return out;
+    } catch (e) {
+      debugPrint('[FootballData] 요청 실패: $e');
+      return const [];
+    }
+  }
+
+  String? _name(dynamic t) {
+    if (t is Map) return (t['shortName'] ?? t['name'] ?? t['tla'])?.toString();
+    return null;
+  }
+}
+
+// ════════════════════════════════════════════════════════════════════════
+// 🏎️ Jolpica(Ergast) 어댑터 — 현재 시즌 F1 일정. 무인증.
+// ════════════════════════════════════════════════════════════════════════
+class JolpicaAdapter implements SportsAdapter {
+  const JolpicaAdapter();
+
+  @override
+  Future<List<SportsEvent>> fetchGames({
+    required SportSubscription sub,
+    required DateTime from,
+    required DateTime to,
+  }) async {
+    final uri = Uri.parse('$jolpicaHost/current/races.json');
+    try {
+      final res = await http.get(uri, headers: {'Accept': 'application/json'});
+      if (res.statusCode != 200) {
+        debugPrint('[Jolpica] ${res.statusCode}: ${res.body}');
+        return const [];
+      }
+      final body = jsonDecode(res.body);
+      // 중첩 추출(널 안전) — 삼항 안에서 ?[] 쓰면 파서가 리스트로 오해함.
+      dynamic races;
+      if (body is Map) {
+        final mrData = body['MRData'];
+        final raceTable = mrData is Map ? mrData['RaceTable'] : null;
+        races = raceTable is Map ? raceTable['Races'] : null;
+      }
+      if (races is! List) return const [];
+      final out = <SportsEvent>[];
+      for (final r in races) {
+        if (r is! Map) continue;
+        final date = r['date']?.toString();
+        if (date == null || date.isEmpty) continue;
+        final time = r['time']?.toString(); // "13:00:00Z" (있을 수도)
+        final iso = (time != null && time.isNotEmpty)
+            ? '${date}T$time'
+            : '${date}T00:00:00Z';
+        final start = DateTime.tryParse(iso);
+        if (start == null) continue;
+        if (start.isBefore(from) || start.isAfter(to)) continue;
+        final name = (r['raceName'] ?? 'F1 그랑프리').toString();
+        out.add(SportsEvent(
+          id: '${sub.id}:${r['season'] ?? ''}-${r['round'] ?? name}',
+          subscriptionId: sub.id,
+          title: name,
+          startAt: start.toUtc(),
+          sport: sub.sport,
+        ));
+      }
+      debugPrint('[Jolpica] F1 경기 ${out.length}건');
+      return out;
+    } catch (e) {
+      debugPrint('[Jolpica] 요청 실패: $e');
+      return const [];
+    }
+  }
+}
+
+// ════════════════════════════════════════════════════════════════════════
+// 🎮 PandaScore 어댑터 — LoL 다가오는 경기, 팀으로 필터.
+// ════════════════════════════════════════════════════════════════════════
+class PandaScoreAdapter implements SportsAdapter {
+  const PandaScoreAdapter();
+
+  /// 팀 슬러그 → 매칭용 키워드(소문자).
+  static const Map<String, List<String>> _match = {
+    't1': ['t1'],
+    'geng': ['gen.g', 'geng', 'gen g'],
+  };
+
+  @override
+  Future<List<SportsEvent>> fetchGames({
+    required SportSubscription sub,
+    required DateTime from,
+    required DateTime to,
+  }) async {
+    if (!hasPandascoreKey) {
+      debugPrint('[PandaScore] API 키 없음 — PANDASCORE_API_KEY 필요.');
+      return const [];
+    }
+    final uri = Uri.parse('$pandascoreHost/lol/matches/upcoming').replace(
+      queryParameters: {'sort': 'begin_at', 'per_page': '100'},
+    );
+    try {
+      final res = await http.get(uri, headers: {
+        'Authorization': 'Bearer $pandascoreApiKey',
+        'Accept': 'application/json',
+      });
+      if (res.statusCode != 200) {
+        debugPrint('[PandaScore] ${res.statusCode}: ${res.body}');
+        return const [];
+      }
+      final body = jsonDecode(res.body);
+      if (body is! List) return const [];
+      final wantAll = sub.teamId == 'lol-all';
+      final needles = _match[sub.teamId] ?? [sub.teamName.toLowerCase()];
+      final out = <SportsEvent>[];
+      for (final m in body) {
+        if (m is! Map) continue;
+        final iso = (m['begin_at'] ?? m['scheduled_at'])?.toString();
+        if (iso == null || iso.isEmpty) continue;
+        final start = DateTime.tryParse(iso);
+        if (start == null) continue;
+        if (start.isBefore(from) || start.isAfter(to)) continue;
+
+        final names = <String>[];
+        final opps = m['opponents'];
+        if (opps is List) {
+          for (final o in opps) {
+            final op = (o is Map) ? o['opponent'] : null;
+            final nm =
+                (op is Map) ? (op['name'] ?? op['acronym'])?.toString() : null;
+            if (nm != null) names.add(nm);
+          }
+        }
+        if (!wantAll) {
+          final hay = names.join(' ').toLowerCase();
+          if (!needles.any(hay.contains)) continue;
+        }
+        final title = names.length >= 2
+            ? '${names[0]} vs ${names[1]}'
+            : (m['name'] ?? 'LoL 경기').toString();
+        out.add(SportsEvent(
+          id: '${sub.id}:${m['id'] ?? iso}',
+          subscriptionId: sub.id,
+          title: title,
+          startAt: start.toUtc(),
+          sport: sub.sport,
+        ));
+      }
+      debugPrint('[PandaScore] ${sub.teamName} 경기 ${out.length}건');
+      return out;
+    } catch (e) {
+      debugPrint('[PandaScore] 요청 실패: $e');
+      return const [];
+    }
   }
 }
 

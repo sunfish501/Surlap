@@ -8,6 +8,7 @@ import '../../models/todo_item.dart';
 import '../../models/calendar_theme.dart';
 import '../../models/day_template.dart';
 import '../../models/record_template.dart';
+import '../../widgets/record_glyph.dart';
 import '../../day_widgets/widget_cell_renderer.dart';
 import 'event_chip.dart';
 
@@ -195,7 +196,7 @@ class DayCell extends StatelessWidget {
     return out;
   }
 
-  // 기록 템플릿 뱃지: 이모지 1개 + 대표 숫자 1개. 기록 없으면 흐린 이모지(=기록 안 함).
+  // 기록 템플릿 뱃지: 아이콘 1개 + 대표 숫자 1개. 기록 없으면 흐리게(=기록 안 함).
   List<Widget> _buildRecordBadges(bool dimmed) {
     if (recordBadges.isEmpty) return const [];
     final out = <Widget>[];
@@ -207,12 +208,9 @@ class DayCell extends StatelessWidget {
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              // 이모지 폰트는 색칠 불가 → 기록 없는 날은 투명도로 흐리게.
-              Opacity(
-                opacity: b.hasData ? 1.0 : 0.32,
-                child: Text(b.emoji,
-                    style: const TextStyle(fontSize: 12.5, height: 1.0)),
-              ),
+              // 아이콘은 셀 색(accent) 따름 / 기록 없으면 흐리게. 이모지는 폴백.
+              recordGlyph(b.emoji,
+                  size: 13, color: sh.accent, faint: !b.hasData),
               if (b.hasData) ...[
                 const SizedBox(width: 3),
                 Text(b.primaryText!,

@@ -17,6 +17,7 @@ import '../timetable_view/timetable_view.dart'
 import '../../widgets/zoom_button.dart';
 import '../../widgets/view_segment_control.dart';
 import '../../widgets/calendar_filter_strip.dart';
+import '../../widgets/header_collapse.dart';
 import '../month_view/multiday_span.dart';
 import '../../providers/academic_schedule_provider.dart';
 import '../../providers/birthdays_provider.dart';
@@ -132,31 +133,42 @@ class _PlannerViewState extends ConsumerState<PlannerView> {
     final allDaySlots = spanSlotCount(allDaySpans.spans);
     final allDayReserve = allDaySlots * (kSpanBarH + 2);
     final allDayH = hasAllDay ? _allDayH + allDayReserve : 0.0;
-    return Column(
+    return CollapseOnScroll(
+      child: Column(
       children: [
-        // 통합 뷰 전환 세그먼트(연·월·주·일)
-        const Padding(
-          padding: EdgeInsets.fromLTRB(Gap.lg, Gap.xs, Gap.lg, 0),
-          child: ViewSegmentControl(),
+        // 헤더(세그먼트 + 주 이동 + 필터칩) — 스크롤 시 부드럽게 접힘.
+        CollapsibleHeader(
+          collapsed: ref.watch(headerCollapsedProvider),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // 통합 뷰 전환 세그먼트(연·월·주·일)
+              const Padding(
+                padding: EdgeInsets.fromLTRB(Gap.lg, Gap.xs, Gap.lg, 0),
+                child: ViewSegmentControl(),
+              ),
+              // 주 이동 헤더(한 줄: 이동 + 토글 + 줌버튼)
+              _WeekNav(
+                days: days,
+                sh: sh,
+                showTimetable: ref.watch(settingsProvider).showTimetable,
+                onToggleSchedule: () => ref
+                    .read(settingsProvider.notifier)
+                    .setShowTimetable(
+                        !ref.read(settingsProvider).showTimetable),
+                onZoomIn: () =>
+                    setState(() => _zoom = (_zoom + 0.2).clamp(0.6, 2.0)),
+                onZoomOut: () =>
+                    setState(() => _zoom = (_zoom - 0.2).clamp(0.6, 2.0)),
+                onPrev: () => setState(() => _weekOffset--),
+                onNext: () => setState(() => _weekOffset++),
+                onToday: () => setState(() => _weekOffset = 0),
+              ),
+              // 카테고리 필터칩 — 헤더 묶음 안에.
+              const CalendarFilterStrip(),
+            ],
+          ),
         ),
-        // 주 이동 헤더(한 줄: 이동 + 토글 + 줌버튼)
-        _WeekNav(
-          days: days,
-          sh: sh,
-          showTimetable: ref.watch(settingsProvider).showTimetable,
-          onToggleSchedule: () => ref
-              .read(settingsProvider.notifier)
-              .setShowTimetable(!ref.read(settingsProvider).showTimetable),
-          onZoomIn: () =>
-              setState(() => _zoom = (_zoom + 0.2).clamp(0.6, 2.0)),
-          onZoomOut: () =>
-              setState(() => _zoom = (_zoom - 0.2).clamp(0.6, 2.0)),
-          onPrev: () => setState(() => _weekOffset--),
-          onNext: () => setState(() => _weekOffset++),
-          onToday: () => setState(() => _weekOffset = 0),
-        ),
-        // 카테고리 필터칩 — 헤더 묶음 안에.
-        const CalendarFilterStrip(),
         Expanded(
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -430,6 +442,7 @@ class _PlannerViewState extends ConsumerState<PlannerView> {
           ),
         ),
       ],
+      ),
     );
   }
 

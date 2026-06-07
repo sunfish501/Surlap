@@ -11,6 +11,7 @@ import '../providers/template_ranges_provider.dart';
 import '../providers/record_templates_provider.dart';
 import '../models/template_range.dart';
 import '../models/record_template.dart';
+import '../widgets/record_glyph.dart';
 import '../widgets/mascot/mascot.dart';
 import 'add_edit_event_modal.dart';
 import 'add_todo_modal.dart';
@@ -84,8 +85,7 @@ class DayActionSheet extends ConsumerWidget {
                       ),
                       child: Row(
                         children: [
-                          Text(tpl.emoji,
-                              style: const TextStyle(fontSize: 20)),
+                          recordGlyph(tpl.emoji, size: 20, color: sh.accent),
                           const SizedBox(width: 10),
                           Expanded(
                             child: Text('${tpl.name} 기록하기',

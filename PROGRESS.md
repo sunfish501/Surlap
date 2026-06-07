@@ -136,3 +136,19 @@
 - theme_manager_modal.dart: "내 캘린더 N개" 요약 제거, `_TipCard`(클래스+사용+local_store/storage_keys import) 전부 제거. 캘린더 이름 폰트 16→20, 행 padding 14→18·margin 10→12. `_chip`(공유/삭제/받기/복제/구독취소) 라벨 없는 40×40 아이콘 버튼화(Tooltip+Semantics 유지). "가져오기" → 54×54 아이콘 버튼(새 캘린더 만들기는 텍스트 CTA 유지).
 - 식별자/DB(CalendarTheme·theme_shares·shareCode 등) 변경 없음. 사용자 노출 문자열만 '테마'→'캘린더/공유 캘린더':
   main_shell FAB '테마 일정'→'공유 캘린더', add_edit_event_modal '테마 (여러 개…)'→'캘린더 (여러 개…)', bottom_nav_bar 탭 '테마'→'공유 캘린더', backup_modal 부제 제거, theme_manager_modal 힌트/스낵바('캘린더 이름'·'원본 캘린더'·'내 캘린더로 복제'), coach_mark '(테마)'→'(캘린더)', profile_view·login_screen 동기화 문구, app.dart 구독 스낵바, theme_share_notifications 채널명.
+
+### 15. 스크롤 시 상단 헤더 자동 접힘/펼침
+상태: **완료** ✓ (flutter analyze 0 경고)
+- header_collapse.dart(신규): `headerCollapsedProvider`(StateProvider<bool>), `CollapseOnScroll`(NotificationListener로 수직 스크롤 방향 감지, 임계값 12px 떨림 방지, 맨 위=항상 펼침, 진입 시 펼침 리셋), `CollapsibleHeader`(AnimatedSize 260ms로 높이 0↔full).
+- AppHeader(월/연): 연속 월간에서만 접힘(고정 월간/연간은 스크롤 없어 항상 펼침), 검색 입력 중엔 항상 펼침(게이트).
+- continuous_week_view: 스크롤 리스트를 CollapseOnScroll로 감쌈 → AppHeader 접힘 구동.
+- planner_view·day_view: 헤더(세그먼트+이동+필터칩)를 CollapsibleHeader로 묶고 전체를 CollapseOnScroll로 감쌈.
+- 오버레이 상단바(status bar 블러)·topInset reserve·하단 글래스 네비 충돌 없음. 버튼 없이 스크롤만으로 동작.
+
+### 16. 기록 템플릿 에디터 디자인 정리(아이콘 세트 + 입력칸 단일배경)
+상태: **완료** ✓ (flutter analyze 0 경고)
+- record_glyph.dart(신규): 큐레이션 라인 아이콘 15종(menu_book·auto_stories·fitness_center·directions_run·self_improvement·water_drop·bedtime·restaurant·medication·music_note·palette·edit_note·timer·local_fire_department·star) + `recordGlyph(value,size,color,faint)` — 아이콘 id면 단색 Icon, 아니면 이모지 Text 폴백.
+- record_template_edit_sheet.dart: raw 이모지 그리드 → 단색 아이콘 타일(정사각 라운드, 비선택 card2+inkSoft, 선택 accent 링/틴트, 46px 일정 간격). 입력칸(이름·라벨·단위·태그라벨) 2겹 배경 수정 — `filled:false`+`enabled/focusedBorder:none`+`contentPadding:0`로 컨테이너 단일 배경(검색바 패턴).
+- 모델 호환: RecordTemplate.emoji 필드 유지(신규=아이콘 id 저장, 기존 이모지 데이터는 폴백 표시). 프리셋(공부=menu_book/독서=auto_stories/운동=directions_run)도 아이콘 id로.
+- 렌더 일원화: day_cell 뱃지·day_action_sheet·record_entry_sheet·record_template_sheet 전부 `recordGlyph` 사용. 아이콘 색은 셀/템플릿 색(accent·inkSoft) 따름, 기록 없으면 faint.
+- 참고: day_widgets/widget_cell_renderer.dart는 레거시 위젯(DayField)용 — 기록 템플릿 글리프는 day_cell 뱃지에서 그림(거기 업데이트).
