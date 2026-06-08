@@ -8,6 +8,7 @@ import '../../sports/sports_catalog.dart';
 import '../../providers/sports_provider.dart';
 import '../../modals/sports_subscribe_sheet.dart';
 import '../../modals/sport_color_picker.dart';
+import '../../widgets/sport_logo.dart';
 
 /// 테마 관리 탭의 "스포츠 구독" 섹션.
 /// 구독한 팀 목록 + 알림 주기 + 해제 + 새 구독 추가.
@@ -135,8 +136,11 @@ class SportsSubscriptionSection extends ConsumerWidget {
             ),
           ),
           const SizedBox(width: 10),
-          Text(s.emoji, style: const TextStyle(fontSize: 17)),
-          const SizedBox(width: 6),
+          SportLogo(
+              logoUrl: teamLogoUrl(s.leagueId, s.teamId),
+              emoji: s.emoji,
+              size: 28),
+          const SizedBox(width: 8),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,

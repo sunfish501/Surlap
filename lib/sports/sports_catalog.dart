@@ -46,24 +46,26 @@ SportInfo sportInfo(SportKind kind) =>
 /// 그 외는 슬러그 id(어댑터가 팀 id 매핑/이름 매칭에 사용).
 const Map<String, List<SportTeam>> _teams = {
   // ── 축구 (EPL · football-data.org) ──
+  // 로고: football-data.org 공개 crest(팀 id별 PNG).
   'epl': [
-    SportTeam('tottenham', '토트넘'),
-    SportTeam('arsenal', '아스널'),
-    SportTeam('mancity', '맨체스터 시티'),
-    SportTeam('manutd', '맨체스터 유나이티드'),
-    SportTeam('liverpool', '리버풀'),
-    SportTeam('chelsea', '첼시'),
-    SportTeam('newcastle', '뉴캐슬'),
+    SportTeam('tottenham', '토트넘', 'https://crests.football-data.org/73.png'),
+    SportTeam('arsenal', '아스널', 'https://crests.football-data.org/57.png'),
+    SportTeam('mancity', '맨체스터 시티', 'https://crests.football-data.org/65.png'),
+    SportTeam('manutd', '맨체스터 유나이티드', 'https://crests.football-data.org/66.png'),
+    SportTeam('liverpool', '리버풀', 'https://crests.football-data.org/64.png'),
+    SportTeam('chelsea', '첼시', 'https://crests.football-data.org/61.png'),
+    SportTeam('newcastle', '뉴캐슬', 'https://crests.football-data.org/67.png'),
   ],
   // ── NBA (실제 BallDontLie team id) ──
+  // 로고: ESPN CDN(팀 약자별 500px PNG).
   'nba': [
-    SportTeam('2', '보스턴 셀틱스'),
-    SportTeam('14', 'LA 레이커스'),
-    SportTeam('10', '골든스테이트 워리어스'),
-    SportTeam('17', '밀워키 벅스'),
-    SportTeam('8', '덴버 너기츠'),
-    SportTeam('20', '뉴욕 닉스'),
-    SportTeam('9', '디트로이트 피스턴스'),
+    SportTeam('2', '보스턴 셀틱스', 'https://a.espncdn.com/i/teamlogos/nba/500/bos.png'),
+    SportTeam('14', 'LA 레이커스', 'https://a.espncdn.com/i/teamlogos/nba/500/lal.png'),
+    SportTeam('10', '골든스테이트 워리어스', 'https://a.espncdn.com/i/teamlogos/nba/500/gs.png'),
+    SportTeam('17', '밀워키 벅스', 'https://a.espncdn.com/i/teamlogos/nba/500/mil.png'),
+    SportTeam('8', '덴버 너기츠', 'https://a.espncdn.com/i/teamlogos/nba/500/den.png'),
+    SportTeam('20', '뉴욕 닉스', 'https://a.espncdn.com/i/teamlogos/nba/500/ny.png'),
+    SportTeam('9', '디트로이트 피스턴스', 'https://a.espncdn.com/i/teamlogos/nba/500/det.png'),
   ],
   // ── F1 (Jolpica — 전체 그랑프리 일정) ──
   'f1': [SportTeam('f1-all', 'F1 그랑프리 전체')],
@@ -76,6 +78,14 @@ const Map<String, List<SportTeam>> _teams = {
 };
 
 List<SportTeam> teamsForLeague(String leagueId) => _teams[leagueId] ?? const [];
+
+/// 구독(리그id+팀id)으로 카탈로그에서 팀 로고 URL을 찾는다. 없으면 null.
+String? teamLogoUrl(String leagueId, String teamId) {
+  for (final t in teamsForLeague(leagueId)) {
+    if (t.id == teamId) return t.logo;
+  }
+  return null;
+}
 
 /// 구독 색 팔레트 — 테마 색과 구분되는 선명한 톤.
 const List<int> kSportColors = [

@@ -33,7 +33,9 @@ class SportLeague {
 class SportTeam {
   final String id;
   final String name;
-  const SportTeam(this.id, this.name);
+  /// 팀 로고 이미지 URL(선택). 없으면 종목 이모지로 대체 표시.
+  final String? logo;
+  const SportTeam(this.id, this.name, [this.logo]);
 }
 
 /// 종목 메타(이모지·라벨·리그·기본 색·지원여부).
