@@ -37,7 +37,8 @@ class _LoginModalState extends ConsumerState<LoginModal> {
     // Google OAuth는 리다이렉트 복귀로 세션이 생긴다 — 성공 시 모달 자동 종료
     // (안 닫으면 스피너가 계속 떠 무한 로그인처럼 보임).
     ref.listen(authProvider, (prev, next) {
-      if (next != null && mounted) Navigator.of(context).pop();
+      // 로그아웃→로그인 '전환'에만 닫는다(토큰 리프레시 등 비-null 재방출엔 무반응).
+      if (prev == null && next != null && mounted) Navigator.of(context).pop();
     });
     return Padding(
       padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
