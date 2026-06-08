@@ -141,6 +141,13 @@ class _RecordEntrySheetState extends ConsumerState<_RecordEntrySheet> {
                       ],
                     ),
                   ),
+                  // 항상 보이는 닫기(×) 버튼.
+                  IconButton(
+                    onPressed: () => Navigator.pop(context),
+                    icon: Icon(Icons.close, color: sh.inkSoft, size: 20),
+                    visualDensity: VisualDensity.compact,
+                    tooltip: '닫기',
+                  ),
                 ],
               ),
               const SizedBox(height: 20),

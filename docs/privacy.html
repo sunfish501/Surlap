@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>HourSpace 개인정보처리방침</title>
+<style>
+  :root { --p:#5A2DF4; --ink:#1b1b22; --soft:#6b6b76; }
+  * { box-sizing:border-box; }
+  body { margin:0; font-family:-apple-system,"Apple SD Gothic Neo","Segoe UI",Roboto,sans-serif;
+         color:var(--ink); line-height:1.7; background:#fafafb; }
+  .wrap { max-width:760px; margin:0 auto; padding:40px 22px 80px; }
+  h1 { font-size:28px; margin:0 0 6px; }
+  h2 { font-size:18px; margin:34px 0 8px; color:var(--p); }
+  .sub { color:var(--soft); font-size:14px; margin-bottom:28px; }
+  p, li { font-size:15px; color:#33333b; }
+  table { width:100%; border-collapse:collapse; margin:10px 0; font-size:14px; }
+  th, td { text-align:left; padding:9px 10px; border-bottom:1px solid #ececf1; vertical-align:top; }
+  th { color:var(--soft); font-weight:600; }
+  a { color:var(--p); }
+  .foot { margin-top:40px; color:var(--soft); font-size:13px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>HourSpace 개인정보처리방침</h1>
+  <div class="sub">최종 업데이트: 2026-06-08</div>
+
+  <p>HourSpace(이하 “앱”)는 이용자의 개인정보를 중요하게 생각하며, 관련 법령을 준수합니다.
+     본 방침은 앱이 수집하는 정보와 이용·보관·삭제 방법을 설명합니다.</p>
+
+  <h2>1. 수집하는 정보</h2>
+  <table>
+    <tr><th>항목</th><th>목적</th><th>비고</th></tr>
+    <tr><td>이메일/계정 식별자</td><td>로그인 및 클라우드 동기화</td><td>로그인 시에만. 미로그인(게스트) 시 미수집</td></tr>
+    <tr><td>일정·할 일·기록 데이터</td><td>앱 기능 제공·기기 간 동기화</td><td>기본은 기기 내 저장, 로그인 시 클라우드 백업</td></tr>
+    <tr><td>연락처(선택)</td><td>생일 가져오기</td><td>이용자가 명시적으로 허용·실행할 때만</td></tr>
+    <tr><td>마이크/음성(선택)</td><td>할 일 음성 입력</td><td>기기 내 음성인식, 별도 서버 전송 없음</td></tr>
+    <tr><td>사진 저장 권한(선택)</td><td>달력 이미지 저장</td><td>갤러리 저장 시에만</td></tr>
+  </table>
+
+  <h2>2. 추적 및 광고</h2>
+  <p>앱은 광고 식별자(IDFA)를 수집하거나 제3자 추적을 하지 않습니다. 분석/광고 SDK를 사용하지 않습니다.</p>
+
+  <h2>3. 정보의 보관 및 처리</h2>
+  <p>로그인 이용자의 데이터는 Supabase(클라우드 데이터베이스)에 저장되며, 행 수준 보안(RLS)으로
+     본인만 접근할 수 있도록 보호됩니다. 학교 시간표·급식·학사일정은 교육부 NEIS 오픈API에서
+     조회하며, 스포츠 일정은 공개 스포츠 API에서 조회합니다.</p>
+
+  <h2>4. 계정 및 데이터 삭제</h2>
+  <p>앱 내 <b>프로필 → 계정 → 회원 탈퇴</b>에서 계정과 클라우드에 저장된 모든 데이터를
+     영구적으로 삭제할 수 있습니다. 게스트 데이터는 기기에서 앱을 삭제하면 함께 제거됩니다.</p>
+
+  <h2>5. 미성년자</h2>
+  <p>앱은 학생 이용자를 포함하나, 결제·광고·외부 공유 기능을 통해 민감정보를 수집하지 않습니다.</p>
+
+  <h2>6. 문의</h2>
+  <p>개인정보 관련 문의: <a href="mailto:kev208dev@gmail.com">kev208dev@gmail.com</a></p>
+
+  <div class="foot">© 2026 SpaceHour. HourSpace.</div>
+</div>
+</body>
+</html>

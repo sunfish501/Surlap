@@ -76,6 +76,16 @@ class _SheetState extends ConsumerState<_SportsSubscribeSheet> {
                   Text(titles[step],
                       style: AppType.section.copyWith(
                           fontWeight: FontWeight.w800, color: sh.ink)),
+                  const Spacer(),
+                  // 항상 보이는 닫기(×) 버튼.
+                  IconButton(
+                    onPressed: () => Navigator.pop(context),
+                    icon: Icon(Icons.close, color: sh.inkSoft, size: 20),
+                    visualDensity: VisualDensity.compact,
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(),
+                    tooltip: '닫기',
+                  ),
                 ],
               ),
               const SizedBox(height: 14),

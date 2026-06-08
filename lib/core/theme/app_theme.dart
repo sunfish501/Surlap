@@ -35,6 +35,7 @@ ThemeData buildTheme(ColorPreset p) {
     cardColor: p.card,
     dividerColor: p.hairline,
     fontFamily: 'Pretendard',
+    fontFamilyFallback: const ['Apple SD Gothic Neo', 'Roboto'],
     textTheme: _buildTextTheme(p.ink, p.inkSoft),
     appBarTheme: AppBarTheme(
       backgroundColor: p.app,
@@ -71,13 +72,21 @@ ThemeData buildTheme(ColorPreset p) {
         foregroundColor: p.dark ? p.ink : Colors.white,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         textStyle: const TextStyle(fontWeight: FontWeight.w600, fontFamily: 'Pretendard'),
-      ),
+      ).copyWith(overlayColor: _accentOverlay(p.accent)),
     ),
     textButtonTheme: TextButtonThemeData(
       style: TextButton.styleFrom(
         foregroundColor: p.accent,
         textStyle: const TextStyle(fontWeight: FontWeight.w600, fontFamily: 'Pretendard'),
-      ),
+      ).copyWith(overlayColor: _accentOverlay(p.accent)),
+    ),
+    elevatedButtonTheme: ElevatedButtonThemeData(
+      style: ElevatedButton.styleFrom(
+        backgroundColor: p.accent,
+        foregroundColor: p.dark ? p.ink : Colors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        textStyle: const TextStyle(fontWeight: FontWeight.w600, fontFamily: 'Pretendard'),
+      ).copyWith(overlayColor: _accentOverlay(p.accent)),
     ),
     checkboxTheme: CheckboxThemeData(
       fillColor: WidgetStateProperty.resolveWith((s) =>
@@ -110,6 +119,19 @@ ThemeData buildTheme(ColorPreset p) {
     extensions: [SpaceHourColors(preset: p)],
   );
 }
+
+/// 버튼 눌림/호버 시 회색 기본 리플 대신 브랜드 액센트 컬러를 낮은 알파로.
+WidgetStateProperty<Color?> _accentOverlay(Color accent) =>
+    WidgetStateProperty.resolveWith((states) {
+      if (states.contains(WidgetState.pressed)) {
+        return accent.withValues(alpha: 0.12);
+      }
+      if (states.contains(WidgetState.hovered) ||
+          states.contains(WidgetState.focused)) {
+        return accent.withValues(alpha: 0.08);
+      }
+      return null;
+    });
 
 TextTheme _buildTextTheme(Color ink, Color inkSoft) => TextTheme(
   bodyLarge: TextStyle(color: ink, fontFamily: 'Pretendard', fontSize: 15),

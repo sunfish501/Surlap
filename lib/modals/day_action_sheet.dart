@@ -61,9 +61,23 @@ class DayActionSheet extends ConsumerWidget {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('${date.month}월 ${date.day}일',
-                style: AppType.body
-                    .copyWith(fontWeight: FontWeight.w700, color: sh.ink)),
+            Row(
+              children: [
+                Text('${date.month}월 ${date.day}일',
+                    style: AppType.body
+                        .copyWith(fontWeight: FontWeight.w700, color: sh.ink)),
+                const Spacer(),
+                // 항상 보이는 닫기(×) 버튼.
+                IconButton(
+                  onPressed: () => Navigator.pop(context),
+                  icon: Icon(Icons.close, color: sh.inkSoft, size: 20),
+                  visualDensity: VisualDensity.compact,
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(),
+                  tooltip: '닫기',
+                ),
+              ],
+            ),
             const SizedBox(height: Gap.md),
             // 기록 템플릿 적용 기간이면 맨 위에 눈에 띄는 "기록하기" 진입.
             ...activeRecords.map((tpl) => Padding(

@@ -20,6 +20,7 @@ import '../../providers/record_templates_provider.dart';
 import '../../providers/sports_provider.dart';
 import '../../providers/shared_theme_events_provider.dart';
 import '../../modals/day_action_sheet.dart';
+import '../../widgets/mascot/mascot.dart';
 import 'month_grid.dart';
 
 class MonthView extends ConsumerWidget {
@@ -103,6 +104,16 @@ class MonthView extends ConsumerWidget {
       mergedEvents[dateKey] = [...(mergedEvents[dateKey] ?? []), ...vis];
     });
 
+    // 이 달이 진짜로 비었는지(일정·할일 모두 0건) 판단 — 빈 상태 안내용.
+    // 키가 'YYYY-MM-' 로 시작하는 항목이 하나라도 있으면 비어있지 않음.
+    final monthPrefix =
+        '${view.viewYear}-${view.viewMonth.toString().padLeft(2, '0')}-';
+    bool hasAnyInMonth<T>(Map<String, List<T>> byDate) =>
+        byDate.entries.any(
+            (e) => e.key.startsWith(monthPrefix) && e.value.isNotEmpty);
+    final isMonthEmpty =
+        !hasAnyInMonth(mergedEvents) && !hasAnyInMonth(todosByDate);
+
     return Container(
       margin: const EdgeInsets.fromLTRB(Gap.md, Gap.xs, Gap.md, 0),
       decoration: BoxDecoration(
@@ -119,29 +130,47 @@ class MonthView extends ConsumerWidget {
         ],
       ),
       clipBehavior: Clip.antiAlias,
-      child: MonthGrid(
-        year: view.viewYear,
-        month: view.viewMonth,
-        weekStartDow: settings.weekStartDow,
-        events: mergedEvents,
-        todosByDate: todosByDate,
-        themes: themes,
-        sh: sh,
-        showPast: settings.showPast,
-        starred: starred,
-        circles: circles,
-        dayTemplates: dayTemplates,
-        widgetValues: widgetValues,
-        templateRanges: templateRanges,
-        templatesById: templatesById,
-        // 월간: 날짜 탭 → 추가/액션 시트(일정·할일·위젯·자세히 보기).
-        onDayTap: (date) => _handleDayTap(context, ref, date),
-        // 길게 누르면 동일 시트.
-        onDayLongPress: (date) => _handleDayTap(context, ref, date),
-        // 더블탭 → 동그라미 토글.
-        onDayDoubleTap: (date) =>
-            ref.read(circlesProvider.notifier).toggle(du.toDateKey(date)),
-        heroCells: true,
+      child: Stack(
+        children: [
+          MonthGrid(
+            year: view.viewYear,
+            month: view.viewMonth,
+            weekStartDow: settings.weekStartDow,
+            events: mergedEvents,
+            todosByDate: todosByDate,
+            themes: themes,
+            sh: sh,
+            showPast: settings.showPast,
+            starred: starred,
+            circles: circles,
+            dayTemplates: dayTemplates,
+            widgetValues: widgetValues,
+            templateRanges: templateRanges,
+            templatesById: templatesById,
+            // 월간: 날짜 탭 → 추가/액션 시트(일정·할일·위젯·자세히 보기).
+            onDayTap: (date) => _handleDayTap(context, ref, date),
+            // 길게 누르면 동일 시트.
+            onDayLongPress: (date) => _handleDayTap(context, ref, date),
+            // 더블탭 → 동그라미 토글.
+            onDayDoubleTap: (date) =>
+                ref.read(circlesProvider.notifier).toggle(du.toDateKey(date)),
+            heroCells: true,
+          ),
+          // 이 달에 아무 데이터도 없으면 친근한 빈 상태를 그리드 위에 띄운다.
+          // IgnorePointer로 날짜 셀 탭은 그대로 통과시킨다.
+          if (isMonthEmpty)
+            const Positioned.fill(
+              child: IgnorePointer(
+                child: MascotEmptyState(
+                  expression: MascotExpression.happy,
+                  title: '이 달은 아직 비어 있어요',
+                  message: '아래 + 버튼으로 일정을 추가해 보세요',
+                  mascotSize: 96,
+                  showStars: false,
+                ),
+              ),
+            ),
+        ],
       ),
     );
   }

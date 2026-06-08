@@ -35,12 +35,16 @@ class MascotView extends StatelessWidget {
   /// 전용 표정 PNG가 아직 없을 때 보여줄 실제 캐릭터 포즈.
   /// 절대 이모지/스마일 아이콘으로 떨어지지 않도록 보장한다.
   String get _fallbackAsset => switch (expression) {
-        MascotExpression.neutral => 'assets/mascot/front.png',
-        MascotExpression.happy => 'assets/mascot/front.png',
-        MascotExpression.cheering => 'assets/mascot/threee_quarter.png',
-        MascotExpression.sleepy => 'assets/mascot/side.png',
-        MascotExpression.thinking => 'assets/mascot/side.png',
+        MascotExpression.neutral => 'assets/mascot/mascot_neutral.png',
+        MascotExpression.happy => 'assets/mascot/mascot_happy.png',
+        MascotExpression.cheering => 'assets/mascot/mascot_cheering.png',
+        MascotExpression.sleepy => 'assets/mascot/mascot_sleepy.png',
+        MascotExpression.thinking => 'assets/mascot/mascot_thinking.png',
       };
+
+  /// 표정 전용 아트도 없을 때 마지막으로 시도할 실제 캐릭터 기본 포즈.
+  /// (front.png 는 항상 존재 — 이모지 플레이스홀더 전 단계.)
+  static const String _basePoseAsset = 'assets/mascot/front.png';
 
   @override
   Widget build(BuildContext context) {
@@ -49,15 +53,22 @@ class MascotView extends StatelessWidget {
       width: size,
       height: size,
       fit: BoxFit.contain,
-      // 1순위: 전용 표정 아트가 없으면 실제 캐릭터 포즈로 폴백.
+      // 1순위: 전용 표정 아트가 없으면 같은 표정의 실제 캐릭터 아트로 폴백.
       errorBuilder: (_, _, _) => Image.asset(
         _fallbackAsset,
         width: size,
         height: size,
         fit: BoxFit.contain,
-        // 최후 폴백(캐릭터 에셋 자체가 없을 때만): 브랜드 플레이스홀더.
-        errorBuilder: (_, _, _) =>
-            _MascotPlaceholder(expression: expression, size: size),
+        // 2순위: 표정 전용 아트도 없으면 항상 존재하는 기본 포즈(front.png)로.
+        errorBuilder: (_, _, _) => Image.asset(
+          _basePoseAsset,
+          width: size,
+          height: size,
+          fit: BoxFit.contain,
+          // 최후 폴백(마스코트 PNG가 하나도 로드되지 않을 때만): 브랜드 플레이스홀더.
+          errorBuilder: (_, _, _) =>
+              _MascotPlaceholder(expression: expression, size: size),
+        ),
       ),
     );
     if (!showStars) return img;

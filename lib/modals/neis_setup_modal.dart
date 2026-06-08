@@ -178,9 +178,25 @@ class _NeisSetupModalState extends ConsumerState<NeisSetupModal> {
                   ),
                 ),
               ),
-              Text('🏫 학교 연결',
-                  style: AppType.section.copyWith(
-                      fontSize: 18, fontWeight: FontWeight.w800, color: sh.ink)),
+              Row(
+                children: [
+                  Text('🏫 학교 연결',
+                      style: AppType.section.copyWith(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w800,
+                          color: sh.ink)),
+                  const Spacer(),
+                  // 항상 보이는 닫기(×) 버튼.
+                  IconButton(
+                    onPressed: () => Navigator.pop(context),
+                    icon: Icon(Icons.close, color: sh.inkSoft, size: 20),
+                    visualDensity: VisualDensity.compact,
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(),
+                    tooltip: '닫기',
+                  ),
+                ],
+              ),
               const SizedBox(height: 4),
               Text('초·중·고는 시간표·급식·학사일정을 자동으로 가져와요.',
                   style: AppType.caption.copyWith(color: sh.inkSoft)),

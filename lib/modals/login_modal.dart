@@ -47,6 +47,18 @@ class _LoginModalState extends ConsumerState<LoginModal> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
+            // 항상 보이는 닫기(×) 버튼.
+            Align(
+              alignment: Alignment.centerRight,
+              child: IconButton(
+                onPressed: () => Navigator.pop(context),
+                icon: Icon(Icons.close, color: sh.inkSoft),
+                visualDensity: VisualDensity.compact,
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(),
+                tooltip: '닫기',
+              ),
+            ),
             Text('🕐 HourSpace',
                 style: AppType.title.copyWith(fontWeight: FontWeight.w800, color: sh.ink)),
             const SizedBox(height: Gap.sm),

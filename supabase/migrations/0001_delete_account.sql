@@ -1,9 +1,9 @@
--- 회원 탈퇴 RPC.
--- 클라이언트(앱)에서 supabase.rpc('delete_account') 로 호출.
--- 현재 로그인 사용자(auth.uid())의 auth 계정을 삭제한다.
--- user_data / events / themes 등 사용자 소유 테이블이 auth.users(id) 를
--- ON DELETE CASCADE 로 참조하면 연결 데이터도 함께 삭제된다.
--- (참조가 cascade 가 아니라면 아래 주석 블록처럼 명시적으로 삭제할 것)
+-- 회원 탈퇴 RPC.  앱에서 supabase.rpc('delete_account') 로 호출.
+-- 현재 로그인 사용자(auth.uid())의 소유 데이터 + auth 계정을 삭제한다.
+--
+-- ⚠️ 적용: Supabase 대시보드 → SQL Editor 에 아래 전체를 붙여넣고 Run.
+--    (스키마 실측: events/user_data/theme_subscribers/theme_contributed_events/
+--     user_backups 는 user_id, theme_shares 는 created_by 로 소유 판별)
 
 create or replace function public.delete_account()
 returns void
@@ -18,12 +18,13 @@ begin
     raise exception 'not authenticated';
   end if;
 
-  -- 소유 데이터 명시 삭제(테이블/컬럼명은 실제 스키마에 맞게 조정).
-  -- delete from public.events       where user_id = uid;
-  -- delete from public.user_data    where user_id = uid;
-  -- delete from public.themes       where user_id = uid;
+  delete from public.events                   where user_id = uid;
+  delete from public.user_data                where user_id = uid;
+  delete from public.theme_subscribers        where user_id = uid;
+  delete from public.theme_contributed_events where user_id = uid;
+  delete from public.user_backups             where user_id = uid;
+  delete from public.theme_shares             where created_by = uid;
 
-  -- auth 사용자 삭제(연결 FK 가 cascade 면 소유 데이터도 함께 삭제).
   delete from auth.users where id = uid;
 end;
 $$;

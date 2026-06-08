@@ -122,6 +122,13 @@ class _AddEditEventModalState extends ConsumerState<AddEditEventModal> {
                         padding: EdgeInsets.zero),
                     child: const Text('삭제', style: TextStyle(fontSize: 13)),
                   ),
+                // 항상 보이는 닫기(×) 버튼.
+                IconButton(
+                  onPressed: () => Navigator.pop(context),
+                  icon: Icon(Icons.close, color: sh.inkSoft),
+                  visualDensity: VisualDensity.compact,
+                  tooltip: '닫기',
+                ),
               ],
             ),
             const SizedBox(height: 14),

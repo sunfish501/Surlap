@@ -3,6 +3,18 @@ import '../../models/event_item.dart';
 import '../../models/calendar_theme.dart';
 import '../../core/theme/app_theme.dart';
 
+/// 모든 이벤트 칩에 공통으로 적용하는 미묘한 그림자.
+/// 칩 자체 색을 낮은 알파로 써서 카드 위에서 한 단계 떠 보이게 한다.
+/// (다크 모드의 기존 패턴을 라이트 모드까지 일관되게 확장.)
+List<BoxShadow> _chipShadow(Color color, bool dark) => [
+      BoxShadow(
+        color: color.withValues(alpha: dark ? 0.18 : 0.10),
+        blurRadius: 4,
+        spreadRadius: 0,
+        offset: const Offset(0, 1),
+      ),
+    ];
+
 class EventChip extends StatelessWidget {
   final EventItem item;
   final List<CalendarTheme> themes;
@@ -53,12 +65,7 @@ class EventChip extends StatelessWidget {
               // 미분류 일정도 카드보다 한 단계 따뜻한 연한 틴트로.
               : sh.accent.withValues(alpha: sh.dark ? 0.16 : 0.07),
           borderRadius: BorderRadius.circular(6),
-          boxShadow: (sh.dark && themeColor != null)
-              ? [BoxShadow(
-                  color: themeColor.withValues(alpha: 0.18),
-                  blurRadius: 4, spreadRadius: 0,
-                )]
-              : null,
+          boxShadow: _chipShadow(themeColor ?? sh.accent, sh.dark),
         ),
         child: Row(
           children: [
@@ -122,6 +129,7 @@ class _EmojiChip extends StatelessWidget {
       decoration: BoxDecoration(
         color: color.withValues(alpha: sh.dark ? 0.24 : 0.14),
         borderRadius: BorderRadius.circular(6),
+        boxShadow: _chipShadow(color, sh.dark),
       ),
       child: Row(
         children: [
@@ -168,6 +176,7 @@ class _IconChip extends StatelessWidget {
       decoration: BoxDecoration(
         color: color.withValues(alpha: sh.dark ? 0.24 : 0.14),
         borderRadius: BorderRadius.circular(6),
+        boxShadow: _chipShadow(color, sh.dark),
       ),
       child: Row(
         children: [
