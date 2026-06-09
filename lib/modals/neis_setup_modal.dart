@@ -8,6 +8,7 @@ import '../providers/neis_cache_provider.dart';
 import '../providers/academic_schedule_provider.dart';
 import '../supabase/neis_service.dart';
 import '../widgets/mascot/mascot_feedback.dart';
+import '../widgets/school_logo.dart';
 
 Future<void> showNeisSetupModal(BuildContext context) =>
     showModalBottomSheet(
@@ -115,8 +116,9 @@ class _NeisSetupModalState extends ConsumerState<NeisSetupModal> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  _LogoThumb(
-                      sh: sh, url: logo, fallbackUrl: fallback, size: 72),
+                  SchoolLogo(
+                      name: name, logoUrl: logo,
+                      fallbackUrl: fallback, size: 72),
                   const SizedBox(height: 16),
                   Text(name,
                       textAlign: TextAlign.center,
@@ -421,7 +423,8 @@ class _SchoolPreviewCard extends StatelessWidget {
         border: Border.all(color: sh.accent.withValues(alpha: 0.16)),
       ),
       child: Row(children: [
-        _LogoThumb(sh: sh, url: logo, fallbackUrl: logoFallback),
+        SchoolLogo(
+            name: name, logoUrl: logo, fallbackUrl: logoFallback, size: 44),
         const SizedBox(width: 12),
         Expanded(
           child: Column(
@@ -444,52 +447,3 @@ class _SchoolPreviewCard extends StatelessWidget {
   }
 }
 
-// ─── 로고 썸네일(파비콘/URL, 실패 시 학교 아이콘) ──────────────────
-class _LogoThumb extends StatelessWidget {
-  final SpaceHourColors sh;
-  final String? url;
-  /// 고화질(url) 로드 실패 시 시도할 저화질 파비콘.
-  final String? fallbackUrl;
-  /// 썸네일 한 변 크기(기본 44).
-  final double size;
-  const _LogoThumb(
-      {required this.sh, required this.url, this.fallbackUrl, this.size = 44});
-
-  double get _inner => size * 0.73;
-
-  Widget _schoolIcon() =>
-      Icon(Icons.school_rounded, color: sh.inkSoft, size: size * 0.5);
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: size,
-      height: size,
-      decoration: BoxDecoration(
-        color: sh.ink.withValues(alpha: 0.05),
-        borderRadius: BorderRadius.circular(size * 0.27),
-      ),
-      clipBehavior: Clip.antiAlias,
-      alignment: Alignment.center,
-      child: (url != null && url!.isNotEmpty)
-          ? Image.network(
-              url!,
-              width: _inner,
-              height: _inner,
-              fit: BoxFit.contain,
-              // 고화질 실패 → 저화질 파비콘 → 그래도 실패면 학교 아이콘.
-              errorBuilder: (_, _, _) =>
-                  (fallbackUrl != null && fallbackUrl!.isNotEmpty)
-                      ? Image.network(
-                          fallbackUrl!,
-                          width: _inner,
-                          height: _inner,
-                          fit: BoxFit.contain,
-                          errorBuilder: (_, _, _) => _schoolIcon(),
-                        )
-                      : _schoolIcon(),
-            )
-          : _schoolIcon(),
-    );
-  }
-}

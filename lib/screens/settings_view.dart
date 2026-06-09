@@ -13,6 +13,7 @@ import '../supabase/neis_service.dart';
 import '../modals/neis_setup_modal.dart';
 import '../modals/birthday_manager_modal.dart';
 import '../widgets/coach_mark.dart';
+import '../widgets/school_logo.dart';
 import 'feature_intro/feature_intro_screen.dart';
 
 /// 보기 설정 — 하단 nav의 한 탭으로, 다른 뷰처럼 좌우 viewer(AnimatedSwitcher)
@@ -499,38 +500,11 @@ class _SchoolRow extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 9),
         child: Row(
           children: [
-            Container(
-              width: 32,
-              height: 32,
-              decoration: BoxDecoration(
-                color: sh.ink.withValues(alpha: 0.05),
-                borderRadius: BorderRadius.circular(9),
-              ),
-              clipBehavior: Clip.antiAlias,
-              alignment: Alignment.center,
-              child: (logo != null && logo.isNotEmpty)
-                  ? Image.network(logo,
-                      width: 24,
-                      height: 24,
-                      fit: BoxFit.contain,
-                      // 고화질 실패 → 저화질 파비콘 → 학교 아이콘.
-                      errorBuilder: (_, _, _) {
-                        final fb = s.logoFallbackUrl;
-                        if (fb != null && fb.isNotEmpty) {
-                          return Image.network(fb,
-                              width: 24,
-                              height: 24,
-                              fit: BoxFit.contain,
-                              errorBuilder: (_, _, _) => Icon(
-                                  Icons.school_rounded,
-                                  size: 18,
-                                  color: sh.ink.withValues(alpha: 0.48)));
-                        }
-                        return Icon(Icons.school_rounded,
-                            size: 18, color: sh.ink.withValues(alpha: 0.48));
-                      })
-                  : Icon(Icons.school_rounded,
-                      size: 18, color: sh.ink.withValues(alpha: 0.48)),
+            SchoolLogo(
+              name: s.name,
+              logoUrl: logo,
+              fallbackUrl: s.logoFallbackUrl,
+              size: 32,
             ),
             const SizedBox(width: 12),
             Expanded(
