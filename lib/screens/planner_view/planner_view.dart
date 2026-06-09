@@ -697,8 +697,17 @@ class _EventBlock extends StatelessWidget {
 
   Widget _icon() {
     if (event.sport) {
-      return Text(event.sportEmoji ?? '🏅',
+      final emojiW = Text(event.sportEmoji ?? '🏅',
           style: const TextStyle(fontSize: 11));
+      final logo = event.sportLogo;
+      if (logo != null && logo.isNotEmpty) {
+        return Image.network(logo,
+            width: 13,
+            height: 13,
+            fit: BoxFit.contain,
+            errorBuilder: (_, _, _) => emojiW);
+      }
+      return emojiW;
     }
     final ic = event.academic
         ? Icons.school_rounded

@@ -475,6 +475,17 @@ class _DayViewState extends ConsumerState<DayView> {
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                // 스포츠 경기는 팀 로고를 앞에(없으면 종목 이모지).
+                if (e.sport && e.sportLogo != null && e.sportLogo!.isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.only(right: 3, top: 1),
+                    child: Image.network(e.sportLogo!,
+                        width: 12,
+                        height: 12,
+                        fit: BoxFit.contain,
+                        errorBuilder: (_, _, _) => Text(e.sportEmoji ?? '🏅',
+                            style: const TextStyle(fontSize: 11))),
+                  ),
                 Text('${e.tm} ',
                     style: TextStyle(
                         fontSize: 10,
