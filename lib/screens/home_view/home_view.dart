@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/theme/app_theme.dart';
 import '../../i18n/strings.dart';
+import '../../i18n/dates.dart' as i18nd;
 import '../../core/theme/design_tokens.dart';
 import '../../core/utils/date_utils.dart' as du;
 import '../../models/event_item.dart';
@@ -33,8 +34,6 @@ class _HomeViewState extends ConsumerState<HomeView> {
   SchoolMeals? _meals;
   bool _mealLoaded = false;
   bool _mealError = false; // fetch 실패(네트워크 등) — 미연결과 구분
-
-  static const _dowKr = ['월', '화', '수', '목', '금', '토', '일'];
 
   @override
   void initState() {
@@ -239,15 +238,14 @@ class _HomeViewState extends ConsumerState<HomeView> {
 
   Widget _buildGreeting(
       SpaceHourColors sh, DateTime now, MascotExpression mascot) {
-    final dow = _dowKr[now.weekday - 1];
     final hour = now.hour;
     final greeting = hour < 6
-        ? '늦은 밤이에요'
+        ? tr('늦은 밤이에요')
         : hour < 12
-            ? '좋은 아침이에요'
+            ? tr('좋은 아침이에요')
             : hour < 18
-                ? '좋은 오후예요'
-                : '좋은 저녁이에요';
+                ? tr('좋은 오후예요')
+                : tr('좋은 저녁이에요');
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(Gap.xl, Gap.sm, Gap.xl, Gap.md),
@@ -265,7 +263,7 @@ class _HomeViewState extends ConsumerState<HomeView> {
                         color: sh.accent)),
                 const SizedBox(height: 4),
                 Text(
-                  '${now.month}월 ${now.day}일 $dow요일',
+                  i18nd.fullDate(now),
                   style: AppType.title.copyWith(
                       fontSize: 27,
                       fontWeight: FontWeight.w800,
@@ -396,10 +394,10 @@ class _NextEventCard extends StatelessWidget {
           children: [
             Row(
               children: [
-                _iconBadge(sh, Icons.event_rounded, '다음 일정', color: accent),
+                _iconBadge(sh, Icons.event_rounded, tr('다음 일정'), color: accent),
                 const Spacer(),
                 if (allToday.length > 1)
-                  Text('오늘 ${allToday.length}개',
+                  Text(trf('오늘 {0}개', [allToday.length]),
                       style: AppType.label
                           .copyWith(fontSize: 12, color: sh.inkSoft)),
               ],
@@ -443,8 +441,8 @@ class _NextEventCard extends StatelessWidget {
             ] else
               _emptyNote(
                 sh,
-                allToday.isEmpty ? '오늘 예정된 일정이 없어요' : '남은 일정이 없어요',
-                '새 일정을 추가하면 이곳에 표시돼요',
+                allToday.isEmpty ? tr('오늘 예정된 일정이 없어요') : tr('남은 일정이 없어요'),
+                tr('새 일정을 추가하면 이곳에 표시돼요'),
               ),
           ],
         ),
@@ -650,7 +648,7 @@ class _TodayStatsCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _iconBadge(sh, Icons.calendar_today_rounded, '오늘 일정'),
+            _iconBadge(sh, Icons.calendar_today_rounded, tr('오늘 일정')),
             const Spacer(),
             Row(
               crossAxisAlignment: CrossAxisAlignment.baseline,
@@ -666,14 +664,14 @@ class _TodayStatsCard extends StatelessWidget {
                 const SizedBox(width: 3),
                 Padding(
                   padding: const EdgeInsets.only(bottom: 3),
-                  child: Text('개',
+                  child: Text(tr('개'),
                       style: AppType.body.copyWith(
                           fontWeight: FontWeight.w600, color: sh.inkSoft)),
                 ),
               ],
             ),
             const SizedBox(height: 4),
-            Text(count > 0 ? '탭해서 오늘 보기' : '등록된 일정이 없어요',
+            Text(count > 0 ? tr('탭해서 오늘 보기') : tr('등록된 일정이 없어요'),
                 style: AppType.label
                     .copyWith(fontSize: 12, color: sh.inkFaint)),
           ],
@@ -708,7 +706,7 @@ class _TodayTodosCard extends StatelessWidget {
         children: [
           Row(
             children: [
-              _iconBadge(sh, Icons.checklist_rounded, '오늘 할 일'),
+              _iconBadge(sh, Icons.checklist_rounded, tr('오늘 할 일')),
               const Spacer(),
               if (todos.isNotEmpty)
                 Text('$remaining / ${todos.length}',
@@ -720,8 +718,8 @@ class _TodayTodosCard extends StatelessWidget {
           if (todos.isEmpty)
             _emptyNote(
               sh,
-              '아직 할 일이 없어요',
-              '오른쪽 아래 + 버튼으로 추가해보세요',
+              tr('아직 할 일이 없어요'),
+              tr('오른쪽 아래 + 버튼으로 추가해보세요'),
             )
           else
             ...todos.map((t) {
@@ -863,8 +861,6 @@ class _WeekStripCard extends StatelessWidget {
   final String today;
   final void Function(String) onDayTap;
 
-  static const _dowKr = ['월', '화', '수', '목', '금', '토', '일'];
-
   const _WeekStripCard({
     required this.sh,
     required this.monday,
@@ -886,7 +882,7 @@ class _WeekStripCard extends StatelessWidget {
           children: [
             Row(
               children: [
-                _iconBadge(sh, Icons.calendar_view_week_rounded, '이번 주'),
+                _iconBadge(sh, Icons.calendar_view_week_rounded, tr('이번 주')),
                 const Spacer(),
                 Icon(Icons.chevron_right_rounded,
                     size: 18, color: sh.inkFaint),
@@ -915,7 +911,7 @@ class _WeekStripCard extends StatelessWidget {
                     onTap: () => onDayTap(key),
                     child: Column(
                       children: [
-                        Text(_dowKr[i],
+                        Text(i18nd.weekdayShort(i + 1),
                             style: AppType.label.copyWith(color: dayColor)),
                         const SizedBox(height: 4),
                         Container(

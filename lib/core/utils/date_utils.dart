@@ -1,3 +1,5 @@
+import '../../i18n/dates.dart' as i18nd;
+
 String pad(int n) => n.toString().padLeft(2, '0');
 
 /// DateTime → 'YYYY-MM-DD'
@@ -30,12 +32,12 @@ DateTime firstCellDate(int year, int month, int weekStartDow) {
 DateTime lastDayOfMonth(int year, int month) =>
     DateTime(year, month + 1, 0);
 
-/// 한국 요일 짧은 이름 (주 시작에 따라 순서 달라짐)
+/// 요일 짧은 이름 (주 시작에 따라 순서 달라짐, 현재 언어로 표기)
 List<String> weekdayHeaders(int weekStartDow) {
-  const all = ['일', '월', '화', '수', '목', '금', '토'];
   final list = <String>[];
   for (int i = 0; i < 7; i++) {
-    list.add(all[(weekStartDow + i) % 7]);
+    // (weekStartDow+i)%7 은 0=일 기준 인덱스.
+    list.add(i18nd.weekdayShortFromSun((weekStartDow + i) % 7));
   }
   return list;
 }

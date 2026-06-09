@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../core/theme/app_theme.dart';
 import '../core/theme/design_tokens.dart';
+import '../i18n/dates.dart' as i18nd;
 import '../providers/view_provider.dart';
 import '../providers/settings_provider.dart';
 import '../screens/search_view.dart';
@@ -15,11 +16,6 @@ import 'header_collapse.dart';
 // 검색은 별도 바 대신 ⋮ 메뉴 → 시트로(전환 시 레이아웃 안 튐).
 class AppHeader extends ConsumerWidget {
   const AppHeader({super.key});
-
-  static const _monthNames = [
-    '1월', '2월', '3월', '4월', '5월', '6월',
-    '7월', '8월', '9월', '10월', '11월', '12월',
-  ];
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -69,7 +65,9 @@ class AppHeader extends ConsumerWidget {
                               color: sh.inkSoft),
                         ),
                         TextSpan(
-                          text: isYear ? '년' : _monthNames[view.viewMonth - 1],
+                          text: isYear
+                              ? i18nd.yearWord
+                              : i18nd.monthName(view.viewMonth),
                           style: AppType.title.copyWith(
                               fontSize: 22,
                               fontWeight: FontWeight.w800,

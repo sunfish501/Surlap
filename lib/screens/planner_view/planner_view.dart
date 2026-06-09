@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/theme/design_tokens.dart';
 import '../../core/utils/date_utils.dart' as du;
+import '../../i18n/dates.dart' as i18nd;
 import '../../models/event_item.dart';
 import '../../models/calendar_theme.dart';
 import '../../providers/events_provider.dart';
@@ -378,9 +379,9 @@ class _PlannerViewState extends ConsumerState<PlannerView> {
     final d = _dateFor(lead);
     final e = _dateFor(lead + _daysPerScreen - 1);
     if (d.month == e.month) {
-      return '${d.month}월 ${d.day}–${e.day}';
+      return '${i18nd.monthDay(d)}–${e.day}';
     }
-    return '${d.month}/${d.day} – ${e.month}/${e.day}';
+    return '${i18nd.monthDay(d)} – ${i18nd.monthDay(e)}';
   }
 
   // ── 날짜 헤더 셀(요일/날짜 + 종일) ──
@@ -634,8 +635,7 @@ class _PlannerViewState extends ConsumerState<PlannerView> {
     return out;
   }
 
-  static const _allDow = ['일', '월', '화', '수', '목', '금', '토'];
-  String _dowName(DateTime d) => _allDow[d.weekday % 7];
+  String _dowName(DateTime d) => i18nd.weekdayShort(d.weekday);
 }
 
 // 하루(itemW) 단위로 스냅 — 연속 스크롤이되 컬럼이 반쯤 잘려 멈추지 않게.

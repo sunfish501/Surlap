@@ -13,6 +13,7 @@ import '../../supabase/neis_service.dart'
     show NeisSchool, academicVisibleForGrade;
 import '../timetable_view/timetable_view.dart'
     show timetableSubjectsForDate, getDisplaySubjectName;
+import '../../i18n/dates.dart' as i18nd;
 import '../../widgets/view_segment_control.dart';
 import '../../widgets/calendar_filter_strip.dart';
 import '../../widgets/header_collapse.dart';
@@ -164,7 +165,7 @@ class _DayViewState extends ConsumerState<DayView> {
             children: [
               const SizedBox(width: 2),
               Text(
-                '${date.month}월 ${date.day}일',
+                i18nd.monthDay(date),
                 style: AppType.title.copyWith(
                     fontSize: 20,
                     fontWeight: FontWeight.w800,
@@ -497,7 +498,7 @@ class _DayViewState extends ConsumerState<DayView> {
     return blocks;
   }
 
-  String _dowName(int w) => ['월', '화', '수', '목', '금', '토', '일'][w - 1];
+  String _dowName(int w) => i18nd.weekdayShort(w);
 }
 
 // ─── 할 일 바 ────────────────────────────────────────────────────

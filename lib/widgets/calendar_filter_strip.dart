@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../core/theme/app_theme.dart';
 import '../core/theme/design_tokens.dart';
+import '../i18n/strings.dart';
 import '../providers/themes_provider.dart';
 import '../providers/filter_provider.dart';
 import '../providers/birthdays_provider.dart';
@@ -41,7 +42,7 @@ class CalendarFilterStrip extends ConsumerWidget {
 
     final chips = <Widget>[
       CategoryFilterChip(
-        label: '전체',
+        label: tr('전체'),
         color: sh.inkSoft,
         selected: hidden.isEmpty,
         sh: sh,
@@ -56,7 +57,7 @@ class CalendarFilterStrip extends ConsumerWidget {
         },
       ),
       ...themes.map((t) => CategoryFilterChip(
-            label: t.name,
+            label: tr(t.name),
             color: t.colorValue,
             selected: !hidden.contains(t.id),
             sh: sh,
@@ -64,7 +65,7 @@ class CalendarFilterStrip extends ConsumerWidget {
           )),
       if (birthdays.isNotEmpty)
         CategoryFilterChip(
-          label: '생일',
+          label: tr('생일'),
           color: sh.birthdayColor,
           selected: !hidden.contains(birthdayThemeId),
           sh: sh,
@@ -73,7 +74,7 @@ class CalendarFilterStrip extends ConsumerWidget {
         ),
       if (academic.isNotEmpty)
         CategoryFilterChip(
-          label: '학사일정',
+          label: tr('학사일정'),
           color: sh.academicColor,
           selected: !hidden.contains(academicThemeId),
           sh: sh,

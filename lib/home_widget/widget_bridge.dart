@@ -2,6 +2,8 @@ import 'dart:convert';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:home_widget/home_widget.dart';
 import '../core/utils/date_utils.dart' as du;
+import '../i18n/strings.dart' as i18n;
+import '../i18n/dates.dart' as i18nd;
 import '../models/calendar_theme.dart';
 import '../models/event_item.dart';
 import '../models/todo_item.dart';
@@ -103,6 +105,7 @@ class WidgetBridge {
 
     return {
       'date': today,
+      'lang': i18n.currentLang.name, // 위젯 네이티브가 정적 라벨 번역에 사용 가능
       'dateLabel': _label(now),
       'weekday': now.weekday, // 1=월 .. 7=일
       'nowHM': nowHM,
@@ -173,8 +176,6 @@ class WidgetBridge {
     return (a.createdAt ?? '').compareTo(b.createdAt ?? '');
   }
 
-  static String _label(DateTime d) {
-    const wd = ['월', '화', '수', '목', '금', '토', '일'];
-    return '${d.month}월 ${d.day}일 (${wd[d.weekday - 1]})';
-  }
+  static String _label(DateTime d) =>
+      '${i18nd.monthDay(d)} (${i18nd.weekdayShort(d.weekday)})';
 }

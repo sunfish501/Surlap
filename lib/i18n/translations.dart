@@ -195,4 +195,41 @@ const Map<String, Map<AppLang, String>> kTranslations = {
   '중학생': {AppLang.en: 'Middle school', AppLang.ja: '中学生', AppLang.zh: '初中生', AppLang.es: 'Secundaria'},
   '고등학생': {AppLang.en: 'High school', AppLang.ja: '高校生', AppLang.zh: '高中生', AppLang.es: 'Bachillerato'},
   '대학생': {AppLang.en: 'University', AppLang.ja: '大学生', AppLang.zh: '大学生', AppLang.es: 'Universidad'},
+
+  // ── 홈 인사말 ──
+  '늦은 밤이에요': {AppLang.en: 'Late night', AppLang.ja: '夜更けです', AppLang.zh: '夜深了', AppLang.es: 'Buenas noches'},
+  '좋은 아침이에요': {AppLang.en: 'Good morning', AppLang.ja: 'おはようございます', AppLang.zh: '早上好', AppLang.es: 'Buenos días'},
+  '좋은 오후예요': {AppLang.en: 'Good afternoon', AppLang.ja: 'こんにちは', AppLang.zh: '下午好', AppLang.es: 'Buenas tardes'},
+  '좋은 저녁이에요': {AppLang.en: 'Good evening', AppLang.ja: 'こんばんは', AppLang.zh: '晚上好', AppLang.es: 'Buenas tardes'},
+
+  // ── 홈 카드 ──
+  '다음 일정': {AppLang.en: 'Up next', AppLang.ja: '次の予定', AppLang.zh: '下一个日程', AppLang.es: 'Próximo'},
+  '오늘 일정': {AppLang.en: "Today's events", AppLang.ja: '今日の予定', AppLang.zh: '今日日程', AppLang.es: 'Eventos de hoy'},
+  '오늘 할 일': {AppLang.en: "Today's to-dos", AppLang.ja: '今日のToDo', AppLang.zh: '今日待办', AppLang.es: 'Tareas de hoy'},
+  '이번 주': {AppLang.en: 'This week', AppLang.ja: '今週', AppLang.zh: '本周', AppLang.es: 'Esta semana'},
+  '오늘 예정된 일정이 없어요': {AppLang.en: 'No events today', AppLang.ja: '今日の予定はありません', AppLang.zh: '今天没有日程', AppLang.es: 'Sin eventos hoy'},
+  '남은 일정이 없어요': {AppLang.en: 'No events left', AppLang.ja: '残りの予定はありません', AppLang.zh: '没有剩余日程', AppLang.es: 'Nada más por hoy'},
+  '새 일정을 추가하면 이곳에 표시돼요': {
+    AppLang.en: 'New events will show up here',
+    AppLang.ja: '新しい予定はここに表示されます',
+    AppLang.zh: '新日程会显示在这里',
+    AppLang.es: 'Los nuevos eventos aparecerán aquí',
+  },
+  '아직 할 일이 없어요': {AppLang.en: 'No to-dos yet', AppLang.ja: 'まだToDoがありません', AppLang.zh: '还没有待办', AppLang.es: 'Aún no hay tareas'},
+  '오른쪽 아래 + 버튼으로 추가해보세요': {
+    AppLang.en: 'Tap + at bottom right to add',
+    AppLang.ja: '右下の＋で追加できます',
+    AppLang.zh: '点击右下角 + 添加',
+    AppLang.es: 'Toca + abajo a la derecha',
+  },
+  '등록된 일정이 없어요': {AppLang.en: 'No events', AppLang.ja: '予定はありません', AppLang.zh: '暂无日程', AppLang.es: 'Sin eventos'},
+  '오늘 {0}개': {AppLang.en: 'Today: {0}', AppLang.ja: '今日 {0}件', AppLang.zh: '今日 {0} 个', AppLang.es: 'Hoy: {0}'},
+  '개': {AppLang.en: '', AppLang.ja: '件', AppLang.zh: '个', AppLang.es: ''},
+  '탭해서 오늘 보기': {AppLang.en: 'Tap to view today', AppLang.ja: 'タップして今日を表示', AppLang.zh: '点击查看今天', AppLang.es: 'Toca para ver hoy'},
+
+  // ── 필터칩(내장 카테고리) ──
+  '전체': {AppLang.en: 'All', AppLang.ja: 'すべて', AppLang.zh: '全部', AppLang.es: 'Todos'},
+  '공휴일': {AppLang.en: 'Holidays', AppLang.ja: '祝日', AppLang.zh: '节假日', AppLang.es: 'Festivos'},
+  '학사일정': {AppLang.en: 'School schedule', AppLang.ja: '学事日程', AppLang.zh: '校历', AppLang.es: 'Calendario escolar'},
+  '생일': {AppLang.en: 'Birthdays', AppLang.ja: '誕生日', AppLang.zh: '生日', AppLang.es: 'Cumpleaños'},
 };
