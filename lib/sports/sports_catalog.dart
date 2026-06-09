@@ -45,16 +45,18 @@ SportInfo sportInfo(SportKind kind) =>
 /// 리그별 팀/선수 목록. NBA 팀 id는 BallDontLie 실제 id.
 /// 그 외는 슬러그 id(어댑터가 팀 id 매핑/이름 매칭에 사용).
 const Map<String, List<SportTeam>> _teams = {
-  // ── 축구 (EPL · football-data.org) ──
-  // 로고: football-data.org 공개 crest(팀 id별 PNG).
+  // ── 축구 (EPL) ──
+  // 로고: ESPN CDN(축구 팀 id별 500px PNG). 기존 crests.football-data.org는
+  // 호스트가 불통이라 빈 원으로 멈춰 ESPN으로 교체. (경기 데이터 매핑은
+  // sports_adapter의 football-data id가 따로 담당 — 로고 URL만 바뀜)
   'epl': [
-    SportTeam('tottenham', '토트넘', 'https://crests.football-data.org/73.png'),
-    SportTeam('arsenal', '아스널', 'https://crests.football-data.org/57.png'),
-    SportTeam('mancity', '맨체스터 시티', 'https://crests.football-data.org/65.png'),
-    SportTeam('manutd', '맨체스터 유나이티드', 'https://crests.football-data.org/66.png'),
-    SportTeam('liverpool', '리버풀', 'https://crests.football-data.org/64.png'),
-    SportTeam('chelsea', '첼시', 'https://crests.football-data.org/61.png'),
-    SportTeam('newcastle', '뉴캐슬', 'https://crests.football-data.org/67.png'),
+    SportTeam('tottenham', '토트넘', 'https://a.espncdn.com/i/teamlogos/soccer/500/367.png'),
+    SportTeam('arsenal', '아스널', 'https://a.espncdn.com/i/teamlogos/soccer/500/359.png'),
+    SportTeam('mancity', '맨체스터 시티', 'https://a.espncdn.com/i/teamlogos/soccer/500/382.png'),
+    SportTeam('manutd', '맨체스터 유나이티드', 'https://a.espncdn.com/i/teamlogos/soccer/500/360.png'),
+    SportTeam('liverpool', '리버풀', 'https://a.espncdn.com/i/teamlogos/soccer/500/364.png'),
+    SportTeam('chelsea', '첼시', 'https://a.espncdn.com/i/teamlogos/soccer/500/363.png'),
+    SportTeam('newcastle', '뉴캐슬', 'https://a.espncdn.com/i/teamlogos/soccer/500/361.png'),
   ],
   // ── NBA (실제 BallDontLie team id) ──
   // 로고: ESPN CDN(팀 약자별 500px PNG).

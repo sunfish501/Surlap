@@ -60,8 +60,16 @@ class _LoginModalState extends ConsumerState<LoginModal> {
                 tooltip: '닫기',
               ),
             ),
-            Text('🕐 HourSpace',
-                style: AppType.title.copyWith(fontWeight: FontWeight.w800, color: sh.ink)),
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Image.asset('assets/mascot/splash_icon.png', height: 30),
+                const SizedBox(width: 8),
+                Text('HourSpace',
+                    style: AppType.title.copyWith(
+                        fontWeight: FontWeight.w800, color: sh.ink)),
+              ],
+            ),
             const SizedBox(height: Gap.sm),
             Text('사용 방식을 선택해주세요',
                 style: AppType.body.copyWith(color: sh.inkSoft)),

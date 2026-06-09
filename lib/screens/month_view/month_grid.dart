@@ -80,7 +80,7 @@ class _MonthGridState extends State<MonthGrid> {
   }
 
   // ── 행 구성(메모/일자 칼럼 + 일정 데이터) ──
-  late int _leadingCount, _trailingInRow5, _monthInRow5;
+  late int _leadingCount, _trailingInRow5;
   late DateTime _firstCell;
 
   List<RecordBadge> _badgesFor(DateTime d) {
@@ -156,7 +156,6 @@ class _MonthGridState extends State<MonthGrid> {
         : firstTrailingIdx <= 35
             ? 7
             : 42 - firstTrailingIdx;
-    _monthInRow5 = 7 - _trailingInRow5;
 
     return Column(
       children: [
@@ -226,23 +225,12 @@ class _MonthGridState extends State<MonthGrid> {
     final maxLanes =
         ((rowH - barTop - 3) / _kBarStep).floor().clamp(1, 8);
 
-    // 셀 Row (달 밖 앞/뒤 빈칸은 비워둠 — 메모 기능 제거)
-    final cells = <Widget>[];
-    if (info.leadMemo > 0) {
-      cells.add(Expanded(flex: info.leadMemo, child: const SizedBox()));
-      for (int c = info.leadMemo; c < 7; c++) {
-        cells.add(_dayCell(info.dates[c], viewMonth, row, hasBars));
-      }
-    } else if (info.trailMemo > 0) {
-      for (int c = 0; c < _monthInRow5; c++) {
-        cells.add(_dayCell(info.dates[c], viewMonth, row, hasBars));
-      }
-      cells.add(Expanded(flex: info.trailMemo, child: const SizedBox()));
-    } else {
-      for (int c = 0; c < 7; c++) {
-        cells.add(_dayCell(info.dates[c], viewMonth, row, hasBars));
-      }
-    }
+    // 모든 칸을 그린다(달 밖 날짜는 DayCell이 흐리게 처리) — 메모용 빈칸을 두면
+    // 그 자리 격자선이 끊겨서, 7칸 모두 셀로 채워 선이 이어지게 한다.
+    final cells = [
+      for (int c = 0; c < 7; c++)
+        _dayCell(info.dates[c], viewMonth, row, hasBars),
+    ];
 
     if (!hasBars) return Row(children: cells);
 

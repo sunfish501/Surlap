@@ -64,17 +64,24 @@ class _PlannerViewState extends ConsumerState<PlannerView> {
     return DateTime(n.year, n.month, n.day);
   }
 
-  // 가로 기준점(_kCenter 인덱스) = 이번 주 시작일. 오늘이 수요일이어도
-  // 컬럼은 주 시작일(설정, 기본 월)부터 정렬되고 오늘은 강조만.
-  late final DateTime _anchor = _weekStart(_today);
-
-  DateTime _weekStart(DateTime d) {
-    final wsd = ref.read(settingsProvider).weekStartDow;
-    final off = (d.weekday % 7 - wsd + 7) % 7;
-    return d.subtract(Duration(days: off));
-  }
+  // 가로 인덱스 기준점(_kCenter) = 오늘. 진입 시엔 대상 날짜를 3일 중 '가운데'로.
+  late final DateTime _anchor = _today;
 
   DateTime _dateFor(int i) => _anchor.add(Duration(days: i - _kCenter));
+
+  // 진입 대상 날짜 — 월간에서 탭한 날(viewDay) 있으면 그 날, 없으면 오늘.
+  DateTime get _targetDate {
+    final key = ref.read(viewProvider).viewDay;
+    if (key != null && key.isNotEmpty) {
+      final d = du.fromDateKey(key);
+      return DateTime(d.year, d.month, d.day);
+    }
+    return _today;
+  }
+
+  // 대상 날짜가 가운데(3일 중)로 오게 하는 좌측(leftmost) 인덱스.
+  int _centerLeadIndex(DateTime target) =>
+      _kCenter + target.difference(_anchor).inDays - 1;
 
   @override
   void initState() {
@@ -90,7 +97,10 @@ class _PlannerViewState extends ConsumerState<PlannerView> {
     if (_hCtrl == null) {
       final w = MediaQuery.of(context).size.width;
       _dayW = (w - _timeColW) / _daysPerScreen;
-      final init = _kCenter * _dayW;
+      // 대상 날짜가 3일 중 가운데로 오게 좌측 컬럼을 맞춘다.
+      final lead = _centerLeadIndex(_targetDate);
+      _leadVN.value = lead;
+      final init = lead * _dayW;
       _hCtrl = ScrollController(initialScrollOffset: init)
         ..addListener(_syncHeader);
       _hHeaderCtrl = ScrollController(initialScrollOffset: init);
@@ -148,9 +158,9 @@ class _PlannerViewState extends ConsumerState<PlannerView> {
   }
 
   void _goToday() {
-    // 오늘 칸을 좌측에 보이도록(주 시작 정렬과 별개로 '오늘' 버튼은 오늘로 점프).
-    final todayIdx = _kCenter + _today.difference(_anchor).inDays;
-    _hCtrl?.animateTo(todayIdx * _dayW,
+    // 오늘을 3일 중 가운데로.
+    final lead = _centerLeadIndex(_today);
+    _hCtrl?.animateTo(lead * _dayW,
         duration: const Duration(milliseconds: 320), curve: Curves.easeOutCubic);
     WidgetsBinding.instance
         .addPostFrameCallback((_) => _scrollToNow(animate: true));

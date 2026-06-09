@@ -147,9 +147,10 @@ class MonthView extends ConsumerWidget {
             widgetValues: widgetValues,
             templateRanges: templateRanges,
             templatesById: templatesById,
-            // 월간: 날짜 탭 → 추가/액션 시트(일정·할일·위젯·자세히 보기).
-            onDayTap: (date) => _handleDayTap(context, ref, date),
-            // 길게 누르면 동일 시트.
+            // 월간: 날짜 탭 → 그 날이 가운데(3일 중)인 주간 뷰로 이동.
+            onDayTap: (date) =>
+                ref.read(viewProvider.notifier).setWeekView(du.toDateKey(date)),
+            // 길게 누르면 추가/액션 시트(일정·할일·위젯·자세히 보기).
             onDayLongPress: (date) => _handleDayTap(context, ref, date),
             // 더블탭 → 동그라미 토글.
             onDayDoubleTap: (date) =>
