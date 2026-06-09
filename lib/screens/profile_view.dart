@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../core/theme/app_theme.dart';
 import '../core/theme/design_tokens.dart';
+import '../i18n/strings.dart';
 import '../providers/color_preset_provider.dart';
 import '../supabase/auth_service.dart';
 import '../widgets/mascot/mascot.dart';
@@ -27,7 +28,7 @@ class ProfileView extends ConsumerWidget {
       children: [
         Padding(
           padding: const EdgeInsets.fromLTRB(4, 0, 4, 16),
-          child: Text('프로필',
+          child: Text(tr('프로필'),
               style: AppType.title.copyWith(
                   fontSize: 26,
                   fontWeight: FontWeight.w800,
@@ -39,8 +40,8 @@ class ProfileView extends ConsumerWidget {
         _AccountCard(
           sh: sh,
           loggedIn: loggedIn,
-          name: loggedIn ? userDisplayName(user) : '로그인하고 동기화하기',
-          email: loggedIn ? (user.email ?? '') : '일정·시간표·캘린더를 기기 간 동기화',
+          name: loggedIn ? userDisplayName(user) : tr('로그인하고 동기화하기'),
+          email: loggedIn ? (user.email ?? '') : tr('일정·시간표·캘린더를 기기 간 동기화'),
           onTap: () => loggedIn ? null : showLoginScreen(context),
         ),
         const SizedBox(height: 18),
@@ -52,7 +53,7 @@ class ProfileView extends ConsumerWidget {
         // ── 앱 ──
         SettingsSectionCard(
           sh: sh,
-          title: '앱',
+          title: tr('앱'),
           child: Column(
             children: [
               SettingsRow(
@@ -60,7 +61,7 @@ class ProfileView extends ConsumerWidget {
                 icon: isDark
                     ? Icons.dark_mode_rounded
                     : Icons.light_mode_rounded,
-                title: '다크 모드',
+                title: tr('다크 모드'),
                 trailing: Switch.adaptive(
                   value: isDark,
                   activeThumbColor: sh.accent,
@@ -71,7 +72,7 @@ class ProfileView extends ConsumerWidget {
               SettingsRow(
                 sh: sh,
                 icon: Icons.backup_outlined,
-                title: '정보 백업',
+                title: tr('정보 백업'),
                 onTap: () => showBackupModal(context),
               ),
             ],
@@ -82,20 +83,20 @@ class ProfileView extends ConsumerWidget {
         // ── 계정 ──
         SettingsSectionCard(
           sh: sh,
-          title: '계정',
+          title: tr('계정'),
           child: loggedIn
               ? Column(
                   children: [
                     SettingsRow(
                       sh: sh,
                       icon: Icons.logout_rounded,
-                      title: '로그아웃',
+                      title: tr('로그아웃'),
                       onTap: () => ref.read(authProvider.notifier).signOut(),
                     ),
                     SettingsRow(
                       sh: sh,
                       icon: Icons.person_remove_rounded,
-                      title: '회원 탈퇴',
+                      title: tr('회원 탈퇴'),
                       onTap: () => _confirmDeleteAccount(context, ref),
                     ),
                   ],
@@ -103,7 +104,7 @@ class ProfileView extends ConsumerWidget {
               : SettingsRow(
                   sh: sh,
                   icon: Icons.login_rounded,
-                  title: '로그인하여 클라우드 동기화',
+                  title: tr('로그인하여 클라우드 동기화'),
                   onTap: () => showLoginScreen(context),
                 ),
         ),
@@ -117,19 +118,19 @@ Future<void> _confirmDeleteAccount(BuildContext context, WidgetRef ref) async {
   final ok = await showDialog<bool>(
     context: context,
     builder: (ctx) => AlertDialog(
-      title: const Text('회원 탈퇴'),
-      content: const Text(
-        '계정과 클라우드에 저장된 데이터가 영구히 삭제돼요.\n이 작업은 되돌릴 수 없어요.',
+      title: Text(tr('회원 탈퇴')),
+      content: Text(
+        tr('계정과 클라우드에 저장된 데이터가 영구히 삭제돼요.\n이 작업은 되돌릴 수 없어요.'),
       ),
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(ctx, false),
-          child: const Text('취소'),
+          child: Text(tr('취소')),
         ),
         TextButton(
           onPressed: () => Navigator.pop(ctx, true),
           style: TextButton.styleFrom(foregroundColor: Colors.red),
-          child: const Text('탈퇴'),
+          child: Text(tr('탈퇴')),
         ),
       ],
     ),
@@ -139,7 +140,7 @@ Future<void> _confirmDeleteAccount(BuildContext context, WidgetRef ref) async {
   try {
     await ref.read(authProvider.notifier).deleteAccount();
     messenger.showSnackBar(
-      const SnackBar(content: Text('계정이 삭제되었어요')),
+      SnackBar(content: Text(tr('계정이 삭제되었어요'))),
     );
   } catch (e) {
     messenger.showSnackBar(
@@ -242,7 +243,7 @@ class _AccountCard extends StatelessWidget {
                   color: sh.accent,
                   borderRadius: BorderRadius.circular(999),
                 ),
-                child: Text('로그인',
+                child: Text(tr('로그인'),
                     style: AppType.label.copyWith(
                         fontSize: 13,
                         fontWeight: FontWeight.w800,

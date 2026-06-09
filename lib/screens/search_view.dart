@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../core/theme/app_theme.dart';
 import '../core/theme/design_tokens.dart';
 import '../core/utils/date_utils.dart' as du;
+import '../i18n/strings.dart';
 import '../models/event_item.dart';
 import '../models/todo_item.dart';
 import '../providers/events_provider.dart';
@@ -125,7 +126,7 @@ class _SearchSheetState extends ConsumerState<_SearchSheet> {
                         autofocus: true,
                         style: AppType.body.copyWith(color: sh.ink),
                         decoration: InputDecoration(
-                          hintText: '일정·할 일 검색',
+                          hintText: tr('일정·할 일 검색'),
                           hintStyle: TextStyle(color: sh.inkFaint),
                           border: InputBorder.none,
                           isDense: true,
@@ -150,18 +151,18 @@ class _SearchSheetState extends ConsumerState<_SearchSheet> {
               const SizedBox(height: Gap.sm),
               Expanded(
                 child: _query.trim().isEmpty
-                    ? const MascotEmptyState(
+                    ? MascotEmptyState(
                         expression: MascotExpression.neutral,
-                        title: '무엇을 찾고 있나요?',
-                        message: '일정과 할 일을 검색해요',
+                        title: tr('무엇을 찾고 있나요?'),
+                        message: tr('일정과 할 일을 검색해요'),
                         mascotSize: 110,
                         showStars: false,
                       )
                     : hits.isEmpty
-                        ? const MascotEmptyState(
+                        ? MascotEmptyState(
                             expression: MascotExpression.thinking,
-                            title: '검색 결과가 없어요',
-                            message: '다른 단어로 찾아볼까요?',
+                            title: tr('검색 결과가 없어요'),
+                            message: tr('다른 단어로 찾아볼까요?'),
                             mascotSize: 110,
                           )
                         : ListView.builder(
@@ -196,7 +197,7 @@ class SearchHitTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final dateLabel = hit.dateKey.isEmpty
-        ? '날짜 없음'
+        ? tr('날짜 없음')
         : () {
             final d = du.fromDateKey(hit.dateKey);
             return '${d.year}.${d.month}.${d.day}';
@@ -215,7 +216,7 @@ class SearchHitTile extends StatelessWidget {
           overflow: TextOverflow.ellipsis,
           style: AppType.body.copyWith(color: sh.ink)),
       subtitle: Text(
-        '${hit.isTodo ? '할 일' : '일정'} · $dateLabel',
+        '${hit.isTodo ? tr('할 일') : tr('일정')} · $dateLabel',
         style: AppType.caption.copyWith(color: sh.inkSoft),
       ),
       onTap: onTap,
