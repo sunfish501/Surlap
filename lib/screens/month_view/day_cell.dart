@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/theme/design_tokens.dart';
+import '../../core/constants/korean_holidays.dart';
 import '../../core/utils/date_utils.dart' as du;
 import '../../core/utils/todo_style.dart';
 import '../../models/event_item.dart';
@@ -61,6 +62,8 @@ class DayCell extends StatelessWidget {
     final isToday = du.isSameDay(date, now);
     final isCurrentMonth = date.month == viewMonth.month;
     final isPast = date.isBefore(DateTime(now.year, now.month, now.day));
+    // 공휴일(빨간날)은 일요일과 같은 빨강. 토요일은 파랑.
+    final isHol = isHoliday(date);
     final isSun = date.weekday == DateTime.sunday;
     final isSat = date.weekday == DateTime.saturday;
 
@@ -69,7 +72,7 @@ class DayCell extends StatelessWidget {
     Color dayNumColor;
     if (isToday) {
       dayNumColor = Colors.white;
-    } else if (isSun) {
+    } else if (isSun || isHol) {
       dayNumColor = sh.sun.withValues(alpha: dimmed ? 0.35 : 1.0);
     } else if (isSat) {
       dayNumColor = sh.sat.withValues(alpha: dimmed ? 0.35 : 1.0);

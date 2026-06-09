@@ -354,7 +354,7 @@ const Map<String, Map<AppLang, String>> kTranslations = {
   '오늘 🎉': {AppLang.en: 'Today 🎉', AppLang.ja: '今日 🎉', AppLang.zh: '今天 🎉', AppLang.es: 'Hoy 🎉'},
 
   // ── 공유 캘린더(테마) ──
-  '새 캘린더 만들기': {AppLang.en: 'New calendar', AppLang.ja: '新しいカレンダー', AppLang.zh: '新建日历', AppLang.es: 'Nuevo calendario'},
+  '새 공유일정 생성하기': {AppLang.en: 'New shared calendar', AppLang.ja: '新しい共有予定', AppLang.zh: '新建共享日程', AppLang.es: 'Nuevo calendario compartido'},
   '캘린더 이름': {AppLang.en: 'Calendar name', AppLang.ja: 'カレンダー名', AppLang.zh: '日历名称', AppLang.es: 'Nombre del calendario'},
   '색상 선택': {AppLang.en: 'Pick a color', AppLang.ja: '色を選択', AppLang.zh: '选择颜色', AppLang.es: 'Elige color'},
   '공유 코드로 가져오기': {AppLang.en: 'Import by code', AppLang.ja: '共有コードで取得', AppLang.zh: '用分享码导入', AppLang.es: 'Importar por código'},

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
 import '../core/theme/app_theme.dart';
+import '../i18n/strings.dart';
 import '../core/theme/design_tokens.dart';
 import '../models/calendar_theme.dart';
 import '../models/shared_theme_payload.dart';
@@ -155,9 +156,9 @@ class ThemeManagerBody extends ConsumerWidget {
               child: FilledButton.icon(
                 onPressed: () => _addTheme(ref),
                 icon: const Icon(Icons.add_rounded, size: 20),
-                label: const Text('새 캘린더 만들기',
-                    style:
-                        TextStyle(fontSize: 15, fontWeight: FontWeight.w800)),
+                label: Text(tr('새 공유일정 생성하기'),
+                    style: const TextStyle(
+                        fontSize: 15, fontWeight: FontWeight.w800)),
                 style: FilledButton.styleFrom(
                   backgroundColor: sh.accent,
                   foregroundColor: Colors.white,
