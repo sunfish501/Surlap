@@ -460,12 +460,22 @@ class _DayViewState extends ConsumerState<DayView> {
         sh: sh,
         draggable: draggable,
         onTapEvent: () {
-          if (idx < 0) {
-            showEventDetailSheet(context, e);
-          } else {
+          if (idx >= 0) {
             showAddEditEventModal(context,
                 dateKey: widget.dateKey, editIndex: idx);
+            return;
           }
+          // 가상 반복 occurrence(idx<0이고 rr 있음) → anchor 찾아 편집.
+          if (e.rr != null && !e.isTimetable && !e.sport &&
+              !e.academic && !e.birthday) {
+            final anchor = _findAnchorFor(e, events);
+            if (anchor != null) {
+              showAddEditEventModal(context,
+                  dateKey: anchor.$1, editIndex: anchor.$2);
+              return;
+            }
+          }
+          showEventDetailSheet(context, e);
         },
         onCommitMove: (deltaMinutes) =>
             _shiftEventTime(e, idx, deltaMinutes, height),
@@ -474,6 +484,23 @@ class _DayViewState extends ConsumerState<DayView> {
       ));
     }
     return blocks;
+  }
+
+  // 가상 occurrence의 원본 anchor 위치(dateKey, index) 찾기. id 우선, 없으면 동일 t+tm 매칭.
+  (String, int)? _findAnchorFor(
+      EventItem virtual, Map<String, List<EventItem>> events) {
+    for (final entry in events.entries) {
+      for (var i = 0; i < entry.value.length; i++) {
+        final e = entry.value[i];
+        if (e.rr == null) continue;
+        final match = virtual.id != null && e.id == virtual.id;
+        final fallback = virtual.id == null &&
+            e.t == virtual.t &&
+            e.tm == virtual.tm;
+        if (match || fallback) return (entry.key, i);
+      }
+    }
+    return null;
   }
 
   // 분 단위 시각 시프트(시작·종료 함께). 15분 단위로 스냅.
