@@ -12,6 +12,7 @@ import '../../providers/themes_provider.dart';
 import '../../providers/settings_provider.dart';
 import '../../providers/filter_provider.dart';
 import '../../providers/extras_provider.dart';
+import '../../providers/recurring_events_provider.dart';
 import '../../providers/day_widget_provider.dart';
 import '../../providers/birthdays_provider.dart';
 import '../../providers/todos_provider.dart';
@@ -101,6 +102,15 @@ class MonthView extends ConsumerWidget {
           .where((e) =>
               e.themeIds.isNotEmpty && !hiddenThemes.contains(e.themeIds.first))
           .toList();
+      if (vis.isEmpty) return;
+      mergedEvents[dateKey] = [...(mergedEvents[dateKey] ?? []), ...vis];
+    });
+    // Merge 반복 일정 가상 occurrence — 카테고리 필터 적용(앵커와 동일 themeIds 사용).
+    ref.watch(recurringEventsByDateProvider).forEach((dateKey, items) {
+      final vis = items.where((e) {
+        if (e.themeIds.isEmpty) return true;
+        return !hiddenThemes.contains(e.themeIds.first);
+      }).toList();
       if (vis.isEmpty) return;
       mergedEvents[dateKey] = [...(mergedEvents[dateKey] ?? []), ...vis];
     });

@@ -28,6 +28,7 @@ import '../../providers/birthdays_provider.dart';
 import '../../providers/filter_provider.dart';
 import '../../providers/sports_provider.dart';
 import '../../providers/shared_theme_events_provider.dart';
+import '../../providers/recurring_events_provider.dart';
 import '../../modals/add_edit_event_modal.dart';
 import '../../modals/event_detail_sheet.dart';
 import '../search_view.dart';
@@ -244,6 +245,11 @@ class _PlannerViewState extends ConsumerState<PlannerView> {
 
     mergeExtra(ref.watch(sportsEventsByDateProvider));
     mergeExtra(ref.watch(sharedThemeEventsByDateProvider));
+    // 반복 일정 가상 occurrence — 필터/숨김 없이 모두 표시.
+    ref.watch(recurringEventsByDateProvider).forEach((k, items) {
+      if (items.isEmpty) return;
+      merged[k] = [...(merged[k] ?? const []), ...items];
+    });
     _events = merged;
 
     final headerTotal = _headerH + _allDayBandH;

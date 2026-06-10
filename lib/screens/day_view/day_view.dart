@@ -25,6 +25,7 @@ import '../../providers/birthdays_provider.dart';
 import '../../providers/filter_provider.dart';
 import '../../providers/sports_provider.dart';
 import '../../providers/shared_theme_events_provider.dart';
+import '../../providers/recurring_events_provider.dart';
 import '../../core/utils/todo_style.dart';
 import '../../widgets/mascot/mascot.dart';
 import '../../widgets/mascot/mascot_feedback.dart';
@@ -103,6 +104,9 @@ class _DayViewState extends ConsumerState<DayView> {
         e.themeIds.isNotEmpty && !filter.contains(e.themeIds.first);
     final allDay = [
       ...items.where((e) => !e.hasTime && !e.isTimetable),
+      // 반복 일정 (종일)
+      ...(ref.watch(recurringEventsByDateProvider)[widget.dateKey] ?? const [])
+          .where((e) => !e.hasTime),
       // 구독 공유 테마(종일, 읽기 전용)
       ...sharedToday.where((e) => !e.hasTime && sharedVisible(e)),
       // 생일(별도 카테고리)
@@ -126,8 +130,11 @@ class _DayViewState extends ConsumerState<DayView> {
     ];
     final sportsToday =
         ref.watch(sportsEventsByDateProvider)[widget.dateKey] ?? const [];
+    final recurringToday =
+        ref.watch(recurringEventsByDateProvider)[widget.dateKey] ?? const [];
     final timed = [
       ...items.where((e) => e.hasTime && !e.isTimetable),
+      ...recurringToday.where((e) => e.hasTime),
       ...sportsToday.where((e) => !filter.contains(e.themeIds.first)),
       // 구독 공유 테마(시간 있음, 읽기 전용)
       ...sharedToday.where((e) => e.hasTime && sharedVisible(e)),
@@ -438,71 +445,86 @@ class _DayViewState extends ConsumerState<DayView> {
                   .colorValue
               : sh.accent;
 
-      blocks.add(Positioned(
+      final idx = (events[widget.dateKey] ?? []).indexOf(e);
+      // 읽기전용(스포츠·학사·생일·구독)·시간표는 드래그 비활성 — 탭만 허용.
+      final draggable = idx >= 0 && !e.isTimetable && !e.sport &&
+          !e.academic && !e.birthday;
+      blocks.add(_TimedEventBlock(
+        event: e,
+        index: idx,
+        dateKey: widget.dateKey,
         top: top,
-        left: 4,
-        right: 6,
         height: height.clamp(20.0, double.infinity),
-        child: GestureDetector(
-          onTap: () {
-            final idx = (events[widget.dateKey] ?? []).indexOf(e);
-            // 읽기 전용(스포츠·학사·생일·구독)은 eventsProvider에 없어 idx<0 → 상세만.
-            if (idx < 0) {
-              showEventDetailSheet(context, e);
-            } else {
-              showAddEditEventModal(context,
-                  dateKey: widget.dateKey, editIndex: idx);
-            }
-          },
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: Gap.sm, vertical: Gap.xs),
-            decoration: BoxDecoration(
-              color: thColor.withValues(alpha: sh.dark ? 0.20 : 0.16),
-              borderRadius: BorderRadius.circular(8),
-              border: Border(left: BorderSide(color: thColor, width: 3)),
-              boxShadow: sh.dark
-                  ? [BoxShadow(
-                      color: thColor.withValues(alpha: 0.22),
-                      blurRadius: 10, spreadRadius: 0,
-                      offset: const Offset(0, 1),
-                    )]
-                  : null,
-            ),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // 스포츠 경기는 팀 로고를 앞에(없으면 종목 이모지).
-                if (e.sport && e.sportLogo != null && e.sportLogo!.isNotEmpty)
-                  Padding(
-                    padding: const EdgeInsets.only(right: 3, top: 1),
-                    child: Image.network(e.sportLogo!,
-                        width: 12,
-                        height: 12,
-                        fit: BoxFit.contain,
-                        errorBuilder: (_, _, _) => Text(e.sportEmoji ?? '🏅',
-                            style: const TextStyle(fontSize: 11))),
-                  ),
-                Text('${e.tm} ',
-                    style: TextStyle(
-                        fontSize: 10,
-                        color: sh.inkSoft,
-                        fontWeight: FontWeight.w600)),
-                Expanded(
-                  child: Text(
-                    e.t,
-                    style: AppType.caption.copyWith(
-                        fontWeight: FontWeight.w500, color: sh.ink),
-                    maxLines: height > _rowH ? 3 : 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
+        rowH: _rowH,
+        color: thColor,
+        sh: sh,
+        draggable: draggable,
+        onTapEvent: () {
+          if (idx < 0) {
+            showEventDetailSheet(context, e);
+          } else {
+            showAddEditEventModal(context,
+                dateKey: widget.dateKey, editIndex: idx);
+          }
+        },
+        onCommitMove: (deltaMinutes) =>
+            _shiftEventTime(e, idx, deltaMinutes, height),
+        onCommitResize: (deltaMinutes) =>
+            _resizeEvent(e, idx, deltaMinutes, height),
       ));
     }
     return blocks;
+  }
+
+  // 분 단위 시각 시프트(시작·종료 함께). 15분 단위로 스냅.
+  void _shiftEventTime(
+      EventItem e, int idx, int deltaMinutes, double height) {
+    if (idx < 0 || deltaMinutes == 0) return;
+    final parts = e.tm!.split(':');
+    final h = int.tryParse(parts[0]) ?? 0;
+    final m = parts.length > 1 ? (int.tryParse(parts[1]) ?? 0) : 0;
+    var startMin = (h * 60 + m + deltaMinutes).clamp(0, 24 * 60 - 1);
+    startMin = (startMin / 15).round() * 15;
+    final nh = startMin ~/ 60;
+    final nm = startMin % 60;
+    String fmt(int hh, int mm) =>
+        '${hh.toString().padLeft(2, '0')}:${mm.toString().padLeft(2, '0')}';
+    String? newTe = e.te;
+    if (e.te != null && e.te!.contains(':')) {
+      final ep = e.te!.split(':');
+      final eh = int.tryParse(ep[0]) ?? h;
+      final em = int.tryParse(ep[1]) ?? m;
+      final durMin = (eh * 60 + em) - (h * 60 + m);
+      var endMin = (startMin + durMin).clamp(startMin + 5, 24 * 60);
+      newTe = fmt(endMin ~/ 60, endMin % 60);
+    }
+    final updated = e.copyWith(tm: fmt(nh, nm), te: newTe);
+    ref.read(eventsProvider.notifier)
+        .updateEvent(widget.dateKey, idx, updated);
+  }
+
+  // 종료 시각만 변경(리사이즈). 15분 스냅, 최소 15분 길이.
+  void _resizeEvent(
+      EventItem e, int idx, int deltaMinutes, double height) {
+    if (idx < 0 || deltaMinutes == 0) return;
+    final parts = e.tm!.split(':');
+    final h = int.tryParse(parts[0]) ?? 0;
+    final m = parts.length > 1 ? (int.tryParse(parts[1]) ?? 0) : 0;
+    int curEndMin;
+    if (e.te != null && e.te!.contains(':')) {
+      final ep = e.te!.split(':');
+      curEndMin = (int.tryParse(ep[0]) ?? h) * 60 + (int.tryParse(ep[1]) ?? m);
+    } else {
+      curEndMin = h * 60 + m + 60;
+    }
+    var endMin = (curEndMin + deltaMinutes);
+    endMin = (endMin / 15).round() * 15;
+    endMin = endMin.clamp(h * 60 + m + 15, 24 * 60);
+    String fmt(int hh, int mm) =>
+        '${hh.toString().padLeft(2, '0')}:${mm.toString().padLeft(2, '0')}';
+    final updated = e.copyWith(te: fmt(endMin ~/ 60, endMin % 60));
+    ref.read(eventsProvider.notifier)
+        .updateEvent(widget.dateKey, idx, updated);
   }
 
   String _dowName(int w) => i18nd.weekdayShort(w);
@@ -699,6 +721,179 @@ class _NowLine extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// 시간 일정 블록 — 길게 누른 뒤 드래그 = 시각 이동, 하단 핸들 드래그 = 길이 조정.
+/// 좌표 변환은 부모가 정한 `rowH`(시간당 픽셀)로 분 ↔ 픽셀을 환산한다.
+class _TimedEventBlock extends StatefulWidget {
+  final EventItem event;
+  final int index;
+  final String dateKey;
+  final double top;
+  final double height;
+  final double rowH;
+  final Color color;
+  final SpaceHourColors sh;
+  final bool draggable;
+  final VoidCallback onTapEvent;
+  final void Function(int deltaMinutes) onCommitMove;
+  final void Function(int deltaMinutes) onCommitResize;
+
+  const _TimedEventBlock({
+    required this.event,
+    required this.index,
+    required this.dateKey,
+    required this.top,
+    required this.height,
+    required this.rowH,
+    required this.color,
+    required this.sh,
+    required this.draggable,
+    required this.onTapEvent,
+    required this.onCommitMove,
+    required this.onCommitResize,
+  });
+
+  @override
+  State<_TimedEventBlock> createState() => _TimedEventBlockState();
+}
+
+class _TimedEventBlockState extends State<_TimedEventBlock> {
+  double _dragDy = 0;    // 이동(↑/↓) 누적 픽셀
+  double _resizeDy = 0;  // 리사이즈(↓ 늘리기/↑ 줄이기) 누적 픽셀
+  bool _moving = false;
+  bool _resizing = false;
+
+  int _pxToMin(double px) => (px / widget.rowH * 60).round();
+
+  @override
+  Widget build(BuildContext context) {
+    final sh = widget.sh;
+    final e = widget.event;
+    final activeOpacity = (_moving || _resizing) ? 0.85 : 1.0;
+    final liveHeight =
+        (widget.height + _resizeDy).clamp(20.0, double.infinity);
+
+    return Positioned(
+      top: widget.top + _dragDy,
+      left: 4,
+      right: 6,
+      height: liveHeight,
+      child: Opacity(
+        opacity: activeOpacity,
+        child: GestureDetector(
+          onTap: widget.onTapEvent,
+          onLongPressStart: widget.draggable
+              ? (_) => setState(() {
+                    _moving = true;
+                    _dragDy = 0;
+                  })
+              : null,
+          onLongPressMoveUpdate: widget.draggable
+              ? (d) => setState(() => _dragDy = d.offsetFromOrigin.dy)
+              : null,
+          onLongPressEnd: widget.draggable
+              ? (_) {
+                  final delta = _pxToMin(_dragDy);
+                  setState(() {
+                    _moving = false;
+                    _dragDy = 0;
+                  });
+                  if (delta != 0) widget.onCommitMove(delta);
+                }
+              : null,
+          child: Stack(
+            clipBehavior: Clip.none,
+            children: [
+              Container(
+                padding: const EdgeInsets.symmetric(
+                    horizontal: Gap.sm, vertical: Gap.xs),
+                decoration: BoxDecoration(
+                  color: widget.color.withValues(alpha: sh.dark ? 0.20 : 0.16),
+                  borderRadius: BorderRadius.circular(8),
+                  border:
+                      Border(left: BorderSide(color: widget.color, width: 3)),
+                  boxShadow: (sh.dark || _moving || _resizing)
+                      ? [BoxShadow(
+                          color: widget.color
+                              .withValues(alpha: _moving || _resizing ? 0.45 : 0.22),
+                          blurRadius: _moving || _resizing ? 16 : 10,
+                          spreadRadius: 0,
+                          offset: const Offset(0, 1),
+                        )]
+                      : null,
+                ),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    if (e.sport && e.sportLogo != null && e.sportLogo!.isNotEmpty)
+                      Padding(
+                        padding: const EdgeInsets.only(right: 3, top: 1),
+                        child: Image.network(e.sportLogo!,
+                            width: 12,
+                            height: 12,
+                            fit: BoxFit.contain,
+                            errorBuilder: (_, _, _) => Text(e.sportEmoji ?? '🏅',
+                                style: const TextStyle(fontSize: 11))),
+                      ),
+                    Text('${e.tm} ',
+                        style: TextStyle(
+                            fontSize: 10,
+                            color: sh.inkSoft,
+                            fontWeight: FontWeight.w600)),
+                    Expanded(
+                      child: Text(
+                        e.t,
+                        style: AppType.caption.copyWith(
+                            fontWeight: FontWeight.w500, color: sh.ink),
+                        maxLines: liveHeight > widget.rowH ? 3 : 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              // 하단 리사이즈 핸들 — 드래그 가능 일정만 노출.
+              if (widget.draggable)
+                Positioned(
+                  left: 0,
+                  right: 0,
+                  bottom: -2,
+                  height: 12,
+                  child: GestureDetector(
+                    behavior: HitTestBehavior.opaque,
+                    onVerticalDragStart: (_) => setState(() {
+                      _resizing = true;
+                      _resizeDy = 0;
+                    }),
+                    onVerticalDragUpdate: (d) =>
+                        setState(() => _resizeDy += d.delta.dy),
+                    onVerticalDragEnd: (_) {
+                      final delta = _pxToMin(_resizeDy);
+                      setState(() {
+                        _resizing = false;
+                        _resizeDy = 0;
+                      });
+                      if (delta != 0) widget.onCommitResize(delta);
+                    },
+                    child: Center(
+                      child: Container(
+                        width: 28,
+                        height: 3,
+                        decoration: BoxDecoration(
+                          color: widget.color.withValues(alpha: 0.5),
+                          borderRadius: BorderRadius.circular(2),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+            ],
+          ),
+        ),
       ),
     );
   }

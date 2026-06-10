@@ -25,6 +25,9 @@ class EventItem {
   final String? sportEmoji;
   /// 스포츠 팀 로고 URL(있으면 이모지 대신 표시). 직렬화 제외.
   final String? sportLogo;
+  /// 반복 규칙(웹/앱 호환: JSON map).
+  /// `{ "f": "W|M|Y", "i": int, "u": "YYYY-MM-DD"?, "c": int? }`
+  final Map<String, dynamic>? rr;
 
   const EventItem({
     required this.t,
@@ -42,6 +45,7 @@ class EventItem {
     this.sportColor,
     this.sportEmoji,
     this.sportLogo,
+    this.rr,
   });
 
   bool get isTimetable => tt;
@@ -64,6 +68,7 @@ class EventItem {
     if (cid != null) '_cid': cid,
     if (author != null) '_author': author,
     if (createdAt != null) 'created_at': createdAt,
+    if (rr != null) 'rr': rr,
   };
 
   factory EventItem.fromJson(Map<String, dynamic> j) => EventItem(
@@ -76,6 +81,7 @@ class EventItem {
     cid: j['_cid'] as String?,
     author: j['_author'] as String?,
     createdAt: j['created_at'] as String?,
+    rr: j['rr'] is Map ? Map<String, dynamic>.from(j['rr'] as Map) : null,
   );
 
   /// 웹 호환: string 또는 object 파싱
@@ -90,6 +96,7 @@ class EventItem {
     String? id, String? cid, String? author, String? createdAt,
     bool? academic, bool? birthday,
     bool? sport, int? sportColor, String? sportEmoji, String? sportLogo,
+    Object? rr = _sentinel,
   }) => EventItem(
     t: t ?? this.t,
     tm: tm ?? this.tm,
@@ -106,8 +113,13 @@ class EventItem {
     sportColor: sportColor ?? this.sportColor,
     sportEmoji: sportEmoji ?? this.sportEmoji,
     sportLogo: sportLogo ?? this.sportLogo,
+    rr: identical(rr, _sentinel)
+        ? this.rr
+        : (rr as Map<String, dynamic>?),
   );
 }
+
+const Object _sentinel = Object();
 
 /// 전체 이벤트 맵 직렬화/역직렬화.
 /// 형태: { "YYYY-MM-DD": [ item, ... ] }

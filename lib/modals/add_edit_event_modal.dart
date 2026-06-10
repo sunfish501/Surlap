@@ -4,6 +4,7 @@ import 'package:uuid/uuid.dart';
 import '../core/theme/app_theme.dart';
 import '../core/theme/design_tokens.dart';
 import '../core/utils/date_utils.dart' as du;
+import '../core/utils/event_parser.dart';
 import '../i18n/strings.dart';
 import '../models/event_item.dart';
 import '../models/calendar_theme.dart';
@@ -49,8 +50,42 @@ class _AddEditEventModalState extends ConsumerState<AddEditEventModal> {
   String? _startTime;
   String? _endTime;
   final Set<String> _selectedThemes = {};
+  ParsedEvent? _suggestion;
+  String? _recurFreq; // null | 'W' | 'M' | 'Y'
+  String? _recurUntil; // YYYY-MM-DD or null
 
   bool get isEdit => widget.editIndex != null;
+
+  void _onTitleChanged(String raw) {
+    if (isEdit) {
+      setState(() => _suggestion = null);
+      return;
+    }
+    final p = parseEventInput(raw);
+    final hasDate = p.dateKey != null && p.dateKey != _dateKey;
+    final hasTime = p.tm != null && p.tm != _startTime;
+    final hasEnd = p.te != null && p.te != _endTime;
+    final titleChanged = p.title.isNotEmpty && p.title != raw.trim();
+    if (hasDate || hasTime || hasEnd || titleChanged) {
+      setState(() => _suggestion = p);
+    } else if (_suggestion != null) {
+      setState(() => _suggestion = null);
+    }
+  }
+
+  void _applySuggestion() {
+    final s = _suggestion;
+    if (s == null) return;
+    setState(() {
+      if (s.dateKey != null) _dateKey = s.dateKey!;
+      if (s.tm != null) _startTime = s.tm;
+      if (s.te != null) _endTime = s.te;
+      _textCtrl.text = s.title;
+      _textCtrl.selection =
+          TextSelection.collapsed(offset: _textCtrl.text.length);
+      _suggestion = null;
+    });
+  }
 
   @override
   void initState() {
@@ -63,6 +98,12 @@ class _AddEditEventModalState extends ConsumerState<AddEditEventModal> {
         _startTime = item.tm;
         _endTime = item.te;
         _selectedThemes.addAll(item.themeIds);
+        final rr = item.rr;
+        if (rr != null) {
+          final f = rr['f']?.toString();
+          if (f == 'W' || f == 'M' || f == 'Y') _recurFreq = f;
+          _recurUntil = rr['u'] as String?;
+        }
       }
     }
   }
@@ -153,19 +194,35 @@ class _AddEditEventModalState extends ConsumerState<AddEditEventModal> {
             _FieldRow(
               label: tr('일정 내용'),
               sh: sh,
-              child: TextField(
-                controller: _textCtrl,
-                autofocus: true,
-                style: AppType.body.copyWith(color: sh.ink),
-                decoration: InputDecoration(
-                  hintText: '어머니 생신',
-                  hintStyle: TextStyle(color: sh.inkFaint),
-                  border: InputBorder.none,
-                  isDense: true,
-                  contentPadding: EdgeInsets.zero,
-                ),
-                textCapitalization: TextCapitalization.sentences,
-                onSubmitted: (_) => _save(),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  TextField(
+                    controller: _textCtrl,
+                    autofocus: true,
+                    style: AppType.body.copyWith(color: sh.ink),
+                    decoration: InputDecoration(
+                      hintText: tr('예: 내일 3시 회의'),
+                      hintStyle: TextStyle(color: sh.inkFaint),
+                      border: InputBorder.none,
+                      isDense: true,
+                      contentPadding: EdgeInsets.zero,
+                    ),
+                    textCapitalization: TextCapitalization.sentences,
+                    onChanged: _onTitleChanged,
+                    onSubmitted: (_) => _save(),
+                  ),
+                  if (_suggestion != null)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 8),
+                      child: _ParseSuggestionChip(
+                        suggestion: _suggestion!,
+                        sh: sh,
+                        onApply: _applySuggestion,
+                        onDismiss: () => setState(() => _suggestion = null),
+                      ),
+                    ),
+                ],
               ),
             ),
             const SizedBox(height: 12),
@@ -201,6 +258,85 @@ class _AddEditEventModalState extends ConsumerState<AddEditEventModal> {
                           padding: const EdgeInsets.only(left: 8)),
                       child: Text(tr('지움'), style: const TextStyle(fontSize: 12)),
                     ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 14),
+
+            // 반복 — 없음/매주/매월/매년 + 종료일(선택)
+            _FieldRow(
+              label: tr('반복'),
+              sh: sh,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Wrap(
+                    spacing: 6,
+                    runSpacing: 6,
+                    children: [
+                      _RecurChip(
+                        label: tr('없음'),
+                        selected: _recurFreq == null,
+                        sh: sh,
+                        onTap: () => setState(() {
+                          _recurFreq = null;
+                          _recurUntil = null;
+                        }),
+                      ),
+                      _RecurChip(
+                        label: tr('매주'),
+                        selected: _recurFreq == 'W',
+                        sh: sh,
+                        onTap: () => setState(() => _recurFreq = 'W'),
+                      ),
+                      _RecurChip(
+                        label: tr('매월'),
+                        selected: _recurFreq == 'M',
+                        sh: sh,
+                        onTap: () => setState(() => _recurFreq = 'M'),
+                      ),
+                      _RecurChip(
+                        label: tr('매년'),
+                        selected: _recurFreq == 'Y',
+                        sh: sh,
+                        onTap: () => setState(() => _recurFreq = 'Y'),
+                      ),
+                    ],
+                  ),
+                  if (_recurFreq != null) ...[
+                    const SizedBox(height: 8),
+                    Row(
+                      children: [
+                        Icon(Icons.event_busy_outlined,
+                            size: 16, color: sh.inkSoft),
+                        const SizedBox(width: 6),
+                        Text(tr('종료일'),
+                            style: AppType.label.copyWith(color: sh.inkSoft)),
+                        const SizedBox(width: 8),
+                        GestureDetector(
+                          onTap: _pickUntilDate,
+                          child: Text(
+                            _recurUntil ?? tr('무기한'),
+                            style: AppType.body.copyWith(
+                                color: _recurUntil != null
+                                    ? sh.accent
+                                    : sh.inkFaint,
+                                fontWeight: FontWeight.w600),
+                          ),
+                        ),
+                        if (_recurUntil != null)
+                          TextButton(
+                            onPressed: () =>
+                                setState(() => _recurUntil = null),
+                            style: TextButton.styleFrom(
+                                foregroundColor: sh.inkSoft,
+                                padding: const EdgeInsets.only(left: 8)),
+                            child: Text(tr('지움'),
+                                style: const TextStyle(fontSize: 12)),
+                          ),
+                      ],
+                    ),
+                  ],
                 ],
               ),
             ),
@@ -290,6 +426,25 @@ class _AddEditEventModalState extends ConsumerState<AddEditEventModal> {
     if (picked != null) setState(() => _dateKey = du.toDateKey(picked));
   }
 
+  Future<void> _pickUntilDate() async {
+    final initial =
+        _recurUntil != null ? du.fromDateKey(_recurUntil!) : du.fromDateKey(_dateKey);
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: initial,
+      firstDate: du.fromDateKey(_dateKey),
+      lastDate: DateTime(2100),
+      builder: (ctx, child) => Theme(
+        data: Theme.of(ctx).copyWith(
+          colorScheme: Theme.of(ctx).colorScheme.copyWith(
+              primary: context.sh.accent),
+        ),
+        child: child!,
+      ),
+    );
+    if (picked != null) setState(() => _recurUntil = du.toDateKey(picked));
+  }
+
   Future<void> _pickTime({required bool isStart}) async {
     final cur = isStart ? _startTime : _endTime;
     TimeOfDay initial = TimeOfDay.now();
@@ -332,6 +487,13 @@ class _AddEditEventModalState extends ConsumerState<AddEditEventModal> {
             ? ids.first
             : ids;
 
+    final rrMap = _recurFreq == null
+        ? null
+        : <String, dynamic>{
+            'f': _recurFreq,
+            if (_recurUntil != null) 'u': _recurUntil,
+          };
+
     if (isEdit) {
       final old =
           ref.read(eventsProvider)[_dateKey]?[widget.editIndex!];
@@ -340,6 +502,7 @@ class _AddEditEventModalState extends ConsumerState<AddEditEventModal> {
         tm: _startTime,
         te: _endTime,
         th: thVal,
+        rr: rrMap,
       );
       eventsNotifier.updateEvent(_dateKey, widget.editIndex!, updated);
     } else {
@@ -349,6 +512,7 @@ class _AddEditEventModalState extends ConsumerState<AddEditEventModal> {
         tm: _startTime,
         te: _endTime,
         th: thVal,
+        rr: rrMap,
       );
       eventsNotifier.addEvent(_dateKey, item);
     }
@@ -462,6 +626,101 @@ class _ThemeChip extends StatelessWidget {
                 style: AppType.caption.copyWith(
                     color: selected ? color : color.withValues(alpha: 0.8),
                     fontWeight: selected ? FontWeight.w700 : FontWeight.w500)),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _RecurChip extends StatelessWidget {
+  final String label;
+  final bool selected;
+  final SpaceHourColors sh;
+  final VoidCallback onTap;
+  const _RecurChip({
+    required this.label,
+    required this.selected,
+    required this.sh,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 150),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+        decoration: BoxDecoration(
+          color: selected
+              ? sh.accent.withValues(alpha: 0.15)
+              : sh.ink.withValues(alpha: 0.04),
+          borderRadius: BorderRadius.circular(999),
+          border: Border.all(
+              color: selected ? sh.accent : Colors.transparent),
+        ),
+        child: Text(label,
+            style: AppType.label.copyWith(
+                fontSize: 12.5,
+                fontWeight: FontWeight.w700,
+                color: selected ? sh.accentInk : sh.inkSoft)),
+      ),
+    );
+  }
+}
+
+class _ParseSuggestionChip extends StatelessWidget {
+  final ParsedEvent suggestion;
+  final SpaceHourColors sh;
+  final VoidCallback onApply;
+  final VoidCallback onDismiss;
+  const _ParseSuggestionChip({
+    required this.suggestion,
+    required this.sh,
+    required this.onApply,
+    required this.onDismiss,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final parts = <String>[];
+    if (suggestion.dateKey != null) parts.add('📅 ${suggestion.dateKey}');
+    if (suggestion.tm != null) {
+      final t = suggestion.te != null
+          ? '${suggestion.tm}~${suggestion.te}'
+          : suggestion.tm!;
+      parts.add('🕒 $t');
+    }
+    if (suggestion.title.isNotEmpty) parts.add('"${suggestion.title}"');
+    return GestureDetector(
+      onTap: onApply,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+        decoration: BoxDecoration(
+          color: sh.accent.withValues(alpha: 0.12),
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(color: sh.accent.withValues(alpha: 0.35)),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.auto_awesome_rounded, size: 14, color: sh.accent),
+            const SizedBox(width: 6),
+            Flexible(
+              child: Text(
+                '${parts.join(' · ')} — ${tr('적용')}',
+                style: AppType.caption.copyWith(
+                    color: sh.accentInk, fontWeight: FontWeight.w700),
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+            const SizedBox(width: 6),
+            GestureDetector(
+              onTap: onDismiss,
+              behavior: HitTestBehavior.opaque,
+              child: Icon(Icons.close_rounded, size: 14, color: sh.inkSoft),
+            ),
           ],
         ),
       ),

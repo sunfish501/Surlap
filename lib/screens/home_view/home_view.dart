@@ -14,6 +14,7 @@ import '../../providers/todos_provider.dart';
 import '../../providers/neis_cache_provider.dart';
 import '../../providers/birthdays_provider.dart';
 import '../../providers/view_provider.dart';
+import '../../providers/recurring_events_provider.dart';
 import '../../providers/user_type_provider.dart';
 import '../../core/utils/todo_style.dart';
 import '../../supabase/neis_service.dart';
@@ -87,8 +88,12 @@ class _HomeViewState extends ConsumerState<HomeView> {
     final showMeal =
         userType == null || userType.usesMeal || NeisSchool.load() != null;
 
-    final todayAll =
-        (events[todayKey] ?? []).where((e) => !e.isTimetable).toList();
+    final recurringToday =
+        ref.watch(recurringEventsByDateProvider)[todayKey] ?? const [];
+    final todayAll = [
+      ...(events[todayKey] ?? []).where((e) => !e.isTimetable),
+      ...recurringToday,
+    ];
 
     final todayTodos = ref
         .watch(todosProvider)

@@ -655,4 +655,17 @@ const Map<String, Map<AppLang, String>> kTranslations = {
   '시작 전 알림': {AppLang.en: 'Lead time', AppLang.ja: '開始前に通知', AppLang.zh: '提前提醒', AppLang.es: 'Tiempo de aviso'},
   '정각': {AppLang.en: 'On time', AppLang.ja: '開始時', AppLang.zh: '准时', AppLang.es: 'A tiempo'},
   '{0}분 전': {AppLang.en: '{0} min before', AppLang.ja: '{0}分前', AppLang.zh: '提前{0}分钟', AppLang.es: '{0} min antes'},
+  '예: 내일 3시 회의': {
+    AppLang.en: 'e.g. tomorrow 3pm meeting',
+    AppLang.ja: '例：明日 3時 会議',
+    AppLang.zh: '例：明天 3点 会议',
+    AppLang.es: 'ej.: mañana 3pm reunión',
+  },
+  // 반복 일정
+  '반복': {AppLang.en: 'Repeat', AppLang.ja: '繰り返し', AppLang.zh: '重复', AppLang.es: 'Repetir'},
+  '매주': {AppLang.en: 'Weekly', AppLang.ja: '毎週', AppLang.zh: '每周', AppLang.es: 'Semanal'},
+  '매월': {AppLang.en: 'Monthly', AppLang.ja: '毎月', AppLang.zh: '每月', AppLang.es: 'Mensual'},
+  '매년': {AppLang.en: 'Yearly', AppLang.ja: '毎年', AppLang.zh: '每年', AppLang.es: 'Anual'},
+  '종료일': {AppLang.en: 'End date', AppLang.ja: '終了日', AppLang.zh: '结束日', AppLang.es: 'Fecha fin'},
+  '무기한': {AppLang.en: 'Forever', AppLang.ja: '無期限', AppLang.zh: '无限期', AppLang.es: 'Indefinido'},
 };
