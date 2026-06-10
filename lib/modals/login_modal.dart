@@ -1,3 +1,5 @@
+import 'dart:io' show Platform;
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../core/theme/app_theme.dart';
@@ -76,6 +78,32 @@ class _LoginModalState extends ConsumerState<LoginModal> {
                 style: AppType.body.copyWith(color: sh.inkSoft)),
             const SizedBox(height: 28),
             if (!_showForm) ...[
+              // ── Apple 로그인 (iOS only, App Store 4.8 요구사항) ──
+              if (!kIsWeb && Platform.isIOS) ...[
+                SizedBox(
+                  width: double.infinity,
+                  child: FilledButton(
+                    onPressed: _loading ? null : _signInApple,
+                    style: FilledButton.styleFrom(
+                      backgroundColor: Colors.black,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(Radii.card)),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(Icons.apple, size: 20, color: Colors.white),
+                        const SizedBox(width: 10),
+                        Text(tr('Apple로 로그인'),
+                            style: const TextStyle(fontWeight: FontWeight.w600)),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 10),
+              ],
               // ── Google 로그인 ──
               SizedBox(
                 width: double.infinity,
@@ -185,6 +213,15 @@ class _LoginModalState extends ConsumerState<LoginModal> {
       await ref.read(authProvider.notifier).signInGoogle();
       // OAuth는 리다이렉트 방식이라 여기서 pop 불필요 (페이지 이동됨)
       // 모달은 열어두고 리다이렉트 대기
+    } catch (e) {
+      setState(() { _error = e.toString(); _loading = false; });
+    }
+  }
+
+  Future<void> _signInApple() async {
+    setState(() { _loading = true; _error = null; });
+    try {
+      await ref.read(authProvider.notifier).signInApple();
     } catch (e) {
       setState(() { _error = e.toString(); _loading = false; });
     }

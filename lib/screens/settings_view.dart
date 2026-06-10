@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../core/theme/app_theme.dart';
 import '../core/theme/design_tokens.dart';
 import '../i18n/app_lang.dart';
@@ -259,11 +260,32 @@ class SettingsSections extends ConsumerWidget {
                     : trf('생일 챙기기 ({0}명)', [birthdays.length]),
                 onTap: () => showBirthdayManagerModal(context),
               ),
+              SettingsRow(
+                sh: sh,
+                icon: Icons.privacy_tip_outlined,
+                title: tr('개인정보 처리방침'),
+                onTap: () => _openUrl(
+                    'https://kev208dev.github.io/HourSpace-app/privacy.html'),
+              ),
+              SettingsRow(
+                sh: sh,
+                icon: Icons.description_outlined,
+                title: tr('이용약관'),
+                onTap: () => _openUrl(
+                    'https://kev208dev.github.io/HourSpace-app/'),
+              ),
             ],
           ),
         ),
       ],
     );
+  }
+
+  Future<void> _openUrl(String url) async {
+    final uri = Uri.parse(url);
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    }
   }
 }
 

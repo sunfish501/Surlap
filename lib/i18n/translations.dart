@@ -701,4 +701,22 @@ const Map<String, Map<AppLang, String>> kTranslations = {
     AppLang.zh: '已打开 iCal 分享面板',
     AppLang.es: 'Hoja de compartir iCal abierta',
   },
+  'Apple로 로그인': {
+    AppLang.en: 'Sign in with Apple',
+    AppLang.ja: 'Appleでサインイン',
+    AppLang.zh: '使用 Apple 登录',
+    AppLang.es: 'Iniciar sesión con Apple',
+  },
+  '개인정보 처리방침': {
+    AppLang.en: 'Privacy policy',
+    AppLang.ja: 'プライバシーポリシー',
+    AppLang.zh: '隐私政策',
+    AppLang.es: 'Política de privacidad',
+  },
+  '이용약관': {
+    AppLang.en: 'Terms of service',
+    AppLang.ja: '利用規約',
+    AppLang.zh: '使用条款',
+    AppLang.es: 'Términos de servicio',
+  },
 };

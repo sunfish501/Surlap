@@ -157,6 +157,24 @@ class AuthNotifier extends Notifier<User?> {
     }
   }
 
+  /// Sign in with Apple — Apple App Store 4.8 요구사항 (Google 등 제3자 로그인 제공 시).
+  /// iOS/macOS만 노출. Supabase 대시보드에 Apple provider 설정 + Service ID 필요.
+  Future<void> signInApple() async {
+    final client = sb;
+    if (client == null) { throw Exception('Supabase 클라이언트가 없습니다'); }
+    try {
+      await client.auth.signInWithOAuth(
+        OAuthProvider.apple,
+        redirectTo: kIsWeb ? _webRedirectUrl() : 'spacehour://login-callback',
+        authScreenLaunchMode: LaunchMode.externalApplication,
+      );
+    } catch (e, st) {
+      debugPrint('[Auth] signInApple 실패: ${e.runtimeType} → $e');
+      debugPrint('$st');
+      rethrow;
+    }
+  }
+
   Future<void> signOut() async {
     await _clearCredentials(); // 자동 로그인 비활성화
     await sb?.auth.signOut();
