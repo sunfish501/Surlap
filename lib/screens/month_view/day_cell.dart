@@ -98,12 +98,9 @@ class DayCell extends StatelessWidget {
           color: dayNumColor,
           shadows: isToday
               ? [
+                  // 은은한 연보라 글로우 — 숫자 가독성 유지.
                   Shadow(
-                    color: sh.accent.withValues(alpha: 0.85),
-                    blurRadius: 14,
-                  ),
-                  Shadow(
-                    color: sh.accent.withValues(alpha: 0.55),
+                    color: sh.accent.withValues(alpha: 0.45),
                     blurRadius: 6,
                   ),
                 ]
