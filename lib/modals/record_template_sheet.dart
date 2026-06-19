@@ -53,10 +53,22 @@ class _RecordTemplateSheet extends ConsumerWidget {
 
   Future<void> _apply(BuildContext context, WidgetRef ref, SpaceHourColors sh,
       RecordTemplate tpl) async {
+    // 프리셋(공부·독서·운동)은 바로 적용하지 않고, 먼저 커스터마이즈 시트를 띄워
+    // 필요 없는 필드(태그/메모)를 빼고 이름·라벨을 다듬은 뒤 그 결과로 적용.
+    var target = tpl;
+    if (tpl.isPreset) {
+      final custom = await showRecordTemplateEditSheet(
+        context,
+        base: tpl.copyWith(name: tpl.name),
+      );
+      if (custom == null) return; // 사용자가 커스터마이즈 취소
+      target = custom;
+    }
+    if (!context.mounted) return;
     final r = await _pickRange(context, sh);
     if (r == null) return;
     await ref.read(templateRangesProvider.notifier).apply(
-        tpl.id, du.toDateKey(r.start), du.toDateKey(r.end));
+        target.id, du.toDateKey(r.start), du.toDateKey(r.end));
   }
 
   Future<void> _editRange(BuildContext context, WidgetRef ref,

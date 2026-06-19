@@ -172,6 +172,7 @@ class MonthView extends ConsumerWidget {
             onDayDoubleTap: (date) =>
                 ref.read(circlesProvider.notifier).toggle(du.toDateKey(date)),
             heroCells: true,
+            cellHeightFactor: settings.monthCellHeightFactor,
           ),
           // 이 달에 아무 데이터도 없으면 친근한 빈 상태를 그리드 위에 띄운다.
           // 날짜 숫자와 겹쳐 안 보이지 않게 불투명 카드 박스로 감싼다.

@@ -12,7 +12,7 @@
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
     <uses-permission android:name="android.permission.VIBRATE"/>
     <application
-        android:label="HourSpace"
+        android:label="Surlap"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity
@@ -51,15 +51,16 @@
                 <category android:name="android.intent.category.BROWSABLE"/>
                 <data android:scheme="spacehour" android:host="login-callback"/>
             </intent-filter>
-            <!-- 테마 공유 HTTPS 앱링크(주): https://kev208dev.github.io/theme/<code>
-                 autoVerify=true → 도메인 루트 /.well-known/assetlinks.json 검증 -->
+            <!-- 테마 공유 HTTPS 앱링크(주): https://kev208dev.github.io/Surlap/theme/<code>
+                 autoVerify=true → 도메인 루트 /.well-known/assetlinks.json 검증.
+                 (GitHub Pages 레포명이 서브패스로 붙음.) -->
             <intent-filter android:autoVerify="true">
                 <action android:name="android.intent.action.VIEW"/>
                 <category android:name="android.intent.category.DEFAULT"/>
                 <category android:name="android.intent.category.BROWSABLE"/>
                 <data android:scheme="https"
                       android:host="kev208dev.github.io"
-                      android:pathPrefix="/theme"/>
+                      android:pathPrefix="/Surlap/theme"/>
             </intent-filter>
         </activity>
         <!-- Don't delete the meta-data below.

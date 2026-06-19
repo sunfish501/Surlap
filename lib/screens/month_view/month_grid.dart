@@ -38,6 +38,9 @@ class MonthGrid extends StatefulWidget {
   final void Function(DateTime) onDayLongPress;
   final void Function(DateTime)? onDayDoubleTap;
   final bool heroCells;
+  /// 한 칸 높이 배율. 1.0=현재 화면 6주 균등분배(스크롤 없음).
+  /// 1.0 초과 → 그리드가 세로로 커지며 스크롤 가능. 1.0 미만 → 좀 더 빽빽.
+  final double cellHeightFactor;
 
   const MonthGrid({
     super.key,
@@ -59,6 +62,7 @@ class MonthGrid extends StatefulWidget {
     required this.onDayLongPress,
     this.onDayDoubleTap,
     this.heroCells = false,
+    this.cellHeightFactor = 1.0,
   });
 
   @override
@@ -189,14 +193,16 @@ class _MonthGridState extends State<MonthGrid> {
         ),
         Expanded(
           child: LayoutBuilder(builder: (ctx, c) {
-            final rowH = c.maxHeight / 6;
-            return Stack(
+            final baseRowH = c.maxHeight / 6;
+            final rowH = baseRowH * widget.cellHeightFactor;
+            final totalH = rowH * 6;
+            final needsScroll = totalH > c.maxHeight + 0.5;
+            final grid = Stack(
               children: [
                 Column(
                   children: List.generate(
                       6, (r) => SizedBox(height: rowH, child: _weekRow(r, rowH))),
                 ),
-                // 펼침: 바깥 탭 → 접힘 배리어 + 라벨 패널.
                 if (_expandedRow != null) ...[
                   Positioned.fill(
                     child: GestureDetector(
@@ -207,6 +213,10 @@ class _MonthGridState extends State<MonthGrid> {
                   _expandedPanel(_expandedRow!, rowH),
                 ],
               ],
+            );
+            if (!needsScroll) return grid;
+            return SingleChildScrollView(
+              child: SizedBox(height: totalH, child: grid),
             );
           }),
         ),

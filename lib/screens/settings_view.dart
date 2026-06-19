@@ -86,7 +86,7 @@ class SettingsSections extends ConsumerWidget {
                 },
               ),
               ...themes.map((t) => CategoryFilterChip(
-                    label: t.name,
+                    label: tr(t.name),
                     color: t.colorValue,
                     selected: !hidden.contains(t.id),
                     sh: sh,
@@ -218,6 +218,12 @@ class SettingsSections extends ConsumerWidget {
                     onSelected: notifier.setTimetableEmptyLabel,
                     sh: sh),
               ),
+              // 달력 한 칸 높이 — 0.8 ~ 1.4 슬라이더(1.0 기본).
+              _MonthCellSizeRow(
+                sh: sh,
+                value: settings.monthCellHeightFactor,
+                onChanged: notifier.setMonthCellHeightFactor,
+              ),
             ],
           ),
         ),
@@ -270,14 +276,14 @@ class SettingsSections extends ConsumerWidget {
                 icon: Icons.privacy_tip_outlined,
                 title: tr('개인정보 처리방침'),
                 onTap: () => _openUrl(
-                    'https://kev208dev.github.io/HourSpace-app/privacy.html'),
+                    'https://kev208dev.github.io/Surlap/privacy.html'),
               ),
               SettingsRow(
                 sh: sh,
                 icon: Icons.description_outlined,
                 title: tr('이용약관'),
                 onTap: () => _openUrl(
-                    'https://kev208dev.github.io/HourSpace-app/terms.html'),
+                    'https://kev208dev.github.io/Surlap/terms.html'),
               ),
             ],
           ),
@@ -385,6 +391,57 @@ class CategoryFilterChip extends StatelessWidget {
                     color: selected ? brand : sh.ink.withValues(alpha: 0.5))),
           ],
         ),
+      ),
+    );
+  }
+}
+
+// ─── 달력 한 칸 크기 슬라이더 행 ──────────────────────────────────
+class _MonthCellSizeRow extends StatelessWidget {
+  final SpaceHourColors sh;
+  final double value;
+  final ValueChanged<double> onChanged;
+  const _MonthCellSizeRow({
+    required this.sh,
+    required this.value,
+    required this.onChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 10, 16, 14),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(children: [
+            Icon(Icons.height_rounded, size: 18, color: sh.inkSoft),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(tr('달력 한 칸 크기'),
+                  style: AppType.body
+                      .copyWith(fontWeight: FontWeight.w600, color: sh.ink)),
+            ),
+            Text('${(value * 100).round()}%',
+                style: AppType.label
+                    .copyWith(color: sh.inkSoft, fontWeight: FontWeight.w700)),
+          ]),
+          SliderTheme(
+            data: SliderTheme.of(context).copyWith(
+              activeTrackColor: sh.accent,
+              inactiveTrackColor: sh.ink.withValues(alpha: 0.08),
+              thumbColor: sh.accent,
+              overlayColor: sh.accent.withValues(alpha: 0.16),
+            ),
+            child: Slider(
+              value: value,
+              min: 0.8,
+              max: 1.4,
+              divisions: 12,
+              onChanged: onChanged,
+            ),
+          ),
+        ],
       ),
     );
   }

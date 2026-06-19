@@ -24,7 +24,7 @@ Future<void> captureAndSaveImage() async {
     if (bytes == null) return;
     final now = DateTime.now();
     final name =
-        'HourSpace_${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}_${now.millisecondsSinceEpoch}';
+        'Surlap_${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}_${now.millisecondsSinceEpoch}';
     await Gal.putImageBytes(bytes.buffer.asUint8List(), name: name);
     _snack('이미지를 갤러리에 저장했어요');
   } on GalException catch (e) {

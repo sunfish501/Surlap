@@ -121,7 +121,7 @@ class AuthNotifier extends Notifier<User?> {
   }
 
   // 웹 OAuth 복귀 URL — 쿼리·프래그먼트(해시 라우트) 제거, 경로(서브패스)는 보존.
-  // 예: https://kev208dev.github.io/HourSpace-app/#/x → https://kev208dev.github.io/HourSpace-app/
+  // 예: https://kev208dev.github.io/Surlap/#/x → https://kev208dev.github.io/Surlap/
   String _webRedirectUrl() {
     final b = Uri.base;
     return Uri(
@@ -139,7 +139,7 @@ class AuthNotifier extends Notifier<User?> {
       await client.auth.signInWithOAuth(
         OAuthProvider.google,
         // 웹: 현재 앱 경로로 복귀 / 모바일: 등록된 딥링크 콜백으로 복귀.
-        // 웹은 origin 만 쓰면 GitHub Pages 서브패스(/HourSpace-app/)가 빠져
+        // 웹은 origin 만 쓰면 GitHub Pages 서브패스(/Surlap/)가 빠져
         // 앱이 아닌 루트로 복귀 → 세션을 못 받아 무한 로그인. 경로 보존 필요.
         // (Android의 Uri.base는 file:/// 이라 .origin이 StateError → 커스텀 스킴 사용)
         redirectTo: kIsWeb ? _webRedirectUrl() : 'spacehour://login-callback',

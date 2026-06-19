@@ -45,7 +45,8 @@ class AddEditEventModal extends ConsumerStatefulWidget {
 }
 
 class _AddEditEventModalState extends ConsumerState<AddEditEventModal> {
-  final _textCtrl = TextEditingController();
+  // 자연어 토큰("내일", "오후 3시" 등) 감지 시 입력창 안에서 빨갛게 강조.
+  final _TokenHighlightController _textCtrl = _TokenHighlightController();
   late String _dateKey;
   String? _startTime;
   String? _endTime;
@@ -54,6 +55,10 @@ class _AddEditEventModalState extends ConsumerState<AddEditEventModal> {
   String? _recurFreq; // null | 'W' | 'M' | 'Y'
   String? _recurUntil; // YYYY-MM-DD or null
   bool _conflictAcknowledged = false;
+  // 사용자가 직접 날짜/시간을 만졌으면 true. _save() 자동 적용 시 덮어쓰지 않도록.
+  bool _dateUserSet = false;
+  bool _startUserSet = false;
+  bool _endUserSet = false;
 
   bool get isEdit => widget.editIndex != null;
 
@@ -78,9 +83,9 @@ class _AddEditEventModalState extends ConsumerState<AddEditEventModal> {
     final s = _suggestion;
     if (s == null) return;
     setState(() {
-      if (s.dateKey != null) _dateKey = s.dateKey!;
-      if (s.tm != null) _startTime = s.tm;
-      if (s.te != null) _endTime = s.te;
+      if (s.dateKey != null) { _dateKey = s.dateKey!; _dateUserSet = true; }
+      if (s.tm != null) { _startTime = s.tm; _startUserSet = true; }
+      if (s.te != null) { _endTime = s.te; _endUserSet = true; }
       _textCtrl.text = s.title;
       _textCtrl.selection =
           TextSelection.collapsed(offset: _textCtrl.text.length);
@@ -252,8 +257,10 @@ class _AddEditEventModalState extends ConsumerState<AddEditEventModal> {
                   ),
                   if (_startTime != null)
                     TextButton(
-                      onPressed: () =>
-                          setState(() { _startTime = null; _endTime = null; }),
+                      onPressed: () => setState(() {
+                        _startTime = null; _endTime = null;
+                        _startUserSet = true; _endUserSet = true;
+                      }),
                       style: TextButton.styleFrom(
                           foregroundColor: sh.inkSoft,
                           padding: const EdgeInsets.only(left: 8)),
@@ -424,7 +431,7 @@ class _AddEditEventModalState extends ConsumerState<AddEditEventModal> {
         child: child!,
       ),
     );
-    if (picked != null) setState(() => _dateKey = du.toDateKey(picked));
+    if (picked != null) setState(() { _dateKey = du.toDateKey(picked); _dateUserSet = true; });
   }
 
   Future<void> _pickUntilDate() async {
@@ -469,15 +476,25 @@ class _AddEditEventModalState extends ConsumerState<AddEditEventModal> {
     final fmt =
         '${picked.hour.toString().padLeft(2, '0')}:${picked.minute.toString().padLeft(2, '0')}';
     setState(() {
-      if (isStart) { _startTime = fmt; } else { _endTime = fmt; }
+      if (isStart) { _startTime = fmt; _startUserSet = true; }
+      else { _endTime = fmt; _endUserSet = true; }
     });
   }
 
   void _save() async {
-    final text = _textCtrl.text.trim();
+    var text = _textCtrl.text.trim();
     if (text.isEmpty) {
       MascotToast.error(context, tr('제목을 입력해주세요'));
       return;
+    }
+    // 신규 추가 시: 본문에 "내일 5시" 같은 자연어 토큰이 남아 있고 사용자가
+    // 날짜/시간을 직접 만지지 않았다면 그대로 적용. 직접 만진 값은 덮어쓰지 않음.
+    if (!isEdit) {
+      final p = parseEventInput(text);
+      if (p.dateKey != null && !_dateUserSet) _dateKey = p.dateKey!;
+      if (p.tm != null && !_startUserSet) _startTime = p.tm;
+      if (p.te != null && !_endUserSet) _endTime = p.te;
+      if (p.title.isNotEmpty) text = p.title;
     }
 
     // 충돌 감지 — 시작/종료 시각 둘 다 있을 때 + 미확정 상태일 때만 1회.
@@ -707,7 +724,7 @@ class _ThemeChip extends StatelessWidget {
                 decoration: BoxDecoration(
                     color: color, shape: BoxShape.circle)),
             const SizedBox(width: Gap.xs),
-            Text(theme.name,
+            Text(tr(theme.name),
                 style: AppType.caption.copyWith(
                     color: selected ? color : color.withValues(alpha: 0.8),
                     fontWeight: selected ? FontWeight.w700 : FontWeight.w500)),
@@ -810,5 +827,50 @@ class _ParseSuggestionChip extends StatelessWidget {
         ),
       ),
     );
+  }
+}
+
+/// 자연어 토큰("내일", "오후 3시", "월요일", "9시-10시" 등)이 입력 안에 있으면
+/// 그 부분만 빨간색으로 칠해 사용자가 "감지됐다"는 걸 바로 알 수 있게 한다.
+class _TokenHighlightController extends TextEditingController {
+  static final RegExp _tokenRe = RegExp(
+    // 상대 날짜
+    r'(오늘|내일|낼|모레|글피|다음주|담주|이번주)'
+    // 요일
+    r'|([월화수목금토일])요일?'
+    // M월 D일 / M/D
+    r'|(\d{1,2}\s*월\s*\d{1,2}\s*일?)'
+    r'|(\d{1,2}/\d{1,2})'
+    // 시각/시간 범위 — "오후 3시", "3시 30분", "3:30", "9시-10시"
+    r'|((?:오전|오후|아침|점심|저녁|밤)\s*)?\d{1,2}(?:시\s*\d{0,2}\s*(?:반|분)?|:\d{2})(?:\s*[-~]\s*(?:(?:오전|오후|아침|점심|저녁|밤)\s*)?\d{1,2}(?:시\s*\d{0,2}\s*(?:반|분)?|:\d{2}))?',
+  );
+
+  @override
+  TextSpan buildTextSpan({
+    required BuildContext context,
+    TextStyle? style,
+    required bool withComposing,
+  }) {
+    final text = this.text;
+    if (text.isEmpty) {
+      return TextSpan(style: style, text: text);
+    }
+    final spans = <TextSpan>[];
+    var cursor = 0;
+    final highlight = (style ?? const TextStyle()).copyWith(
+      color: const Color(0xFFE53935),
+      fontWeight: FontWeight.w800,
+    );
+    for (final m in _tokenRe.allMatches(text)) {
+      if (m.start > cursor) {
+        spans.add(TextSpan(text: text.substring(cursor, m.start), style: style));
+      }
+      spans.add(TextSpan(text: text.substring(m.start, m.end), style: highlight));
+      cursor = m.end;
+    }
+    if (cursor < text.length) {
+      spans.add(TextSpan(text: text.substring(cursor), style: style));
+    }
+    return TextSpan(style: style, children: spans);
   }
 }

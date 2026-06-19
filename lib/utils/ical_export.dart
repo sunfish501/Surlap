@@ -9,11 +9,11 @@ class IcalExport {
   IcalExport._();
 
   static String buildIcs(Map<String, List<EventItem>> events,
-      {String calName = 'HourSpace'}) {
+      {String calName = 'Surlap'}) {
     final lines = <String>[
       'BEGIN:VCALENDAR',
       'VERSION:2.0',
-      'PRODID:-//HourSpace//KO',
+      'PRODID:-//Surlap//KO',
       'CALSCALE:GREGORIAN',
       'X-WR-CALNAME:$calName',
     ];
@@ -115,14 +115,14 @@ class IcalExport {
     final ics = buildIcs(events);
     final dir = await getApplicationDocumentsDirectory();
     final now = DateTime.now();
-    final fname = 'HourSpace_${now.year}-'
+    final fname = 'Surlap_${now.year}-'
         '${now.month.toString().padLeft(2, '0')}-'
         '${now.day.toString().padLeft(2, '0')}.ics';
     final file = File('${dir.path}/$fname');
     await file.writeAsString(ics);
     await Share.shareXFiles(
       [XFile(file.path, mimeType: 'text/calendar')],
-      text: 'HourSpace 일정 (iCal)',
+      text: 'Surlap 일정 (iCal)',
     );
   }
 }

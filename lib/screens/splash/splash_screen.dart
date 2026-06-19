@@ -132,7 +132,7 @@ class _SplashScreenState extends State<SplashScreen>
                           child: Transform.translate(
                             offset: Offset(0, _wordDrift.value),
                             child: Text(
-                              'HourSpace',
+                              'Surlap',
                               style: TextStyle(
                                 fontSize: 27,
                                 fontWeight: FontWeight.w700,

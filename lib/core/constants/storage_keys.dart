@@ -40,6 +40,8 @@ abstract final class StorageKeys {
   static const appLang       = 'calendar-app-lang-v1';
   // 테마 관리 활용 팁 — 처음 1회만 노출.
   static const themeTipSeen  = 'calendar-theme-tip-seen-v1';
+  // 달력 길게 누르기 힌트 — 처음 1회만 노출.
+  static const longPressHintSeen = 'calendar-longpress-hint-seen-v1';
   // 생일 알림 설정 — 기기 설정값.
   static const birthdayNotifyEnabled = 'calendar-bday-notify-enabled-v1';
   static const birthdayNotifyDaysBefore = 'calendar-bday-notify-days-v1';
@@ -52,6 +54,8 @@ abstract final class StorageKeys {
   static const briefingEnabled = 'calendar-briefing-enabled-v1';
   static const briefingHour = 'calendar-briefing-hour-v1';
   static const cellDesign    = 'calendar-cell-design-v1';
+  // 달력 한 칸 높이 배율 — 0.8 ~ 1.4. 1.0 기본. 1.0 미만은 자동 분배, 초과는 스크롤.
+  static const monthCellHeightFactor = 'calendar-month-cell-height-v1';
   static const neisSchool    = 'calendar-neis-school-v1';
   // 사용자 유형(일반인/초·중·고·대) — 로그인 없이 기기에 저장. 온보딩에서 선택.
   static const userType      = 'calendar-user-type-v1';

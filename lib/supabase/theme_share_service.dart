@@ -9,11 +9,13 @@ import 'supabase_client.dart';
 /// 스키마(웹 앱과 동일): code(text, 공유코드), payload(jsonb), created_by(uuid).
 class ThemeShareService {
   // 딥링크 — https 앱링크(주) + 커스텀 스킴(보조)
+  // GitHub Pages 레포 이름이 서브패스로 들어감(`/Surlap/`).
   static const scheme = 'spacehour';
   static const httpsDomain = 'kev208dev.github.io';
+  static const httpsBasePath = '/Surlap';
   static String linkForCode(String code) => '$scheme://theme/$code';
   static String httpsLinkForCode(String code) =>
-      'https://$httpsDomain/theme/$code';
+      'https://$httpsDomain$httpsBasePath/theme/$code';
 
   // 8자리 대문자+숫자 공유 코드 생성
   static String _generateCode() {

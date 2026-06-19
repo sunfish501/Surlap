@@ -39,7 +39,7 @@ const kBrandPurple = Color(0xFF5A2DF4);
 
 const kDefaultPreset = ColorPreset(
   id: 'light',
-  name: 'HourSpace',
+  name: 'Surlap',
   dot: kBrandPurple,
   accent: kBrandPurple,
   accentInk: Color(0xFF4A1FD0),
@@ -57,7 +57,7 @@ const kDefaultPreset = ColorPreset(
 // 다크: 어두운 배경 + 흰 글자. 라이트와 동일한 토큰 구조.
 const kDarkPreset = ColorPreset(
   id: 'dark',
-  name: 'HourSpace Dark',
+  name: 'Surlap Dark',
   dot: Color(0xFF8B6CFF),
   accent: Color(0xFF8B6CFF),
   accentInk: Color(0xFFC4B2FF),

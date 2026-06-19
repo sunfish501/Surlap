@@ -36,16 +36,15 @@ class _BirthdayManagerModalState extends ConsumerState<BirthdayManagerModal> {
     super.dispose();
   }
 
-  void _snack(String m) =>
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(m)));
-
   Future<void> _pickDate() async {
     final now = DateTime.now();
+    final initial = _picked ?? DateTime(now.year - 20, now.month, now.day);
+    final last = DateTime(now.year + 10, 12, 31);
     final picked = await showDatePicker(
       context: context,
-      initialDate: _picked ?? DateTime(now.year - 20, now.month, now.day),
+      initialDate: initial,
       firstDate: DateTime(1900),
-      lastDate: DateTime(now.year + 1),
+      lastDate: last,
       builder: (ctx, child) => Theme(
         data: Theme.of(ctx).copyWith(
           colorScheme: Theme.of(
@@ -59,9 +58,14 @@ class _BirthdayManagerModalState extends ConsumerState<BirthdayManagerModal> {
   }
 
   void _addManual() {
+    FocusScope.of(context).unfocus();
     final name = _nameCtrl.text.trim();
-    if (name.isEmpty || _picked == null) {
-      _snack(tr('이름과 생일을 입력해 주세요'));
+    if (name.isEmpty) {
+      MascotToast.error(context, tr('이름을 입력해 주세요'));
+      return;
+    }
+    if (_picked == null) {
+      MascotToast.error(context, tr('생일 날짜를 선택해 주세요'));
       return;
     }
     ref
@@ -170,28 +174,34 @@ class _BirthdayManagerModalState extends ConsumerState<BirthdayManagerModal> {
                             ],
                           ),
                           if (notify.enabled) ...[
-                            const SizedBox(height: 6),
-                            Row(
-                              children: [
-                                Text(
-                                  tr('며칠 전 알림'),
-                                  style: AppType.label.copyWith(
-                                    color: sh.inkSoft,
-                                  ),
+                            const SizedBox(height: 10),
+                            Align(
+                              alignment: Alignment.centerLeft,
+                              child: Text(
+                                tr('미리 알림'),
+                                style: AppType.label.copyWith(
+                                  color: sh.inkSoft,
                                 ),
-                                const Spacer(),
-                                for (final d in const [0, 1, 3, 7])
-                                  Padding(
-                                    padding: const EdgeInsets.only(left: 6),
-                                    child: _DayChip(
-                                      label: d == 0 ? tr('당일만') : trf('{0}일 전', [d]),
-                                      selected: notify.daysBefore == d,
-                                      color: sh.birthdayColor,
-                                      sh: sh,
-                                      onTap: () => ref
-                                          .read(birthdayNotifyProvider.notifier)
-                                          .setDaysBefore(d),
-                                    ),
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            Wrap(
+                              spacing: 6,
+                              runSpacing: 6,
+                              children: [
+                                for (final d in const [0, 1, 3, 7, 30])
+                                  _DayChip(
+                                    label: d == 0
+                                        ? tr('당일만')
+                                        : d == 30
+                                            ? tr('1달 전')
+                                            : trf('{0}일 전', [d]),
+                                    selected: notify.daysBefore == d,
+                                    color: sh.birthdayColor,
+                                    sh: sh,
+                                    onTap: () => ref
+                                        .read(birthdayNotifyProvider.notifier)
+                                        .setDaysBefore(d),
                                   ),
                               ],
                             ),
@@ -228,58 +238,73 @@ class _BirthdayManagerModalState extends ConsumerState<BirthdayManagerModal> {
                           Divider(color: sh.border, height: 16),
                           Row(
                             children: [
-                              GestureDetector(
-                                onTap: _pickDate,
-                                child: Row(
-                                  children: [
-                                    Icon(
-                                      Icons.cake_outlined,
-                                      size: 18,
-                                      color: sh.birthdayColor,
+                              Expanded(
+                                child: InkWell(
+                                  onTap: _pickDate,
+                                  borderRadius: BorderRadius.circular(10),
+                                  child: Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                        vertical: 10, horizontal: 4),
+                                    child: Row(
+                                      children: [
+                                        Icon(
+                                          Icons.cake_outlined,
+                                          size: 18,
+                                          color: sh.birthdayColor,
+                                        ),
+                                        const SizedBox(width: 8),
+                                        Expanded(
+                                          child: Text(
+                                            _picked == null
+                                                ? tr('생일 선택')
+                                                : _includeYear
+                                                    ? '${_picked!.year}.${_picked!.month}.${_picked!.day}'
+                                                    : trf('{0}월 {1}일', [
+                                                        _picked!.month,
+                                                        _picked!.day
+                                                      ]),
+                                            style: AppType.body.copyWith(
+                                              color: _picked == null
+                                                  ? sh.inkFaint
+                                                  : sh.ink,
+                                              fontWeight: FontWeight.w600,
+                                            ),
+                                          ),
+                                        ),
+                                      ],
                                     ),
-                                    const SizedBox(width: 8),
-                                    Text(
-                                      _picked == null
-                                          ? tr('생일 선택')
-                                          : _includeYear
-                                          ? '${_picked!.year}.${_picked!.month}.${_picked!.day}'
-                                          : trf('{0}월 {1}일', [_picked!.month, _picked!.day]),
-                                      style: AppType.body.copyWith(
-                                        color: _picked == null
-                                            ? sh.inkFaint
-                                            : sh.ink,
-                                        fontWeight: FontWeight.w600,
-                                      ),
-                                    ),
-                                  ],
+                                  ),
                                 ),
                               ),
-                              const Spacer(),
-                              // 연도 포함 토글
-                              GestureDetector(
+                              const SizedBox(width: 6),
+                              InkWell(
                                 onTap: () => setState(
-                                  () => _includeYear = !_includeYear,
-                                ),
-                                child: Row(
-                                  children: [
-                                    Icon(
-                                      _includeYear
-                                          ? Icons.check_box_rounded
-                                          : Icons
+                                    () => _includeYear = !_includeYear),
+                                borderRadius: BorderRadius.circular(10),
+                                child: Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                      vertical: 10, horizontal: 6),
+                                  child: Row(
+                                    children: [
+                                      Icon(
+                                        _includeYear
+                                            ? Icons.check_box_rounded
+                                            : Icons
                                                 .check_box_outline_blank_rounded,
-                                      size: 18,
-                                      color: _includeYear
-                                          ? sh.birthdayColor
-                                          : sh.inkFaint,
-                                    ),
-                                    const SizedBox(width: 4),
-                                    Text(
-                                      tr('연도 포함'),
-                                      style: AppType.label.copyWith(
-                                        color: sh.inkSoft,
+                                        size: 18,
+                                        color: _includeYear
+                                            ? sh.birthdayColor
+                                            : sh.inkFaint,
                                       ),
-                                    ),
-                                  ],
+                                      const SizedBox(width: 4),
+                                      Text(
+                                        tr('연도 포함'),
+                                        style: AppType.label.copyWith(
+                                          color: sh.inkSoft,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
                                 ),
                               ),
                             ],

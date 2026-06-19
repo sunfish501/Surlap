@@ -6,6 +6,7 @@ import '../models/sports.dart';
 import '../sports/sports_catalog.dart';
 import '../providers/sports_provider.dart';
 import '../widgets/sport_logo.dart';
+import '../i18n/strings.dart';
 
 /// 스포츠 구독 흐름 — 종목 → 리그/대회 → 팀/선수 → 구독.
 Future<void> showSportsSubscribeSheet(BuildContext context) =>
@@ -109,8 +110,8 @@ class _SheetState extends ConsumerState<_SportsSubscribeSheet> {
           for (final s in kSports)
             _Tile(
               emoji: s.emoji,
-              label: s.label,
-              sub: s.gamesSupported ? null : '곧 지원',
+              label: tr(s.label),
+              sub: s.gamesSupported ? null : tr('곧 지원'),
               sh: sh,
               onTap: () => setState(() {
                 _sport = s;
@@ -125,7 +126,7 @@ class _SheetState extends ConsumerState<_SportsSubscribeSheet> {
         children: [
           for (final l in _sport!.leagues)
             _Row(
-              label: l.name,
+              label: tr(l.name),
               sh: sh,
               onTap: () => setState(() => _league = l),
             ),
@@ -166,7 +167,7 @@ class _SheetState extends ConsumerState<_SportsSubscribeSheet> {
             SportLogo(logoUrl: t.logo, emoji: _sport!.emoji, size: 28),
             const SizedBox(width: 10),
             Expanded(
-              child: Text(t.name,
+              child: Text(tr(t.name),
                   style: AppType.body.copyWith(
                       fontWeight: FontWeight.w700, color: sh.ink)),
             ),

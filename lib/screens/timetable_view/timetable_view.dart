@@ -19,7 +19,6 @@ import '../../providers/neis_cache_provider.dart';
 import '../../providers/academic_schedule_provider.dart';
 import '../../providers/settings_provider.dart';
 import '../../modals/neis_setup_modal.dart';
-import '../../widgets/zoom_button.dart';
 import '../../i18n/strings.dart';
 
 // ─── Row definition ───────────────────────────────────────────────
@@ -156,8 +155,9 @@ class _TimetableViewState extends ConsumerState<TimetableView> {
 
   // 디자인 모드(셀 꾸미기) — 화면 로컬 UI 상태.
   bool _designMode = false;
-  // 밀도 — 0=넓게 … 1=최대압축(한 화면). 슬라이더로 연속 조절.
+  // 밀도 — 0=넓게 … 1=최대압축(한 화면). 두 손가락 핀치로 연속 조절.
   double _density = 0;
+  double _densityStart = 0; // 핀치 시작 시점 밀도 snapshot
   _Density _dim = _Density.wide;
 
   // 가로/세로 스크롤 — 고정 라벨열·헤더가 본문을 따라가도록 동기화.
@@ -629,19 +629,7 @@ class _TimetableViewState extends ConsumerState<TimetableView> {
                         fontWeight: FontWeight.w800,
                         color: _designMode ? sh.accent : sh.ink)),
               ),
-              // 확대/축소 — 슬라이더 + %.
-              ZoomControl(
-                value: 1 - _density,
-                percent: (100 - _density * 50).round(),
-                onMinus: () =>
-                    setState(() => _density = (_density + 0.25).clamp(0.0, 1.0)),
-                onPlus: () =>
-                    setState(() => _density = (_density - 0.25).clamp(0.0, 1.0)),
-                onChanged: (v) =>
-                    setState(() => _density = (1 - v).clamp(0.0, 1.0)),
-                sh: sh,
-              ),
-              const SizedBox(width: Gap.xs),
+              // 확대/축소는 본문에서 두 손가락 핀치로 조절 — 별도 버튼 없음.
               _HamburgerBtn(onTap: () => _openMenu(context, sh)),
             ],
           ),
@@ -684,8 +672,20 @@ class _TimetableViewState extends ConsumerState<TimetableView> {
         ),
 
         // ── 본문 — 좌측 고정 라벨열 + 가로/세로 스크롤 그리드 ──────
+        // 두 손가락 핀치로 확대/축소(밀도 조절). 한 손가락은 스크롤로 통과.
         Expanded(
-          child: Row(
+          child: GestureDetector(
+            behavior: HitTestBehavior.deferToChild,
+            onScaleStart: (_) => _densityStart = _density,
+            onScaleUpdate: (d) {
+              if (d.pointerCount < 2) return;
+              // scale>1 (벌림) → 밀도 감소(더 넓게). scale<1 (오므림) → 밀도 증가(더 압축).
+              final next = (_densityStart / d.scale).clamp(0.0, 1.0);
+              if ((next - _density).abs() > 0.005) {
+                setState(() => _density = next);
+              }
+            },
+            child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // 고정 시간/교시 라벨열 (세로 동기)
@@ -763,6 +763,7 @@ class _TimetableViewState extends ConsumerState<TimetableView> {
                 ),
               ),
             ],
+          ),
           ),
         ),
       ],
@@ -1281,11 +1282,11 @@ class _TimetableExportPageState extends ConsumerState<TimetableExportPage> {
       }
       final dir = await getTemporaryDirectory();
       final file = File(
-          '${dir.path}/HourSpace_timetable_${DateTime.now().millisecondsSinceEpoch}.png');
+          '${dir.path}/Surlap_timetable_${DateTime.now().millisecondsSinceEpoch}.png');
       await file.writeAsBytes(bytes);
       await Share.shareXFiles(
         [XFile(file.path, mimeType: 'image/png')],
-        text: tr('HourSpace 시간표'),
+        text: tr('Surlap 시간표'),
         sharePositionOrigin: origin,
       );
     } catch (e) {
@@ -1302,7 +1303,7 @@ class _TimetableExportPageState extends ConsumerState<TimetableExportPage> {
       final bytes = await _capture();
       if (bytes == null) return;
       await Gal.putImageBytes(bytes,
-          name: 'HourSpace_timetable_${DateTime.now().millisecondsSinceEpoch}');
+          name: 'Surlap_timetable_${DateTime.now().millisecondsSinceEpoch}');
       _toast(tr('이미지를 갤러리에 저장했어요'));
     } catch (_) {
       _toast(tr('저장하지 못했어요'));

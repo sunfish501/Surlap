@@ -95,11 +95,17 @@ class DayCell extends StatelessWidget {
               ? BoxDecoration(
                   color: sh.accent,
                   shape: BoxShape.circle,
+                  // 보라색 글로우 — 오늘 날짜가 빛나는 느낌. 다단 그림자로 깊이감.
                   boxShadow: [
                     BoxShadow(
-                      color: sh.accent.withValues(alpha: 0.28),
-                      blurRadius: 12,
-                      offset: const Offset(0, 4),
+                      color: sh.accent.withValues(alpha: 0.55),
+                      blurRadius: 18,
+                      spreadRadius: 1,
+                    ),
+                    BoxShadow(
+                      color: sh.accent.withValues(alpha: 0.35),
+                      blurRadius: 8,
+                      spreadRadius: 0,
                     ),
                   ],
                 )

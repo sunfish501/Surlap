@@ -92,7 +92,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         size: 140,
                         showStars: true),
                     const SizedBox(height: 22),
-                    const Text('HourSpace',
+                    const Text('Surlap',
                         style: TextStyle(
                             fontSize: 26,
                             fontWeight: FontWeight.w800,

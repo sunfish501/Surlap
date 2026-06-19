@@ -8,6 +8,7 @@ import '../../sports/sports_catalog.dart';
 import '../../providers/sports_provider.dart';
 import '../../modals/sports_subscribe_sheet.dart';
 import '../../modals/sport_color_picker.dart';
+import '../../i18n/strings.dart';
 import '../../widgets/sport_logo.dart';
 
 /// 테마 관리 탭의 "스포츠 구독" 섹션.
@@ -145,14 +146,14 @@ class SportsSubscriptionSection extends ConsumerWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(s.teamName,
+                Text(tr(s.teamName),
                     style: AppType.body.copyWith(
                         fontWeight: FontWeight.w700, color: sh.ink)),
                 // 미지원 종목(e스포츠·F1 등)은 경기 소스가 없음을 명시.
                 sportInfo(s.kind).gamesSupported
-                    ? Text(s.leagueName,
+                    ? Text(tr(s.leagueName),
                         style: AppType.caption.copyWith(color: sh.inkSoft))
-                    : Text('${s.leagueName} · 경기 소스 없음',
+                    : Text(trf('{0} · 경기 소스 없음', [tr(s.leagueName)]),
                         style: AppType.caption.copyWith(color: sh.danger)),
               ],
             ),

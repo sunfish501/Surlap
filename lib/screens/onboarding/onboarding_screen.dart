@@ -124,7 +124,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                               height: 26, fit: BoxFit.contain),
                           const SizedBox(width: 8),
                           const Text(
-                            'HourSpace',
+                            'Surlap',
                             style: TextStyle(
                               fontSize: 17,
                               fontWeight: FontWeight.w800,

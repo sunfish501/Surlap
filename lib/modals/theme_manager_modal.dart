@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:uuid/uuid.dart';
 import '../core/theme/app_theme.dart';
 import '../core/theme/category_colors.dart';
@@ -637,11 +638,17 @@ class _ThemeRowState extends ConsumerState<_ThemeRow> {
     }
   }
 
-  // OS 공유창 대신 앱 자체 모달(코드창)을 띄운다 — 코드/링크 각각 클립보드 복사.
-  // 링크는 앱이 실제 처리하는 커스텀 스킴(spacehour://theme/CODE)을 쓴다.
-  // (기존 https://kev208dev.github.io/theme/... 는 랜딩 페이지가 없어 404였음)
-  void _shareLink(String name, String code) {
-    final link = ThemeShareService.linkForCode(code);
-    showShareCodeModal(context, name, code, link);
+  // 카톡/인스타 등 OS 공유 시트 — 메세지 + 링크(공유코드 포함).
+  // 길게 누름 등 별도 진입은 share_code_modal(코드/링크 클립보드 복사)로 대비.
+  void _shareLink(String name, String code) async {
+    final link = ThemeShareService.httpsLinkForCode(code);
+    final who = userDisplayName(ref.read(authProvider));
+    final msg = trf('{0}님이 "{1}" 공유달력을 공유합니다.', [who, name]);
+    try {
+      await Share.share('$msg\n$link', subject: name);
+    } catch (_) {
+      // 공유 시트가 실패하면 코드/링크 복사 모달로 폴백.
+      if (mounted) showShareCodeModal(context, name, code, link);
+    }
   }
 }

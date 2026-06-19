@@ -83,7 +83,7 @@ class CalendarFilterStrip extends ConsumerWidget {
         ),
       // 스포츠 구독 — 구독별 칩(이모지+팀명, 고유색).
       ...sportsSubs.where((s) => s.enabled).map((s) => CategoryFilterChip(
-            label: '${s.emoji} ${s.teamName}',
+            label: '${s.emoji} ${tr(s.teamName)}',
             color: Color(s.color),
             selected: !hidden.contains(s.id),
             sh: sh,

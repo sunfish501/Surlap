@@ -73,7 +73,7 @@ List<_Feature> get _features => [
         c1: const Color(0xFF6B3DF9),
         c2: const Color(0xFF9B6BFF),
         title: tr('이제 시작해요'),
-        desc: tr('당신의 하루를 더 단순하고 단단하게. HourSpace와 함께해요.'),
+        desc: tr('당신의 하루를 더 단순하고 단단하게. Surlap과 함께해요.'),
         mock: _Mock.start,
       ),
     ];

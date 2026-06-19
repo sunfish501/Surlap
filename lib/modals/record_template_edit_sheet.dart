@@ -10,12 +10,12 @@ import '../i18n/strings.dart';
 /// 새 템플릿 만들기 / 커스텀 템플릿 편집.
 /// [base] 가 있으면 그 값으로 시작(복제/편집), 없으면 빈 새 템플릿.
 /// [editingId] 가 있으면 update, 없으면 add(새 id 생성).
-Future<void> showRecordTemplateEditSheet(
+Future<RecordTemplate?> showRecordTemplateEditSheet(
   BuildContext context, {
   RecordTemplate? base,
   String? editingId,
 }) =>
-    showModalBottomSheet(
+    showModalBottomSheet<RecordTemplate>(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
@@ -83,7 +83,7 @@ class _EditSheetState extends ConsumerState<_EditSheet> {
     } else {
       await notifier.add(tpl);
     }
-    if (mounted) Navigator.pop(context);
+    if (mounted) Navigator.pop(context, tpl);
   }
 
   @override
@@ -237,30 +237,29 @@ class _EditSheetState extends ConsumerState<_EditSheet> {
 
   Widget _field(TextEditingController c, String hint, SpaceHourColors sh,
       {ValueChanged<String>? onChanged}) {
+    // 단일 컨테이너만 — 내부 Center/하위 박스 없이 평면화. 이중 가두리 인상 제거.
     return Container(
       height: 46,
       padding: const EdgeInsets.symmetric(horizontal: 14),
+      alignment: Alignment.centerLeft,
       decoration: BoxDecoration(
         color: sh.card2,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: sh.ink.withValues(alpha: 0.06)),
       ),
-      child: Center(
-        child: TextField(
-          controller: c,
-          style: AppType.body.copyWith(color: sh.ink),
-          onChanged: onChanged,
-          decoration: InputDecoration(
-            isCollapsed: true,
-            // 이중 배경 방지 — 바깥 컨테이너 하나만 배경.
-            filled: false,
-            border: InputBorder.none,
-            enabledBorder: InputBorder.none,
-            focusedBorder: InputBorder.none,
-            contentPadding: EdgeInsets.zero,
-            hintText: hint,
-            hintStyle: TextStyle(color: sh.inkFaint),
-          ),
+      child: TextField(
+        controller: c,
+        style: AppType.body.copyWith(color: sh.ink),
+        onChanged: onChanged,
+        decoration: InputDecoration(
+          isCollapsed: true,
+          filled: false,
+          border: InputBorder.none,
+          enabledBorder: InputBorder.none,
+          focusedBorder: InputBorder.none,
+          contentPadding: EdgeInsets.zero,
+          hintText: hint,
+          hintStyle: TextStyle(color: sh.inkFaint),
         ),
       ),
     );

@@ -249,25 +249,24 @@ class _RecordEntrySheetState extends ConsumerState<_RecordEntrySheet> {
                       child: Container(
                         height: 42,
                         padding: const EdgeInsets.symmetric(horizontal: 12),
+                        alignment: Alignment.centerLeft,
                         decoration: BoxDecoration(
                           color: sh.card2,
                           borderRadius: BorderRadius.circular(12),
                           border: Border.all(
                               color: sh.ink.withValues(alpha: 0.06)),
                         ),
-                        child: Center(
-                          child: TextField(
-                            controller: _tagCtrl,
-                            style: AppType.body.copyWith(color: sh.ink),
-                            textInputAction: TextInputAction.done,
-                            decoration: InputDecoration(
-                              isCollapsed: true,
-                              border: InputBorder.none,
-                              hintText: '${tpl.tagsLabel} 추가',
-                              hintStyle: TextStyle(color: sh.inkFaint),
-                            ),
-                            onSubmitted: _addTag,
+                        child: TextField(
+                          controller: _tagCtrl,
+                          style: AppType.body.copyWith(color: sh.ink),
+                          textInputAction: TextInputAction.done,
+                          decoration: InputDecoration(
+                            isCollapsed: true,
+                            border: InputBorder.none,
+                            hintText: '${tpl.tagsLabel} 추가',
+                            hintStyle: TextStyle(color: sh.inkFaint),
                           ),
+                          onSubmitted: _addTag,
                         ),
                       ),
                     ),

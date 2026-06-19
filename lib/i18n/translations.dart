@@ -466,7 +466,13 @@ const Map<String, Map<AppLang, String>> kTranslations = {
   '전체 시간': {AppLang.en: 'All hours', AppLang.ja: '全時間', AppLang.zh: '全部时段', AppLang.es: 'Todas las horas'},
   '시간표도 자동으로': {AppLang.en: 'Timetable too — automatically', AppLang.ja: '時間割も自動で', AppLang.zh: '课程表也自动', AppLang.es: 'El horario también, automático'},
   '시간표를 깔끔한 이미지로 내보내요': {AppLang.en: 'Export your timetable as a clean image', AppLang.ja: '時間割をきれいな画像で書き出し', AppLang.zh: '将课程表导出为清晰图片', AppLang.es: 'Exporta tu horario como imagen limpia'},
-  'HourSpace 시간표': {AppLang.en: 'HourSpace Timetable', AppLang.ja: 'HourSpace 時間割', AppLang.zh: 'HourSpace 课程表', AppLang.es: 'Horario HourSpace'},
+  'Surlap 시간표': {AppLang.en: 'Surlap Timetable', AppLang.ja: 'Surlap 時間割', AppLang.zh: 'Surlap 课程表', AppLang.es: 'Horario Surlap'},
+  '{0}님이 "{1}" 공유달력을 공유합니다.': {
+    AppLang.en: '{0} is sharing the "{1}" calendar with you.',
+    AppLang.ja: '{0}さんが「{1}」共有カレンダーを共有しています。',
+    AppLang.zh: '{0} 与你分享了"{1}"共享日历。',
+    AppLang.es: '{0} comparte el calendario "{1}".',
+  },
   '내용: {0}': {AppLang.en: 'Content: {0}', AppLang.ja: '内容：{0}', AppLang.zh: '内容: {0}', AppLang.es: 'Contenido: {0}'},
   '내일 p1 빨래하기': {AppLang.en: 'laundry tomorrow p1', AppLang.ja: '明日 p1 洗濯', AppLang.zh: '明天 p1 洗衣服', AppLang.es: 'lavar ropa mañana p1'},
   '마이크를 꾹 누른 채로 말하고 떼면 입력돼요 (예: "내일 p1 빨래하기"). 첫 사용 시 권한 허용 필요': {
@@ -626,11 +632,11 @@ const Map<String, Map<AppLang, String>> kTranslations = {
     AppLang.zh: '订阅球队或赛事，比赛日程会按颜色显示。',
     AppLang.es: 'Suscríbete a equipos o ligas — los partidos aparecen en color.',
   },
-  '당신의 하루를 더 단순하고 단단하게. HourSpace와 함께해요.': {
-    AppLang.en: 'A simpler, stronger day. With HourSpace.',
-    AppLang.ja: 'あなたの一日をもっとシンプルに、確かに。HourSpace と。',
-    AppLang.zh: '让你的每一天更简洁、更踏实。与 HourSpace 同行。',
-    AppLang.es: 'Un día más simple y firme. Con HourSpace.',
+  '당신의 하루를 더 단순하고 단단하게. Surlap과 함께해요.': {
+    AppLang.en: 'A simpler, stronger day. With Surlap.',
+    AppLang.ja: 'あなたの一日をもっとシンプルに、確かに。Surlap と。',
+    AppLang.zh: '让你的每一天更简洁、更踏实。与 Surlap 同行。',
+    AppLang.es: 'Un día más simple y firme. Con Surlap.',
   },
   '🍱 급식': {AppLang.en: '🍱 Meals', AppLang.ja: '🍱 給食', AppLang.zh: '🍱 餐食', AppLang.es: '🍱 Comidas'},
   '🏀 NBA': {AppLang.en: '🏀 NBA', AppLang.ja: '🏀 NBA', AppLang.zh: '🏀 NBA', AppLang.es: '🏀 NBA'},

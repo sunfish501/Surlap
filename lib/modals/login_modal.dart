@@ -68,7 +68,7 @@ class _LoginModalState extends ConsumerState<LoginModal> {
               children: [
                 Image.asset('assets/mascot/splash_icon.png', height: 30),
                 const SizedBox(width: 8),
-                Text('HourSpace',
+                Text('Surlap',
                     style: AppType.title.copyWith(
                         fontWeight: FontWeight.w800, color: sh.ink)),
               ],

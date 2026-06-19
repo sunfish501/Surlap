@@ -22,6 +22,8 @@ import '../../supabase/neis_service.dart';
 import '../../modals/add_todo_modal.dart';
 import '../../modals/birthday_manager_modal.dart';
 import '../../modals/neis_setup_modal.dart';
+import '../../modals/add_edit_event_modal.dart';
+import '../../modals/event_detail_sheet.dart';
 import '../../widgets/mascot/mascot.dart';
 import '../../widgets/mascot/mascot_feedback.dart';
 import '../../widgets/pressable.dart';
@@ -157,6 +159,16 @@ class _HomeViewState extends ConsumerState<HomeView> {
                 themes: themes,
                 now: now,
                 onTap: () => notifier.setDayView(todayKey),
+                onTapEvent: (e) {
+                  // 사용자 편집 가능 일정(반복 가상·sport·academic 제외)이면 편집 모달, 아니면 상세 시트.
+                  final list = events[todayKey] ?? const <EventItem>[];
+                  final idx = list.indexWhere((it) => it.id != null && it.id == e.id);
+                  if (idx >= 0 && !e.academic && !e.birthday && !e.sport) {
+                    showAddEditEventModal(context, dateKey: todayKey, editIndex: idx);
+                  } else {
+                    showEventDetailSheet(context, e);
+                  }
+                },
               ),
               const SizedBox(height: _cardGap),
               // ── 오늘 할 일 (중간 강조, full-width) ──
@@ -392,6 +404,9 @@ class _NextEventCard extends StatelessWidget {
   final List<CalendarTheme> themes;
   final DateTime now;
   final VoidCallback onTap;
+  /// 카드 안의 "다음 일정" 자체를 누르면 그 일정 상세로 이동.
+  /// 다음 일정이 없을 때는 카드 자체 onTap(데이뷰)로 동작.
+  final void Function(EventItem)? onTapEvent;
 
   const _NextEventCard({
     required this.sh,
@@ -400,6 +415,7 @@ class _NextEventCard extends StatelessWidget {
     required this.themes,
     required this.now,
     required this.onTap,
+    this.onTapEvent,
   });
 
   @override
@@ -410,7 +426,7 @@ class _NextEventCard extends StatelessWidget {
     final accent = themeColor ?? sh.accent;
 
     return Pressable(
-      onTap: onTap,
+      onTap: hasNext && onTapEvent != null ? () => onTapEvent!(next!) : onTap,
       child: Container(
         padding: const EdgeInsets.all(18),
         decoration: _softCard(

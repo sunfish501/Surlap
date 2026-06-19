@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/theme/app_theme.dart';
@@ -54,6 +55,8 @@ class _DayViewState extends ConsumerState<DayView> {
   double get _rowH => _baseRowH * _zoom;
 
   late final ScrollController _scroll;
+  Timer? _tick;
+  DateTime _now = DateTime.now();
 
   String _shiftDay(String key, int delta) =>
       du.toDateKey(du.fromDateKey(key).add(Duration(days: delta)));
@@ -78,10 +81,18 @@ class _DayViewState extends ConsumerState<DayView> {
         ? (now.hour - 1).clamp(0, 20)
         : 7;
     _scroll = ScrollController(initialScrollOffset: startHour * _rowH);
+    // 현재 시각 라인이 오늘 보이면 1분마다 갱신.
+    if (du.isSameDay(date, now)) {
+      _tick = Timer.periodic(const Duration(minutes: 1), (_) {
+        if (!mounted) return;
+        setState(() => _now = DateTime.now());
+      });
+    }
   }
 
   @override
   void dispose() {
+    _tick?.cancel();
     _scroll.dispose();
     super.dispose();
   }
@@ -93,7 +104,7 @@ class _DayViewState extends ConsumerState<DayView> {
     final themes = ref.watch(themesProvider);
     final date = du.fromDateKey(widget.dateKey);
     final items = events[widget.dateKey] ?? [];
-    final now = DateTime.now();
+    final now = _now;
     final isToday = du.isSameDay(date, now);
 
     final filter = ref.watch(filterProvider);
@@ -291,16 +302,28 @@ class _DayViewState extends ConsumerState<DayView> {
                         }),
                       ),
                     ),
-                    // 하루 컬럼
+                    // 하루 컬럼 — Stack은 좌측 시각 칩이 시간 컬럼으로 넘어가도록 clipBehavior.none.
                     Expanded(
                       child: Stack(
+                        clipBehavior: Clip.none,
                         children: [
-                          // 시간 그리드 — 스크롤만(탭으로 추가하지 않음). 추가는 + 버튼.
+                          // 오늘 컬럼 옅은 accent 틴트(B2).
+                          if (isToday)
+                            Positioned.fill(
+                              child: IgnorePointer(
+                                child: Container(
+                                  color: sh.accent
+                                      .withValues(alpha: sh.dark ? 0.06 : 0.04),
+                                ),
+                              ),
+                            ),
+                          // 시간 그리드 — 라인은 8% 투명(블록이 주인공).
                           Container(
                             decoration: BoxDecoration(
                               border: Border(
-                                left:
-                                    BorderSide(color: sh.border, width: 0.5),
+                                left: BorderSide(
+                                    color: sh.ink.withValues(alpha: 0.08),
+                                    width: 0.5),
                               ),
                             ),
                             child: Column(
@@ -311,7 +334,9 @@ class _DayViewState extends ConsumerState<DayView> {
                                   decoration: BoxDecoration(
                                     border: Border(
                                       top: BorderSide(
-                                          color: sh.border, width: 0.5),
+                                          color: sh.ink
+                                              .withValues(alpha: 0.08),
+                                          width: 0.5),
                                     ),
                                   ),
                                 ),
@@ -322,10 +347,14 @@ class _DayViewState extends ConsumerState<DayView> {
                           ..._recurringBlocks(recurringForDay, dayColW, sh),
                           // 시간 일정 블록
                           ..._eventBlocks(timed, dayColW, themes, sh, events),
-                          // 현재 시각 선
+                          // 현재 시각 선 + 좌측 시각 칩(1분 단위 갱신)
                           if (isToday)
                             _NowLine(
-                                hour: now.hour, minute: now.minute, rowH: _rowH, sh: sh),
+                                hour: now.hour,
+                                minute: now.minute,
+                                rowH: _rowH,
+                                timeColW: _timeColW,
+                                sh: sh),
                         ],
                       ),
                     ),
@@ -576,9 +605,13 @@ class _TodoBar extends StatelessWidget {
       margin: const EdgeInsets.fromLTRB(Gap.xl, 0, Gap.xl, Gap.sm),
       padding: const EdgeInsets.symmetric(horizontal: Gap.md, vertical: Gap.sm),
       decoration: BoxDecoration(
-        color: sh.card2,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: sh.ink.withValues(alpha: 0.06)),
+        color: sh.card,
+        borderRadius: BorderRadius.circular(Radii.card),
+        // 라이트는 soft shadow / 다크는 hairline.
+        border: sh.dark
+            ? Border.all(color: sh.border, width: 0.5)
+            : null,
+        boxShadow: sh.dark ? null : Shadows.card,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -660,9 +693,13 @@ class _AllDayBar extends StatelessWidget {
       margin: const EdgeInsets.fromLTRB(Gap.xl, 0, Gap.xl, Gap.sm),
       padding: const EdgeInsets.symmetric(horizontal: Gap.md, vertical: Gap.sm),
       decoration: BoxDecoration(
-        color: sh.accent.withValues(alpha: 0.06),
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: sh.accent.withValues(alpha: 0.12)),
+        // 종일 = accent 옅은 틴트로 구분.
+        color: sh.accent.withValues(alpha: sh.dark ? 0.10 : 0.06),
+        borderRadius: BorderRadius.circular(Radii.card),
+        border: sh.dark
+            ? Border.all(color: sh.accent.withValues(alpha: 0.22), width: 0.5)
+            : null,
+        boxShadow: sh.dark ? null : Shadows.card,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -700,47 +737,85 @@ class _AllDayBar extends StatelessWidget {
   }
 }
 
+/// 현재 시각 라이브 인디케이터 — 도트 + 가로선 + 좌측 시각 칩.
+/// 색상은 브랜드 accent(퍼플), 1분 단위 부모 setState로 갱신.
 class _NowLine extends StatelessWidget {
   final int hour, minute;
   final double rowH;
+  final double timeColW;
   final SpaceHourColors sh;
   const _NowLine(
       {required this.hour,
       required this.minute,
       required this.rowH,
+      required this.timeColW,
       required this.sh});
 
   @override
   Widget build(BuildContext context) {
     final top = hour * rowH + minute * rowH / 60;
+    final c = sh.accent;
+    final timeText = '${hour.toString().padLeft(2, '0')}:'
+        '${minute.toString().padLeft(2, '0')}';
     return Positioned(
-      top: top - 1,
-      left: 0,
+      top: top - 9,
+      left: -timeColW,
       right: 0,
+      height: 18,
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
+          // 좌측 시각 칩 — 시간 레이블 컬럼 위에 겹쳐 그린다.
+          SizedBox(
+            width: timeColW,
+            child: Align(
+              alignment: Alignment.centerRight,
+              child: Padding(
+                padding: const EdgeInsets.only(right: 4),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 5, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: c,
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: Text(
+                    timeText,
+                    style: const TextStyle(
+                      fontSize: 9.5,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.white,
+                      height: 1.0,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+          // 도트
           Container(
-            width: 7,
-            height: 7,
+            width: 8,
+            height: 8,
             decoration: BoxDecoration(
-              color: sh.danger,
+              color: c,
               shape: BoxShape.circle,
               boxShadow: sh.dark
                   ? [BoxShadow(
-                      color: sh.danger.withValues(alpha: 0.5),
+                      color: c.withValues(alpha: 0.5),
                       blurRadius: 6, spreadRadius: 1,
                     )]
                   : null,
             ),
           ),
+          // 가로선
           Expanded(
             child: Container(
               height: 1.5,
               decoration: BoxDecoration(
-                color: sh.danger.withValues(alpha: 0.7),
+                color: c.withValues(alpha: sh.dark ? 0.8 : 0.7),
                 boxShadow: sh.dark
                     ? [BoxShadow(
-                        color: sh.danger.withValues(alpha: 0.4),
+                        color: c.withValues(alpha: 0.4),
                         blurRadius: 4, spreadRadius: 1,
                       )]
                     : null,
@@ -839,19 +914,27 @@ class _TimedEventBlockState extends State<_TimedEventBlock> {
                 padding: const EdgeInsets.symmetric(
                     horizontal: Gap.sm, vertical: Gap.xs),
                 decoration: BoxDecoration(
-                  color: widget.color.withValues(alpha: sh.dark ? 0.20 : 0.16),
-                  borderRadius: BorderRadius.circular(8),
+                  // 블록은 주인공 — 채도/대비 ↑ (그리드는 8% 라인으로 죽임).
+                  color: widget.color.withValues(alpha: sh.dark ? 0.28 : 0.22),
+                  borderRadius: BorderRadius.circular(10),
                   border:
                       Border(left: BorderSide(color: widget.color, width: 3)),
-                  boxShadow: (sh.dark || _moving || _resizing)
+                  boxShadow: _moving || _resizing
                       ? [BoxShadow(
-                          color: widget.color
-                              .withValues(alpha: _moving || _resizing ? 0.45 : 0.22),
-                          blurRadius: _moving || _resizing ? 16 : 10,
+                          color: widget.color.withValues(alpha: 0.45),
+                          blurRadius: 16,
                           spreadRadius: 0,
-                          offset: const Offset(0, 1),
+                          offset: const Offset(0, 2),
                         )]
-                      : null,
+                      : (sh.dark
+                          ? [BoxShadow(
+                              color: widget.color.withValues(alpha: 0.22),
+                              blurRadius: 10,
+                              spreadRadius: 0,
+                              offset: const Offset(0, 1),
+                            )]
+                          // 라이트 모드: soft shadow (테두리 없이 떠 보이게)
+                          : Shadows.card),
                 ),
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -874,8 +957,9 @@ class _TimedEventBlockState extends State<_TimedEventBlock> {
                     Expanded(
                       child: Text(
                         e.t,
+                        // 본문 굵게 + ink 풀톤 → 죽인 그리드 위에서 또렷.
                         style: AppType.caption.copyWith(
-                            fontWeight: FontWeight.w500, color: sh.ink),
+                            fontWeight: FontWeight.w700, color: sh.ink),
                         maxLines: liveHeight > widget.rowH ? 3 : 1,
                         overflow: TextOverflow.ellipsis,
                       ),

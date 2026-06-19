@@ -81,7 +81,7 @@ class _SpaceHourAppState extends ConsumerState<SpaceHourApp>
     super.dispose();
   }
 
-  /// `spacehour://theme/CODE` 또는 (향후) `https://DOMAIN/theme/CODE`
+  /// `spacehour://theme/CODE` 또는 `https://kev208dev.github.io/Surlap/theme/CODE`
   void _handleUri(Uri uri) {
     // Google OAuth 콜백(spacehour://login-callback). 세션 복원은 supabase_flutter가
     // 자동 처리하므로 여기선 손대지 않는다. 단, error 가 실려오면(redirect URL 미등록 등)
@@ -140,7 +140,7 @@ class _SpaceHourAppState extends ConsumerState<SpaceHourApp>
     final lang = ref.watch(localeProvider);
     i18n.currentLang = lang;
     return MaterialApp(
-      title: 'HourSpace',
+      title: 'Surlap',
       debugShowCheckedModeBanner: false,
       scaffoldMessengerKey: scaffoldMessengerKey,
       theme: buildTheme(preset),

@@ -10,6 +10,9 @@ class AppSettings {
   final bool notifyEnabled;
   final bool showTimetable; // 주간·일간 뷰에 시간표 수업 표시 여부
   final String timetableEmptyLabel; // 빈 교시 표시 라벨(""=off)
+  /// 달력 한 칸 높이 배율(0.8 ~ 1.4). 1.0=기본(현재 화면에 6주 균등 분배).
+  /// 1.0 초과면 그리드가 스크롤 가능해지고 한 칸이 더 커진다.
+  final double monthCellHeightFactor;
 
   const AppSettings({
     this.motto = '',
@@ -19,12 +22,14 @@ class AppSettings {
     this.notifyEnabled = true,
     this.showTimetable = true,
     this.timetableEmptyLabel = '',
+    this.monthCellHeightFactor = 1.0,
   });
 
   AppSettings copyWith({
     String? motto, int? weekStartDow, bool? showPast,
     bool? continuousView, bool? notifyEnabled, bool? showTimetable,
     String? timetableEmptyLabel,
+    double? monthCellHeightFactor,
   }) => AppSettings(
     motto: motto ?? this.motto,
     weekStartDow: weekStartDow ?? this.weekStartDow,
@@ -33,6 +38,7 @@ class AppSettings {
     notifyEnabled: notifyEnabled ?? this.notifyEnabled,
     showTimetable: showTimetable ?? this.showTimetable,
     timetableEmptyLabel: timetableEmptyLabel ?? this.timetableEmptyLabel,
+    monthCellHeightFactor: monthCellHeightFactor ?? this.monthCellHeightFactor,
   );
 }
 
@@ -51,7 +57,17 @@ class SettingsNotifier extends Notifier<AppSettings> {
       showTimetable: s.getBool(StorageKeys.showTimetable) ?? true,
       timetableEmptyLabel:
           s.getString(StorageKeys.timetableEmptyLabel) ?? '',
+      monthCellHeightFactor: double.tryParse(
+              s.getString(StorageKeys.monthCellHeightFactor) ?? '') ??
+          1.0,
     );
+  }
+
+  Future<void> setMonthCellHeightFactor(double v) async {
+    final clamped = v.clamp(0.8, 1.4);
+    state = state.copyWith(monthCellHeightFactor: clamped);
+    await LocalStore.instance.setString(
+        StorageKeys.monthCellHeightFactor, clamped.toStringAsFixed(2));
   }
 
   Future<void> setTimetableEmptyLabel(String v) async {
