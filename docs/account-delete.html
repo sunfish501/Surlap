@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Surlap 계정 / 데이터 삭제 요청</title>
+<style>
+  :root { --p:#5A2DF4; --ink:#14131A; --soft:#6E6B7A; }
+  * { box-sizing:border-box; }
+  body { margin:0; font-family:-apple-system,"Apple SD Gothic Neo","Segoe UI",Roboto,sans-serif;
+         color:var(--ink); background:#FBF9FE; padding:24px; display:flex; justify-content:center; }
+  .card { max-width:520px; width:100%; background:#fff; border-radius:24px; padding:28px;
+          box-shadow:0 20px 44px -16px rgba(74,31,208,.18); }
+  h1 { font-size:22px; font-weight:800; letter-spacing:-.4px; margin:0 0 8px; }
+  p { color:#6E6B7A; line-height:1.55; font-size:14.5px; margin:6px 0; }
+  label { display:block; font-size:13px; color:#6E6B7A; font-weight:700; margin-top:18px; }
+  input { display:block; width:100%; box-sizing:border-box; height:48px; padding:0 14px;
+          border:1px solid rgba(20,19,26,.08); border-radius:12px; font-size:15px; margin-top:6px;
+          background:#F6F4FA; }
+  a.btn { display:block; text-align:center; margin-top:18px; background:#5A2DF4; color:#fff;
+          border:0; height:50px; line-height:50px; border-radius:14px; font-weight:800;
+          font-size:15px; text-decoration:none; }
+  .note { background:#EDE8FD; color:#4A1FD0; padding:12px 14px; border-radius:12px;
+          font-size:13px; margin-top:14px; }
+</style>
+</head>
+<body>
+<div class="card">
+  <h1>Surlap 계정 / 데이터 삭제 요청</h1>
+  <p>가입에 사용한 이메일을 적어 아래 버튼을 누르면 이메일 앱이 열립니다. 그대로 보내시면 30일 안에
+     계정·일정·할 일·테마·생일·시간표 등 모든 사용자 데이터가 영구 삭제됩니다. 백업·로그 보관본도
+     90일 안에 제거됩니다.</p>
+  <p>처리 결과는 같은 이메일로 안내드립니다. 처리 완료 후에는 복구 불가합니다.</p>
+
+  <form id="f" action="mailto:kev208dev@gmail.com" method="GET" enctype="text/plain">
+    <label for="email">이메일</label>
+    <input id="email" name="subject" type="email" required placeholder="you@example.com" />
+    <input type="hidden" name="body" value="이 이메일로 가입한 Surlap 계정과 데이터를 삭제해 주세요." />
+    <button type="submit" style="margin-top:18px;background:#5A2DF4;color:#fff;border:0;height:50px;border-radius:14px;font-weight:800;font-size:15px;width:100%;cursor:pointer">
+      이메일로 삭제 요청 보내기
+    </button>
+  </form>
+
+  <div class="note">
+    앱 안에서 직접 삭제하려면: 프로필 → 설정 → 계정 → 회원 탈퇴. 로그인 상태에서 즉시 처리됩니다.
+  </div>
+</div>
+</body>
+</html>

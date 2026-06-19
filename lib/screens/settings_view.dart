@@ -283,14 +283,14 @@ class SettingsSections extends ConsumerWidget {
                 icon: Icons.privacy_tip_outlined,
                 title: tr('개인정보 처리방침'),
                 onTap: () => _openUrl(
-                    'https://ngmvddxpoqtbrwpwiogh.supabase.co/functions/v1/privacy'),
+                    'https://kev208dev.github.io/Surlap/privacy.html'),
               ),
               SettingsRow(
                 sh: sh,
                 icon: Icons.description_outlined,
                 title: tr('이용약관'),
                 onTap: () => _openUrl(
-                    'https://ngmvddxpoqtbrwpwiogh.supabase.co/functions/v1/terms'),
+                    'https://kev208dev.github.io/Surlap/terms.html'),
               ),
             ],
           ),
