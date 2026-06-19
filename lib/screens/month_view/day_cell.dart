@@ -70,9 +70,7 @@ class DayCell extends StatelessWidget {
     final dimmed = !isCurrentMonth || (!showPast && isPast && !isToday);
 
     Color dayNumColor;
-    if (isToday) {
-      dayNumColor = Colors.white;
-    } else if (isSun || isHol) {
+    if (isSun || isHol) {
       dayNumColor = sh.sun.withValues(alpha: dimmed ? 0.35 : 1.0);
     } else if (isSat) {
       dayNumColor = sh.sat.withValues(alpha: dimmed ? 0.35 : 1.0);
@@ -80,7 +78,7 @@ class DayCell extends StatelessWidget {
       dayNumColor = dimmed ? sh.ink.withValues(alpha: 0.30) : sh.ink;
     }
 
-    // 오늘: 브랜드 퍼플 원 + 은은한 글로우 / 선택 동그라미: 브랜드 테두리
+    // 오늘: 셀 색칠/원 없이 숫자에 연보라 글로우만. 선택 동그라미: 브랜드 테두리.
     Widget dayNumber = Container(
       width: 30,
       height: 30,
@@ -91,31 +89,25 @@ class DayCell extends StatelessWidget {
                   color: sh.accent.withValues(alpha: dimmed ? 0.3 : 0.7),
                   width: 1.5),
               shape: BoxShape.circle)
-          : isToday
-              ? BoxDecoration(
-                  color: sh.accent,
-                  shape: BoxShape.circle,
-                  // 보라색 글로우 — 오늘 날짜가 빛나는 느낌. 다단 그림자로 깊이감.
-                  boxShadow: [
-                    BoxShadow(
-                      color: sh.accent.withValues(alpha: 0.55),
-                      blurRadius: 18,
-                      spreadRadius: 1,
-                    ),
-                    BoxShadow(
-                      color: sh.accent.withValues(alpha: 0.35),
-                      blurRadius: 8,
-                      spreadRadius: 0,
-                    ),
-                  ],
-                )
-              : null,
+          : null,
       child: Text(
         '${date.day}',
         style: AppType.label.copyWith(
-          fontSize: isToday ? 16 : 15,
+          fontSize: 15,
           fontWeight: isToday ? FontWeight.w800 : FontWeight.w600,
           color: dayNumColor,
+          shadows: isToday
+              ? [
+                  Shadow(
+                    color: sh.accent.withValues(alpha: 0.85),
+                    blurRadius: 14,
+                  ),
+                  Shadow(
+                    color: sh.accent.withValues(alpha: 0.55),
+                    blurRadius: 6,
+                  ),
+                ]
+              : null,
         ),
       ),
     );
@@ -133,12 +125,11 @@ class DayCell extends StatelessWidget {
       child: Container(
         clipBehavior: Clip.hardEdge,
         decoration: BoxDecoration(
-          // 오늘 칸은 은은한 브랜드 틴트로 강조 / 기록 템플릿 적용 기간은 옅은 배경 하이라이트.
-          color: isToday
-              ? sh.accent.withValues(alpha: sh.dark ? 0.12 : 0.06)
-              : recordBadges.isNotEmpty
-                  ? sh.accent.withValues(alpha: sh.dark ? 0.06 : 0.04)
-                  : Colors.transparent,
+          // 기록 템플릿 적용 기간만 옅은 배경 하이라이트. 오늘 칸은 셀 색 변경 없이
+          // 숫자의 글로우로만 표현.
+          color: recordBadges.isNotEmpty
+              ? sh.accent.withValues(alpha: sh.dark ? 0.06 : 0.04)
+              : Colors.transparent,
           // 칸 구분 격자선 — 가로+세로 모두, 또렷하게.
           border: Border(
             bottom: BorderSide(
