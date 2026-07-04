@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Surlap 개인정보처리방침</title>
+<title>Surlap 개인정보처리방침 · Privacy Policy</title>
 <style>
   :root { --p:#5A2DF4; --ink:#14131A; --soft:#6E6B7A; }
   * { box-sizing:border-box; }
@@ -12,19 +12,33 @@
   .wrap { max-width:760px; margin:0 auto; padding:40px 22px 80px; }
   h1 { font-size:30px; font-weight:800; letter-spacing:-1px; margin:0 0 6px; }
   h2 { font-size:18px; font-weight:800; margin:34px 0 8px; color:var(--p); }
-  .sub { color:var(--soft); font-size:14px; margin-bottom:28px; }
+  .sub { color:var(--soft); font-size:14px; margin-bottom:12px; }
   p, li { font-size:15px; color:#33333b; }
   table { width:100%; border-collapse:collapse; margin:10px 0; font-size:14px; }
   th, td { text-align:left; padding:9px 10px; border-bottom:1px solid #ececf1; vertical-align:top; }
   th { color:var(--soft); font-weight:700; }
   a { color:var(--p); }
   .foot { margin-top:40px; color:var(--soft); font-size:13px; }
+  .lang { display:inline-flex; gap:6px; margin:0 0 24px; }
+  .lang button { border:1px solid #e3e0ef; background:#fff; color:var(--soft);
+    font-weight:700; font-size:13px; padding:7px 14px; border-radius:10px; cursor:pointer; }
+  .lang button.on { background:var(--p); color:#fff; border-color:var(--p); }
+  [data-lang]{ display:none; }
+  [data-lang].show{ display:block; }
 </style>
 </head>
 <body>
 <div class="wrap">
+
+  <div class="lang">
+    <button id="btn-ko" class="on" onclick="setLang('ko')">한국어</button>
+    <button id="btn-en" onclick="setLang('en')">English</button>
+  </div>
+
+  <!-- ================= 한국어 ================= -->
+  <section data-lang="ko" class="show">
   <h1>Surlap 개인정보처리방침</h1>
-  <div class="sub">최종 업데이트: 2026-06-19</div>
+  <div class="sub">최종 업데이트: 2026-07-05</div>
 
   <p>Surlap(이하 "앱")는 이용자의 개인정보를 중요하게 생각하며, 관련 법령을 준수합니다.
      본 방침은 앱이 수집하는 정보와 이용·보관·삭제 방법을 설명합니다.</p>
@@ -32,20 +46,25 @@
   <h2>1. 수집하는 정보</h2>
   <table>
     <tr><th>항목</th><th>목적</th><th>비고</th></tr>
-    <tr><td>이메일/계정 식별자</td><td>로그인 및 클라우드 동기화</td><td>로그인 시에만. 미로그인(게스트) 시 미수집</td></tr>
-    <tr><td>일정·할 일·기록 데이터</td><td>앱 기능 제공·기기 간 동기화</td><td>기본은 기기 내 저장, 로그인 시 클라우드 백업</td></tr>
+    <tr><td>계정 식별자(아이디)·비밀번호·닉네임</td><td>회원가입 및 로그인</td><td>로그인 시에만. 미로그인(게스트) 시 미수집</td></tr>
+    <tr><td>이메일·프로필명·프로필 이미지</td><td>Google 소셜 로그인(선택)</td><td>Google 로그인을 선택한 경우에만</td></tr>
+    <tr><td>전화번호</td><td>휴대폰 인증 로그인(선택)</td><td>전화 인증 로그인을 선택한 경우에만</td></tr>
+    <tr><td>일정·시간표·테마·백업 데이터</td><td>앱 기능 제공·기기 간 동기화</td><td>기본은 기기 내 저장, 로그인 시 클라우드 백업</td></tr>
     <tr><td>연락처(선택)</td><td>생일 가져오기</td><td>이용자가 명시적으로 허용·실행할 때만</td></tr>
     <tr><td>마이크/음성(선택)</td><td>할 일 음성 입력</td><td>기기 내 음성인식, 별도 서버 전송 없음</td></tr>
     <tr><td>사진 저장 권한(선택)</td><td>달력 이미지 저장</td><td>갤러리 저장 시에만</td></tr>
   </table>
 
   <h2>2. 추적 및 광고</h2>
-  <p>앱은 광고 식별자(IDFA)를 수집하거나 제3자 추적을 하지 않습니다. 분석/광고 SDK를 사용하지 않습니다.</p>
+  <p>앱은 위치 정보, 광고 식별자(IDFA/광고 ID), 기기 식별자를 수집하지 않습니다.
+     제3자 추적을 하지 않으며, 광고 SDK나 제3자 분석 SDK(Google Analytics, Firebase, Amplitude 등)를 사용하지 않습니다.
+     결제·금융 정보도 수집하지 않습니다.</p>
 
   <h2>3. 정보의 보관 및 처리</h2>
-  <p>로그인 이용자의 데이터는 Supabase(클라우드 데이터베이스)에 저장되며, 행 수준 보안(RLS)으로
-     본인만 접근할 수 있도록 보호됩니다. 학교 시간표·급식·학사일정은 교육부 NEIS 오픈API에서
-     조회하며, 스포츠 일정은 공개 스포츠 API에서 조회합니다.</p>
+  <p>로그인 이용자의 데이터는 <b>Supabase</b>(클라우드 데이터베이스, 유일한 외부 처리자)에 저장되며,
+     행 수준 보안(RLS)으로 본인만 접근할 수 있도록 보호됩니다.
+     학교 시간표·급식·학사일정은 교육부 NEIS 오픈API에서, 스포츠 일정은 공개 스포츠 API에서 조회하며,
+     이때 개인정보는 전송되지 않습니다.</p>
 
   <h2>4. 계정 및 데이터 삭제</h2>
   <p>앱 내 <b>프로필 → 설정 → 계정 → 회원 탈퇴</b>에서 계정과 클라우드에 저장된 모든 데이터를
@@ -59,6 +78,66 @@
   <p>개인정보 관련 문의: <a href="mailto:kev208dev@gmail.com">kev208dev@gmail.com</a></p>
 
   <div class="foot">© 2026 Surlap.</div>
+  </section>
+
+  <!-- ================= English ================= -->
+  <section data-lang="en">
+  <h1>Surlap Privacy Policy</h1>
+  <div class="sub">Last updated: 2026-07-05</div>
+
+  <p>Surlap ("the App") values your privacy and complies with applicable laws.
+     This policy explains what information the App collects and how it is used, stored, and deleted.</p>
+
+  <h2>1. Information We Collect</h2>
+  <table>
+    <tr><th>Item</th><th>Purpose</th><th>Notes</th></tr>
+    <tr><td>Account ID, password, nickname</td><td>Sign-up and login</td><td>Only when logged in. Not collected for guest use</td></tr>
+    <tr><td>Email, profile name, profile image</td><td>Google social login (optional)</td><td>Only if you choose Google login</td></tr>
+    <tr><td>Phone number</td><td>Phone-verification login (optional)</td><td>Only if you choose phone login</td></tr>
+    <tr><td>Calendar, timetable, theme, backup data</td><td>App features and cross-device sync</td><td>Stored on device by default; backed up to cloud when logged in</td></tr>
+    <tr><td>Contacts (optional)</td><td>Import birthdays</td><td>Only with your explicit permission and action</td></tr>
+    <tr><td>Microphone/voice (optional)</td><td>Voice input for tasks</td><td>On-device speech recognition; not sent to any server</td></tr>
+    <tr><td>Photo storage (optional)</td><td>Save calendar images</td><td>Only when saving to your gallery</td></tr>
+  </table>
+
+  <h2>2. Tracking &amp; Advertising</h2>
+  <p>The App does not collect location, advertising identifiers (IDFA/Ad ID), or device identifiers.
+     We do not perform third-party tracking and do not use any advertising SDKs or third-party
+     analytics SDKs (Google Analytics, Firebase, Amplitude, etc.). We do not collect payment or financial information.</p>
+
+  <h2>3. Storage &amp; Processing</h2>
+  <p>Data for logged-in users is stored in <b>Supabase</b> (a cloud database and our only external processor),
+     protected by row-level security (RLS) so that only you can access your data.
+     School timetables, meals, and academic schedules are fetched from the Korean Ministry of Education
+     NEIS open API, and sports schedules from public sports APIs — no personal information is transmitted in these requests.</p>
+
+  <h2>4. Account &amp; Data Deletion</h2>
+  <p>You can permanently delete your account and all cloud-stored data in the App via
+     <b>Profile → Settings → Account → Delete Account</b>, or request deletion by email through the
+     <a href="./account-delete.html">account deletion request page</a>. Guest data is removed when you uninstall the App.</p>
+
+  <h2>5. Minors</h2>
+  <p>The App may be used by students but does not collect sensitive information through payment,
+     advertising, or external-sharing features.</p>
+
+  <h2>6. Contact</h2>
+  <p>Privacy inquiries: <a href="mailto:kev208dev@gmail.com">kev208dev@gmail.com</a></p>
+
+  <div class="foot">© 2026 Surlap.</div>
+  </section>
+
 </div>
+<script>
+  function setLang(l){
+    document.querySelectorAll('[data-lang]').forEach(function(s){
+      s.classList.toggle('show', s.getAttribute('data-lang')===l);
+    });
+    document.getElementById('btn-ko').classList.toggle('on', l==='ko');
+    document.getElementById('btn-en').classList.toggle('on', l==='en');
+    document.documentElement.lang = l;
+  }
+  // 브라우저 언어가 한국어가 아니면 영문 우선 노출
+  if((navigator.language||'').slice(0,2)!=='ko'){ setLang('en'); }
+</script>
 </body>
 </html>
