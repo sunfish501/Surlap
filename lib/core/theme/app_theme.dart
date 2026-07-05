@@ -116,7 +116,7 @@ ThemeData buildTheme(ColorPreset p) {
       titleTextStyle: TextStyle(
         color: p.ink, fontSize: 17, fontWeight: FontWeight.w700, fontFamily: 'Pretendard'),
     ),
-    extensions: [SpaceHourColors(preset: p)],
+    extensions: [SurlapColors(preset: p)],
   );
 }
 
@@ -143,9 +143,9 @@ TextTheme _buildTextTheme(Color ink, Color inkSoft) => TextTheme(
 );
 
 /// ThemeExtension으로 색상 토큰 전달 — Theme.of(context).extension 으로 접근.
-class SpaceHourColors extends ThemeExtension<SpaceHourColors> {
+class SurlapColors extends ThemeExtension<SurlapColors> {
   final ColorPreset preset;
-  const SpaceHourColors({required this.preset});
+  const SurlapColors({required this.preset});
 
   Color get bg       => preset.app;
   // 그라데이션 배경 — 최상위 Container 에서 BoxDecoration.gradient 로 깔기.
@@ -180,14 +180,14 @@ class SpaceHourColors extends ThemeExtension<SpaceHourColors> {
   Color get birthdayColor => const Color(0xFFEC4899);
 
   @override
-  SpaceHourColors copyWith({ColorPreset? preset}) =>
-      SpaceHourColors(preset: preset ?? this.preset);
+  SurlapColors copyWith({ColorPreset? preset}) =>
+      SurlapColors(preset: preset ?? this.preset);
 
   @override
-  SpaceHourColors lerp(SpaceHourColors? other, double t) => this;
+  SurlapColors lerp(SurlapColors? other, double t) => this;
 }
 
 extension BuildContextThemeX on BuildContext {
-  SpaceHourColors get sh =>
-      Theme.of(this).extension<SpaceHourColors>()!;
+  SurlapColors get sh =>
+      Theme.of(this).extension<SurlapColors>()!;
 }

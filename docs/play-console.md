@@ -252,7 +252,7 @@ Supabase 대시보드 → Auth → Users → "Add user" → 직접 입력:
 
 ### 10.4 OAuth 리다이렉트 URL — 별도 확인
 Supabase Auth → URL Configuration → Redirect URLs 에 다음 등록:
-- `spacehour://login-callback`
+- `surlap://login-callback`
 - `https://kev208dev.github.io/Surlap/`
 - `https://kev208dev.github.io/Surlap/*`
 

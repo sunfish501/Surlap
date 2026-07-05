@@ -14,8 +14,8 @@ import org.json.JSONObject
 
 // Surlap "지금 / 다음" 위젯. home_widget(Flutter) 가 적은 SharedPreferences 키를 읽음.
 //   nowName, nowStart, nowEnd, nextName, nextStart, minutesRemaining, currentIndex, periods(JSON)
-// pbxproj 의 receiver 이름을 바꾸면 위젯이 사라지므로 클래스명 그대로 유지.
-class HourSpaceWidgetProvider : HomeWidgetProvider() {
+// receiver(클래스) 이름 변경 시 홈화면에 배치된 기존 위젯은 사라짐(재배치 필요). 미출시 상태라 안전.
+class SurlapWidgetProvider : HomeWidgetProvider() {
 
     private companion object {
         const val SEG_COUNT = 7
@@ -36,7 +36,7 @@ class HourSpaceWidgetProvider : HomeWidgetProvider() {
         widgetData: SharedPreferences
     ) {
         for (id in appWidgetIds) {
-            val views = RemoteViews(context.packageName, R.layout.hourspace_widget)
+            val views = RemoteViews(context.packageName, R.layout.surlap_widget)
 
             // 위젯 탭 → 앱 열기 (시간표 view 로 이동하면 좋음 — 일단 메인).
             val pi = HomeWidgetLaunchIntent.getActivity(context, MainActivity::class.java)

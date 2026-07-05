@@ -5,7 +5,7 @@ import '../core/theme/app_theme.dart';
 class CounterWidget extends StatelessWidget {
   final DayField field;
   final dynamic value;
-  final SpaceHourColors sh;
+  final SurlapColors sh;
   final bool compact;
   final ValueChanged<dynamic>? onChanged;
   const CounterWidget({super.key, required this.field, required this.value,
@@ -43,7 +43,7 @@ class CounterWidget extends StatelessWidget {
 class _Btn extends StatelessWidget {
   final String label;
   final VoidCallback onTap;
-  final SpaceHourColors sh;
+  final SurlapColors sh;
   const _Btn(this.label, this.onTap, this.sh);
   @override Widget build(BuildContext context) => GestureDetector(
     onTap: onTap,

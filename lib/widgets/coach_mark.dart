@@ -165,7 +165,7 @@ class _CoachOverlayState extends State<_CoachOverlay> {
   }
 
   Widget _positionedCard(
-      SpaceHourColors sh, Size size, CoachStep step, Rect? rect) {
+      SurlapColors sh, Size size, CoachStep step, Rect? rect) {
     final card = _Card(
       sh: sh,
       step: step,
@@ -199,7 +199,7 @@ class _CoachOverlayState extends State<_CoachOverlay> {
 }
 
 class _Card extends StatelessWidget {
-  final SpaceHourColors sh;
+  final SurlapColors sh;
   final CoachStep step;
   final int index;
   final int total;

@@ -72,7 +72,7 @@ class DayWidgetInputModal extends ConsumerWidget {
 class _TemplateSection extends StatelessWidget {
   final String dateKey;
   final DayTemplate template;
-  final SpaceHourColors sh;
+  final SurlapColors sh;
   final WidgetRef ref;
   const _TemplateSection({required this.dateKey, required this.template,
       required this.sh, required this.ref});

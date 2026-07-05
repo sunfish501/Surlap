@@ -3,10 +3,10 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import 'package:spacehour/core/constants/color_presets.dart';
-import 'package:spacehour/core/theme/app_theme.dart';
-import 'package:spacehour/screens/timetable_view/timetable_view.dart';
-import 'package:spacehour/storage/local_store.dart';
+import 'package:surlap/core/constants/color_presets.dart';
+import 'package:surlap/core/theme/app_theme.dart';
+import 'package:surlap/screens/timetable_view/timetable_view.dart';
+import 'package:surlap/storage/local_store.dart';
 
 void main() {
   // 데이터(template/NEIS/override)가 전혀 없어도 그리드 틀(요일 헤더 + 교시 행)이

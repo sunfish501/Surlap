@@ -10,7 +10,7 @@ import 'supabase_client.dart';
 class ThemeShareService {
   // 딥링크 — https 앱링크(주) + 커스텀 스킴(보조)
   // GitHub Pages 레포 이름이 서브패스로 들어감(`/Surlap/`).
-  static const scheme = 'spacehour';
+  static const scheme = 'surlap';
   static const httpsDomain = 'kev208dev.github.io';
   static const httpsBasePath = '/Surlap';
   static String linkForCode(String code) => '$scheme://theme/$code';

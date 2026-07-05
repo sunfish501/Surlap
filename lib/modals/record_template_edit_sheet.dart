@@ -231,11 +231,11 @@ class _EditSheetState extends ConsumerState<_EditSheet> {
     );
   }
 
-  Widget _label(String t, SpaceHourColors sh) => Text(t,
+  Widget _label(String t, SurlapColors sh) => Text(t,
       style: AppType.label
           .copyWith(fontWeight: FontWeight.w700, color: sh.inkSoft));
 
-  Widget _field(TextEditingController c, String hint, SpaceHourColors sh,
+  Widget _field(TextEditingController c, String hint, SurlapColors sh,
       {ValueChanged<String>? onChanged}) {
     // 단일 컨테이너만 — 내부 Center/하위 박스 없이 평면화. 이중 가두리 인상 제거.
     return Container(
@@ -269,7 +269,7 @@ class _EditSheetState extends ConsumerState<_EditSheet> {
 class _ToggleRow extends StatelessWidget {
   final String label;
   final bool value;
-  final SpaceHourColors sh;
+  final SurlapColors sh;
   final ValueChanged<bool> onChanged;
   const _ToggleRow(
       {required this.label,

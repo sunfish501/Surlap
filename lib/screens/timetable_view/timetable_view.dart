@@ -487,7 +487,7 @@ class _TimetableViewState extends ConsumerState<TimetableView> {
     ref.read(recurringProvider.notifier).setCell(col, hour, text);
   }
 
-  void _showDesignPanel(BuildContext ctx, int col, int hour, SpaceHourColors sh) {
+  void _showDesignPanel(BuildContext ctx, int col, int hour, SurlapColors sh) {
     final current = ref.read(cellDesignProvider.notifier).forCell(col, hour);
     showModalBottomSheet(
       context: ctx,
@@ -503,7 +503,7 @@ class _TimetableViewState extends ConsumerState<TimetableView> {
   }
 
   // 햄버거 메뉴 — 보기 모드 + 셀 디자인 토글 + 학교 연결 + 새로고침.
-  void _openMenu(BuildContext ctx, SpaceHourColors sh) {
+  void _openMenu(BuildContext ctx, SurlapColors sh) {
     showModalBottomSheet(
       context: ctx,
       builder: (mctx) => Container(
@@ -771,7 +771,7 @@ class _TimetableViewState extends ConsumerState<TimetableView> {
   }
 
   // ── 요일 헤더 셀 ───────────────────────────────────────────────
-  Widget _dayHeader(int i, DateTime date, DateTime now, SpaceHourColors sh) {
+  Widget _dayHeader(int i, DateTime date, DateTime now, SurlapColors sh) {
     final isTodayDow = now.weekday - 1 == i;
     final isSat = i == 5;
     final isSun = i == 6;
@@ -805,7 +805,7 @@ class _TimetableViewState extends ConsumerState<TimetableView> {
   }
 
   // ── 시간/교시 라벨 셀 ──────────────────────────────────────────
-  Widget _labelCell(_RowDef row, double h, SpaceHourColors sh) {
+  Widget _labelCell(_RowDef row, double h, SurlapColors sh) {
     if (row.isDivider) {
       return SizedBox(height: _divH, width: _labelW);
     }
@@ -863,7 +863,7 @@ class _TimetableViewState extends ConsumerState<TimetableView> {
     required Set<(int, int)> mergeSet,
     required CellDesign Function(int, int) designOf,
     required Map<int, Map<int, String>> freeData,
-    required SpaceHourColors sh,
+    required SurlapColors sh,
   }) {
     final isMerged = mergeSet.contains((col, ri));
     final isToday = du.isSameDay(days[col], now);
@@ -943,7 +943,7 @@ class _TimetableViewState extends ConsumerState<TimetableView> {
     required bool isToday,
     required bool isLunch,
     required CellDesign design,
-    required SpaceHourColors sh,
+    required SurlapColors sh,
     bool merged = false,
   }) {
     final display = getDisplaySubjectName(text, lunch: isLunch);
@@ -1036,7 +1036,7 @@ class _TimetableViewState extends ConsumerState<TimetableView> {
     List<DateTime> days,
     DateTime now,
     CellDesign Function(int, int) designOf,
-    SpaceHourColors sh,
+    SurlapColors sh,
   ) {
     final row = rows[mg.startRow];
     final isToday = du.isSameDay(days[mg.col], now);
@@ -1059,7 +1059,7 @@ class _TimetableViewState extends ConsumerState<TimetableView> {
   }
 
   // 그리드 선은 은은하게 — 카드가 주인공이 되도록.
-  Color _gridLine(SpaceHourColors sh) =>
+  Color _gridLine(SurlapColors sh) =>
       sh.ink.withValues(alpha: sh.dark ? 0.10 : 0.07);
 }
 
@@ -1092,7 +1092,7 @@ class _HamburgerBtn extends StatelessWidget {
 class _DesignPanel extends StatefulWidget {
   final CellDesign currentDesign;
   final List<Color> palette;
-  final SpaceHourColors sh;
+  final SurlapColors sh;
   final void Function(CellDesign) onApply;
 
   const _DesignPanel({
@@ -1445,7 +1445,7 @@ class _TimetableExportPageState extends ConsumerState<TimetableExportPage> {
   }
 
   Widget _toggleChip(String label, bool active, VoidCallback onTap,
-      SpaceHourColors sh) {
+      SurlapColors sh) {
     return GestureDetector(
       onTap: onTap,
       child: Container(

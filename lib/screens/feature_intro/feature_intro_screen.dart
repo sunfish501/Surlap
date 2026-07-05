@@ -202,7 +202,7 @@ class _FeatureIntroScreenState extends State<FeatureIntroScreen> {
 class _FeaturePage extends StatelessWidget {
   final _Feature feature;
   final double offset;
-  final SpaceHourColors sh;
+  final SurlapColors sh;
   const _FeaturePage(
       {required this.feature, required this.offset, required this.sh});
 

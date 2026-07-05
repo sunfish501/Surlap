@@ -19,7 +19,7 @@ class DayCell extends StatelessWidget {
   final List<EventItem> events;
   final List<TodoItem> todos;
   final List<CalendarTheme> themes;
-  final SpaceHourColors sh;
+  final SurlapColors sh;
   final bool showPast;
   final bool hasCircle;
   final List<DayTemplate> applicableTemplates;
@@ -256,7 +256,7 @@ class DayCell extends StatelessWidget {
 // 월간 셀의 할 일 한 줄: 우선순위 점 + 제목(완료 시 취소선).
 class _TodoLine extends StatelessWidget {
   final TodoItem todo;
-  final SpaceHourColors sh;
+  final SurlapColors sh;
   const _TodoLine({required this.todo, required this.sh});
 
   @override

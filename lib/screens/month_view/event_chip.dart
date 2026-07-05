@@ -18,7 +18,7 @@ List<BoxShadow> _chipShadow(Color color, bool dark) => [
 class EventChip extends StatelessWidget {
   final EventItem item;
   final List<CalendarTheme> themes;
-  final SpaceHourColors sh;
+  final SurlapColors sh;
   final VoidCallback? onTap;
 
   const EventChip({
@@ -114,7 +114,7 @@ class _EmojiChip extends StatelessWidget {
   final String? logoUrl;
   final Color color;
   final String text;
-  final SpaceHourColors sh;
+  final SurlapColors sh;
   const _EmojiChip(
       {required this.emoji,
       this.logoUrl,
@@ -170,7 +170,7 @@ class _IconChip extends StatelessWidget {
   final IconData icon;
   final Color color;
   final String text;
-  final SpaceHourColors sh;
+  final SurlapColors sh;
   const _IconChip(
       {required this.icon,
       required this.color,

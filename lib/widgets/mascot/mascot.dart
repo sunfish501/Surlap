@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/theme/design_tokens.dart';
 
-/// HourSpace 마스코트(우주 백호) 표정.
+/// Surlap 마스코트(우주 백호) 표정.
 enum MascotExpression { neutral, happy, cheering, sleepy, thinking }
 
 /// 마스코트 브랜드 팔레트.

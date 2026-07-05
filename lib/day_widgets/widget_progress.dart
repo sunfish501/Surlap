@@ -5,7 +5,7 @@ import '../core/theme/app_theme.dart';
 class ProgressWidget extends StatefulWidget {
   final DayField field;
   final dynamic value;
-  final SpaceHourColors sh;
+  final SurlapColors sh;
   final bool compact;
   final ValueChanged<dynamic>? onChanged;
   const ProgressWidget({super.key, required this.field, required this.value,

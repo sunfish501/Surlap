@@ -213,14 +213,14 @@ class _BackupModalState extends ConsumerState<BackupModal> {
 }
 
 class _Section extends StatelessWidget {
-  final String text; final SpaceHourColors sh;
+  final String text; final SurlapColors sh;
   const _Section(this.text, this.sh);
   @override Widget build(BuildContext context) =>
       Text(text, style: AppType.body.copyWith(fontWeight: FontWeight.w700, color: sh.inkSoft));
 }
 
 class _Btn extends StatelessWidget {
-  final String label; final SpaceHourColors sh;
+  final String label; final SurlapColors sh;
   final VoidCallback onTap; final bool loading;
   const _Btn(this.label, this.sh, {required this.onTap, required this.loading});
   @override Widget build(BuildContext context) => OutlinedButton(

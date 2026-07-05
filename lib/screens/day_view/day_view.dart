@@ -406,7 +406,7 @@ class _DayViewState extends ConsumerState<DayView> {
 
   // 시간표 수업 블록(읽기전용) — 주간 뷰와 같은 깔끔한 카드.
   List<Widget> _recurringBlocks(
-      Map<int, String> byHour, double colW, SpaceHourColors sh) {
+      Map<int, String> byHour, double colW, SurlapColors sh) {
     final blocks = <Widget>[];
     byHour.forEach((hour, title) {
       final name = getDisplaySubjectName(title);
@@ -446,7 +446,7 @@ class _DayViewState extends ConsumerState<DayView> {
     List<EventItem> timed,
     double colW,
     List<CalendarTheme> themes,
-    SpaceHourColors sh,
+    SurlapColors sh,
     Map<String, List<EventItem>> events,
   ) {
     final blocks = <Widget>[];
@@ -589,7 +589,7 @@ class _DayViewState extends ConsumerState<DayView> {
 // ─── 할 일 바 ────────────────────────────────────────────────────
 class _TodoBar extends StatelessWidget {
   final List<TodoItem> todos;
-  final SpaceHourColors sh;
+  final SurlapColors sh;
   final void Function(String id) onToggle;
   final void Function(TodoItem) onTapTodo;
   const _TodoBar(
@@ -682,7 +682,7 @@ class _TodoBar extends StatelessWidget {
 class _AllDayBar extends StatelessWidget {
   final List<EventItem> items;
   final List<CalendarTheme> themes;
-  final SpaceHourColors sh;
+  final SurlapColors sh;
   const _AllDayBar(
       {required this.items, required this.themes, required this.sh});
 
@@ -743,7 +743,7 @@ class _NowLine extends StatelessWidget {
   final int hour, minute;
   final double rowH;
   final double timeColW;
-  final SpaceHourColors sh;
+  final SurlapColors sh;
   const _NowLine(
       {required this.hour,
       required this.minute,
@@ -838,7 +838,7 @@ class _TimedEventBlock extends StatefulWidget {
   final double height;
   final double rowH;
   final Color color;
-  final SpaceHourColors sh;
+  final SurlapColors sh;
   final bool draggable;
   final VoidCallback onTapEvent;
   final void Function(int deltaMinutes) onCommitMove;

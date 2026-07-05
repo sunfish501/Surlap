@@ -23,14 +23,14 @@ import 'supabase/theme_share_service.dart';
 /// 딥링크 등 어디서든 스낵바를 띄우기 위한 전역 messenger key.
 final scaffoldMessengerKey = GlobalKey<ScaffoldMessengerState>();
 
-class SpaceHourApp extends ConsumerStatefulWidget {
-  const SpaceHourApp({super.key});
+class SurlapApp extends ConsumerStatefulWidget {
+  const SurlapApp({super.key});
 
   @override
-  ConsumerState<SpaceHourApp> createState() => _SpaceHourAppState();
+  ConsumerState<SurlapApp> createState() => _SurlapAppState();
 }
 
-class _SpaceHourAppState extends ConsumerState<SpaceHourApp>
+class _SurlapAppState extends ConsumerState<SurlapApp>
     with WidgetsBindingObserver {
   final _appLinks = AppLinks();
   StreamSubscription<Uri>? _sub;
@@ -87,9 +87,9 @@ class _SpaceHourAppState extends ConsumerState<SpaceHourApp>
     super.dispose();
   }
 
-  /// `spacehour://theme/CODE` 또는 `https://kev208dev.github.io/Surlap/theme/CODE`
+  /// `surlap://theme/CODE` 또는 `https://kev208dev.github.io/Surlap/theme/CODE`
   void _handleUri(Uri uri) {
-    // Google OAuth 콜백(spacehour://login-callback). 세션 복원은 supabase_flutter가
+    // Google OAuth 콜백(surlap://login-callback). 세션 복원은 supabase_flutter가
     // 자동 처리하므로 여기선 손대지 않는다. 단, error 가 실려오면(redirect URL 미등록 등)
     // 조용히 무한 로그인처럼 보이므로 사유를 표면화한다.
     if (uri.host == 'login-callback') {

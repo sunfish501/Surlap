@@ -313,7 +313,7 @@ class SettingsSections extends ConsumerWidget {
 }
 
 class SettingsSectionCard extends StatelessWidget {
-  final SpaceHourColors sh;
+  final SurlapColors sh;
   final String title;
   final Widget child;
   const SettingsSectionCard(
@@ -353,7 +353,7 @@ class CategoryFilterChip extends StatelessWidget {
   final Color color;
   final bool selected;
   final VoidCallback onTap;
-  final SpaceHourColors sh;
+  final SurlapColors sh;
 
   const CategoryFilterChip({
     super.key,
@@ -405,7 +405,7 @@ class CategoryFilterChip extends StatelessWidget {
 
 // ─── 달력 한 칸 크기 슬라이더 행 ──────────────────────────────────
 class _MonthCellSizeRow extends StatelessWidget {
-  final SpaceHourColors sh;
+  final SurlapColors sh;
   final double value;
   final ValueChanged<double> onChanged;
   const _MonthCellSizeRow({
@@ -460,7 +460,7 @@ class SettingsRow extends StatelessWidget {
   final String title;
   final Widget? trailing;
   final VoidCallback? onTap;
-  final SpaceHourColors sh;
+  final SurlapColors sh;
   /// 30×30 컬러 아이콘 타일 색. null이면 중성 회색.
   final Color? iconColor;
 
@@ -531,7 +531,7 @@ class SettingsRow extends StatelessWidget {
 class _IosSwitch extends StatelessWidget {
   final bool value;
   final ValueChanged<bool> onChanged;
-  final SpaceHourColors sh;
+  final SurlapColors sh;
   const _IosSwitch(
       {required this.value, required this.onChanged, required this.sh});
 
@@ -554,7 +554,7 @@ class _IosSwitch extends StatelessWidget {
 // ─── 내 유형 pill ────────────────────────────────────────────────
 class _TypePill extends StatelessWidget {
   final UserType? type;
-  final SpaceHourColors sh;
+  final SurlapColors sh;
   final VoidCallback onTap;
   const _TypePill({required this.type, required this.sh, required this.onTap});
 
@@ -658,7 +658,7 @@ void _showTypePicker(BuildContext context, WidgetRef ref, UserType? current) {
 
 // ─── 학교 연결 행(로고/슬로건 표시) ────────────────────────────────
 class _SchoolRow extends StatelessWidget {
-  final SpaceHourColors sh;
+  final SurlapColors sh;
   final NeisSchool? school;
   final VoidCallback onTap;
   const _SchoolRow({required this.sh, required this.school, required this.onTap});
@@ -725,7 +725,7 @@ class _SchoolRow extends StatelessWidget {
 class _LanguagePill extends StatelessWidget {
   final AppLang lang;
   final ValueChanged<AppLang> onSelected;
-  final SpaceHourColors sh;
+  final SurlapColors sh;
   const _LanguagePill(
       {required this.lang, required this.onSelected, required this.sh});
 
@@ -777,7 +777,7 @@ class _LanguagePill extends StatelessWidget {
 class _WeekStartPill extends StatelessWidget {
   final int dow; // 0=일, 1=월, 6=토
   final ValueChanged<int> onSelected;
-  final SpaceHourColors sh;
+  final SurlapColors sh;
   const _WeekStartPill(
       {required this.dow, required this.onSelected, required this.sh});
 
@@ -825,7 +825,7 @@ class _WeekStartPill extends StatelessWidget {
 class _HourPill extends StatelessWidget {
   final int hour;
   final ValueChanged<int> onSelected;
-  final SpaceHourColors sh;
+  final SurlapColors sh;
   const _HourPill(
       {required this.hour, required this.onSelected, required this.sh});
 
@@ -875,7 +875,7 @@ class _HourPill extends StatelessWidget {
 class _EmptyLabelPill extends StatelessWidget {
   final String current;
   final ValueChanged<String> onSelected;
-  final SpaceHourColors sh;
+  final SurlapColors sh;
   const _EmptyLabelPill(
       {required this.current, required this.onSelected, required this.sh});
 
@@ -925,7 +925,7 @@ class _EmptyLabelPill extends StatelessWidget {
 class _LeadMinutesPill extends StatelessWidget {
   final int minutes; // 0/5/15/30/60
   final ValueChanged<int> onSelected;
-  final SpaceHourColors sh;
+  final SurlapColors sh;
   const _LeadMinutesPill(
       {required this.minutes, required this.onSelected, required this.sh});
 

@@ -405,7 +405,7 @@ class _NeisSetupModalState extends ConsumerState<NeisSetupModal> {
 
 // ─── 현재 연결된 학교 미리보기 카드 ─────────────────────────────────
 class _SchoolPreviewCard extends StatelessWidget {
-  final SpaceHourColors sh;
+  final SurlapColors sh;
   final String? logo;
   final String? logoFallback;
   final String name;

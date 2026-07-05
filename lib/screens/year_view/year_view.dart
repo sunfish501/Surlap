@@ -47,7 +47,7 @@ class YearView extends ConsumerWidget {
   // 탭한 미니 월 카드의 화면 위치를 잡아, 그 자리에서 풀스크린으로 커지는
   // 오버레이를 띄운 뒤 월간 뷰로 전환한다(뒤에서 월간이 빌드돼 끝에 드러남).
   void _zoomToMonth(BuildContext cardCtx, WidgetRef ref, int year, int month,
-      SpaceHourColors sh, Map<String, List<dynamic>> events) {
+      SurlapColors sh, Map<String, List<dynamic>> events) {
     final notifier = ref.read(viewProvider.notifier);
     final box = cardCtx.findRenderObject();
     // rect/overlay를 전환 전에 확보(전환 시작하면 year 뷰가 사라짐).
@@ -84,7 +84,7 @@ class YearView extends ConsumerWidget {
 class _ZoomOverlay extends StatefulWidget {
   final Rect startRect;
   final int year, month;
-  final SpaceHourColors sh;
+  final SurlapColors sh;
   final Map<String, List<dynamic>> events;
   final VoidCallback onDone;
 
@@ -201,7 +201,7 @@ class _ZoomOverlayState extends State<_ZoomOverlay>
 class _MiniMonthCard extends StatelessWidget {
   final int year, month;
   final Map<String, List<dynamic>> events;
-  final SpaceHourColors sh;
+  final SurlapColors sh;
   final void Function(BuildContext cardContext) onTap;
 
   const _MiniMonthCard({
@@ -283,7 +283,7 @@ class _MiniMonthCard extends StatelessWidget {
 
 class _MiniMonthGrid extends StatelessWidget {
   final int year, month;
-  final SpaceHourColors sh;
+  final SurlapColors sh;
   /// null이면 이벤트 dot 표시 안 함 (줌 오버레이에서 사용).
   final Map<String, List<dynamic>>? events;
 

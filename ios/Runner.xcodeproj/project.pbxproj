@@ -21,9 +21,9 @@
 		97C146FC1CF9000F007C117D /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 97C146FA1CF9000F007C117D /* Main.storyboard */; };
 		97C146FE1CF9000F007C117D /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 97C146FD1CF9000F007C117D /* Assets.xcassets */; };
 		97C147011CF9000F007C117D /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 97C146FF1CF9000F007C117D /* LaunchScreen.storyboard */; };
-		A162AF0607E58897AE320885 /* HourSpaceWidget.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = 96BA5A0F51DE11001EC5EECE /* HourSpaceWidget.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		A162AF0607E58897AE320885 /* SurlapWidget.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = 96BA5A0F51DE11001EC5EECE /* SurlapWidget.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		E4C2A41C6AE5FF0124C791E9 /* Pods_Runner.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8BE1F14CA872B37D5B34A085 /* Pods_Runner.framework */; };
-		E5D17C7DC6E5CFCFD753A1AD /* HourSpaceWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = E225BEF7957394F9B8149048 /* HourSpaceWidget.swift */; };
+		E5D17C7DC6E5CFCFD753A1AD /* SurlapWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = E225BEF7957394F9B8149048 /* SurlapWidget.swift */; };
 		78A318202AECB46A00862997 /* FlutterGeneratedPluginSwiftPackage in Frameworks */ = {isa = PBXBuildFile; productRef = 78A3181F2AECB46A00862997 /* FlutterGeneratedPluginSwiftPackage */; };
 /* End PBXBuildFile section */
 
@@ -40,7 +40,7 @@
 			containerPortal = 97C146E61CF9000F007C117D /* Project object */;
 			proxyType = 1;
 			remoteGlobalIDString = 5A157382D44C1ADBD7B684F9;
-			remoteInfo = HourSpaceWidget;
+			remoteInfo = SurlapWidget;
 		};
 /* End PBXContainerItemProxy section */
 
@@ -61,7 +61,7 @@
 			dstPath = "";
 			dstSubfolderSpec = 13;
 			files = (
-				A162AF0607E58897AE320885 /* HourSpaceWidget.appex in Embed App Extensions */,
+				A162AF0607E58897AE320885 /* SurlapWidget.appex in Embed App Extensions */,
 			);
 			name = "Embed App Extensions";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -85,10 +85,10 @@
 		7852873AC9B53E5E6797070D /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS18.0.sdk/System/Library/Frameworks/Foundation.framework; sourceTree = DEVELOPER_DIR; };
 		7884E8672EC3CC0400C636F2 /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
 		7AFA3C8E1D35360C0083082E /* Release.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; name = Release.xcconfig; path = Flutter/Release.xcconfig; sourceTree = "<group>"; };
-		87E182E0387A731BE7DBBC8C /* mascot.png */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = image.png; name = mascot.png; path = HourSpaceWidget/mascot.png; sourceTree = "<group>"; };
+		87E182E0387A731BE7DBBC8C /* mascot.png */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = image.png; name = mascot.png; path = SurlapWidget/mascot.png; sourceTree = "<group>"; };
 		8A58C208C473A93C5949A181 /* WidgetKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WidgetKit.framework; path = System/Library/Frameworks/WidgetKit.framework; sourceTree = SDKROOT; };
 		8BE1F14CA872B37D5B34A085 /* Pods_Runner.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_Runner.framework; sourceTree = BUILT_PRODUCTS_DIR; };
-		96BA5A0F51DE11001EC5EECE /* HourSpaceWidget.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = HourSpaceWidget.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		96BA5A0F51DE11001EC5EECE /* SurlapWidget.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = SurlapWidget.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		9740EEB21CF90195004384FC /* Debug.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; name = Debug.xcconfig; path = Flutter/Debug.xcconfig; sourceTree = "<group>"; };
 		9740EEB31CF90195004384FC /* Generated.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; name = Generated.xcconfig; path = Flutter/Generated.xcconfig; sourceTree = "<group>"; };
 		97C146EE1CF9000F007C117D /* Runner.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Runner.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -98,11 +98,11 @@
 		97C147021CF9000F007C117D /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		9AC6D6B8895CA7FBD34E34E4 /* Pods-RunnerTests.profile.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-RunnerTests.profile.xcconfig"; path = "Target Support Files/Pods-RunnerTests/Pods-RunnerTests.profile.xcconfig"; sourceTree = "<group>"; };
 		DCD9767B1C840F769F966006 /* Pods-Runner.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Runner.debug.xcconfig"; path = "Target Support Files/Pods-Runner/Pods-Runner.debug.xcconfig"; sourceTree = "<group>"; };
-		E225BEF7957394F9B8149048 /* HourSpaceWidget.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = HourSpaceWidget.swift; path = HourSpaceWidget/HourSpaceWidget.swift; sourceTree = "<group>"; };
+		E225BEF7957394F9B8149048 /* SurlapWidget.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = SurlapWidget.swift; path = SurlapWidget/SurlapWidget.swift; sourceTree = "<group>"; };
 		F2B620B7BC09556C39603800 /* Pods-RunnerTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-RunnerTests.release.xcconfig"; path = "Target Support Files/Pods-RunnerTests/Pods-RunnerTests.release.xcconfig"; sourceTree = "<group>"; };
 		F5B47ABE514881D392A6C980 /* Pods-RunnerTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-RunnerTests.debug.xcconfig"; path = "Target Support Files/Pods-RunnerTests/Pods-RunnerTests.debug.xcconfig"; sourceTree = "<group>"; };
-		F77C8B8E87ADF4FFC32A62B7 /* HourSpaceWidget.entitlements */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.entitlements; name = HourSpaceWidget.entitlements; path = HourSpaceWidget/HourSpaceWidget.entitlements; sourceTree = "<group>"; };
-		FFFF7F1456DBDF59079039DB /* Info.plist */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.xml; name = Info.plist; path = HourSpaceWidget/Info.plist; sourceTree = "<group>"; };
+		F77C8B8E87ADF4FFC32A62B7 /* SurlapWidget.entitlements */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.entitlements; name = SurlapWidget.entitlements; path = SurlapWidget/SurlapWidget.entitlements; sourceTree = "<group>"; };
+		FFFF7F1456DBDF59079039DB /* Info.plist */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.xml; name = Info.plist; path = SurlapWidget/Info.plist; sourceTree = "<group>"; };
 		78E0A7A72DC9AD7400C4905E /* FlutterGeneratedPluginSwiftPackage */ = {isa = PBXFileReference; lastKnownFileType = wrapper; name = FlutterGeneratedPluginSwiftPackage; path = Flutter/ephemeral/Packages/FlutterGeneratedPluginSwiftPackage; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -192,7 +192,7 @@
 				331C8082294A63A400263BE5 /* RunnerTests */,
 				909D3344612B004E08838B94 /* Pods */,
 				3CE4ECDCBDA25DBEF11610B6 /* Frameworks */,
-				AA711FF66A58C2E73F9D5E0B /* HourSpaceWidget */,
+				AA711FF66A58C2E73F9D5E0B /* SurlapWidget */,
 			);
 			sourceTree = "<group>";
 		};
@@ -201,7 +201,7 @@
 			children = (
 				97C146EE1CF9000F007C117D /* Runner.app */,
 				331C8081294A63A400263BE5 /* RunnerTests.xctest */,
-				96BA5A0F51DE11001EC5EECE /* HourSpaceWidget.appex */,
+				96BA5A0F51DE11001EC5EECE /* SurlapWidget.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -232,15 +232,15 @@
 			name = iOS;
 			sourceTree = "<group>";
 		};
-		AA711FF66A58C2E73F9D5E0B /* HourSpaceWidget */ = {
+		AA711FF66A58C2E73F9D5E0B /* SurlapWidget */ = {
 			isa = PBXGroup;
 			children = (
-				E225BEF7957394F9B8149048 /* HourSpaceWidget.swift */,
+				E225BEF7957394F9B8149048 /* SurlapWidget.swift */,
 				FFFF7F1456DBDF59079039DB /* Info.plist */,
-				F77C8B8E87ADF4FFC32A62B7 /* HourSpaceWidget.entitlements */,
+				F77C8B8E87ADF4FFC32A62B7 /* SurlapWidget.entitlements */,
 				87E182E0387A731BE7DBBC8C /* mascot.png */,
 			);
-			name = HourSpaceWidget;
+			name = SurlapWidget;
 			sourceTree = SOURCE_ROOT;
 		};
 /* End PBXGroup section */
@@ -265,9 +265,9 @@
 			productReference = 331C8081294A63A400263BE5 /* RunnerTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
 		};
-		5A157382D44C1ADBD7B684F9 /* HourSpaceWidget */ = {
+		5A157382D44C1ADBD7B684F9 /* SurlapWidget */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = A9AA8BC96378F2804CBFE897 /* Build configuration list for PBXNativeTarget "HourSpaceWidget" */;
+			buildConfigurationList = A9AA8BC96378F2804CBFE897 /* Build configuration list for PBXNativeTarget "SurlapWidget" */;
 			buildPhases = (
 				6B57F47CA8789176C4F3B5F9 /* Sources */,
 				E7515B727471C4647E76BA5E /* Frameworks */,
@@ -277,9 +277,9 @@
 			);
 			dependencies = (
 			);
-			name = HourSpaceWidget;
-			productName = HourSpaceWidget;
-			productReference = 96BA5A0F51DE11001EC5EECE /* HourSpaceWidget.appex */;
+			name = SurlapWidget;
+			productName = SurlapWidget;
+			productReference = 96BA5A0F51DE11001EC5EECE /* SurlapWidget.appex */;
 			productType = "com.apple.product-type.app-extension";
 		};
 		97C146ED1CF9000F007C117D /* Runner */ = {
@@ -347,7 +347,7 @@
 			targets = (
 				97C146ED1CF9000F007C117D /* Runner */,
 				331C8080294A63A400263BE5 /* RunnerTests */,
-				5A157382D44C1ADBD7B684F9 /* HourSpaceWidget */,
+				5A157382D44C1ADBD7B684F9 /* SurlapWidget */,
 			);
 		};
 /* End PBXProject section */
@@ -490,7 +490,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				E5D17C7DC6E5CFCFD753A1AD /* HourSpaceWidget.swift in Sources */,
+				E5D17C7DC6E5CFCFD753A1AD /* SurlapWidget.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -514,8 +514,8 @@
 		};
 		A7974992222BDD9724CE2E88 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			name = HourSpaceWidget;
-			target = 5A157382D44C1ADBD7B684F9 /* HourSpaceWidget */;
+			name = SurlapWidget;
+			target = 5A157382D44C1ADBD7B684F9 /* SurlapWidget */;
 			targetProxy = 74EBB4D6C70E2261181EAFB7 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
@@ -606,7 +606,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.spacehour.spacehour;
+				PRODUCT_BUNDLE_IDENTIFIER = com.kev208dev.Surlap;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_OBJC_BRIDGING_HEADER = "Runner/Runner-Bridging-Header.h";
 				SWIFT_VERSION = 5.0;
@@ -623,7 +623,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				GENERATE_INFOPLIST_FILE = YES;
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.spacehour.spacehour.RunnerTests;
+				PRODUCT_BUNDLE_IDENTIFIER = com.kev208dev.Surlap.RunnerTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
@@ -641,7 +641,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				GENERATE_INFOPLIST_FILE = YES;
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.spacehour.spacehour.RunnerTests;
+				PRODUCT_BUNDLE_IDENTIFIER = com.kev208dev.Surlap.RunnerTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 5.0;
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Runner.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Runner";
@@ -657,7 +657,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				GENERATE_INFOPLIST_FILE = YES;
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.spacehour.spacehour.RunnerTests;
+				PRODUCT_BUNDLE_IDENTIFIER = com.kev208dev.Surlap.RunnerTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 5.0;
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Runner.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Runner";
@@ -668,11 +668,11 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CLANG_ENABLE_OBJC_WEAK = NO;
-				CODE_SIGN_ENTITLEMENTS = HourSpaceWidget/HourSpaceWidget.entitlements;
+				CODE_SIGN_ENTITLEMENTS = SurlapWidget/SurlapWidget.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				GENERATE_INFOPLIST_FILE = NO;
-				INFOPLIST_FILE = HourSpaceWidget/Info.plist;
+				INFOPLIST_FILE = SurlapWidget/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -680,7 +680,7 @@
 					"@executable_path/../../Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.spacehour.spacehour.HourSpaceWidget;
+				PRODUCT_BUNDLE_IDENTIFIER = com.kev208dev.Surlap.SurlapWidget;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
 				SKIP_INSTALL = YES;
@@ -694,11 +694,11 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CLANG_ENABLE_OBJC_WEAK = NO;
-				CODE_SIGN_ENTITLEMENTS = HourSpaceWidget/HourSpaceWidget.entitlements;
+				CODE_SIGN_ENTITLEMENTS = SurlapWidget/SurlapWidget.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				GENERATE_INFOPLIST_FILE = NO;
-				INFOPLIST_FILE = HourSpaceWidget/Info.plist;
+				INFOPLIST_FILE = SurlapWidget/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -706,7 +706,7 @@
 					"@executable_path/../../Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.spacehour.spacehour.HourSpaceWidget;
+				PRODUCT_BUNDLE_IDENTIFIER = com.kev208dev.Surlap.SurlapWidget;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
 				SKIP_INSTALL = YES;
@@ -841,7 +841,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.spacehour.spacehour;
+				PRODUCT_BUNDLE_IDENTIFIER = com.kev208dev.Surlap;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_OBJC_BRIDGING_HEADER = "Runner/Runner-Bridging-Header.h";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
@@ -864,7 +864,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.spacehour.spacehour;
+				PRODUCT_BUNDLE_IDENTIFIER = com.kev208dev.Surlap;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_OBJC_BRIDGING_HEADER = "Runner/Runner-Bridging-Header.h";
 				SWIFT_VERSION = 5.0;
@@ -876,11 +876,11 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CLANG_ENABLE_OBJC_WEAK = NO;
-				CODE_SIGN_ENTITLEMENTS = HourSpaceWidget/HourSpaceWidget.entitlements;
+				CODE_SIGN_ENTITLEMENTS = SurlapWidget/SurlapWidget.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				GENERATE_INFOPLIST_FILE = NO;
-				INFOPLIST_FILE = HourSpaceWidget/Info.plist;
+				INFOPLIST_FILE = SurlapWidget/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -888,7 +888,7 @@
 					"@executable_path/../../Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.spacehour.spacehour.HourSpaceWidget;
+				PRODUCT_BUNDLE_IDENTIFIER = com.kev208dev.Surlap.SurlapWidget;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
 				SKIP_INSTALL = YES;
@@ -930,7 +930,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		A9AA8BC96378F2804CBFE897 /* Build configuration list for PBXNativeTarget "HourSpaceWidget" */ = {
+		A9AA8BC96378F2804CBFE897 /* Build configuration list for PBXNativeTarget "SurlapWidget" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				59E098DD2821AD6B7552E31E /* Release */,

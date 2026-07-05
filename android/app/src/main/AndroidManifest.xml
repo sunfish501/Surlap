@@ -36,20 +36,20 @@
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
-            <!-- 테마 공유 딥링크(보조): spacehour://theme/<code> -->
+            <!-- 테마 공유 딥링크(보조): surlap://theme/<code> -->
             <intent-filter>
                 <action android:name="android.intent.action.VIEW"/>
                 <category android:name="android.intent.category.DEFAULT"/>
                 <category android:name="android.intent.category.BROWSABLE"/>
-                <data android:scheme="spacehour" android:host="theme"/>
+                <data android:scheme="surlap" android:host="theme"/>
             </intent-filter>
-            <!-- Google OAuth 콜백 딥링크: spacehour://login-callback
+            <!-- Google OAuth 콜백 딥링크: surlap://login-callback
                  (Supabase signInWithOAuth의 redirectTo와 반드시 일치) -->
             <intent-filter>
                 <action android:name="android.intent.action.VIEW"/>
                 <category android:name="android.intent.category.DEFAULT"/>
                 <category android:name="android.intent.category.BROWSABLE"/>
-                <data android:scheme="spacehour" android:host="login-callback"/>
+                <data android:scheme="surlap" android:host="login-callback"/>
             </intent-filter>
             <!-- 테마 공유 HTTPS 앱링크(주): https://kev208dev.github.io/Surlap/theme/<code>
                  autoVerify=true → 도메인 루트 /.well-known/assetlinks.json 검증.
@@ -71,7 +71,7 @@
 
         <!-- Surlap 시간표 위젯 (Now/Next 카드) -->
         <receiver
-            android:name=".HourSpaceWidgetProvider"
+            android:name=".SurlapWidgetProvider"
             android:label="Surlap"
             android:exported="true">
             <intent-filter>
@@ -79,7 +79,7 @@
             </intent-filter>
             <meta-data
                 android:name="android.appwidget.provider"
-                android:resource="@xml/hourspace_widget_info" />
+                android:resource="@xml/surlap_widget_info" />
         </receiver>
 
         <!-- 생일 로컬 알림(flutter_local_notifications) 스케줄/부팅 리시버 -->

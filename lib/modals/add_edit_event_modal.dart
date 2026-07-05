@@ -633,7 +633,7 @@ class _AddEditEventModalState extends ConsumerState<AddEditEventModal> {
 class _FieldRow extends StatelessWidget {
   final String label;
   final Widget child;
-  final SpaceHourColors sh;
+  final SurlapColors sh;
   const _FieldRow({required this.label, required this.child, required this.sh});
 
   @override
@@ -662,7 +662,7 @@ class _TimeBtn extends StatelessWidget {
   final String? value;
   final String hint;
   final VoidCallback onTap;
-  final SpaceHourColors sh;
+  final SurlapColors sh;
   const _TimeBtn(
       {required this.value, required this.hint,
        required this.onTap, required this.sh});
@@ -738,7 +738,7 @@ class _ThemeChip extends StatelessWidget {
 class _RecurChip extends StatelessWidget {
   final String label;
   final bool selected;
-  final SpaceHourColors sh;
+  final SurlapColors sh;
   final VoidCallback onTap;
   const _RecurChip({
     required this.label,
@@ -774,7 +774,7 @@ class _RecurChip extends StatelessWidget {
 
 class _ParseSuggestionChip extends StatelessWidget {
   final ParsedEvent suggestion;
-  final SpaceHourColors sh;
+  final SurlapColors sh;
   final VoidCallback onApply;
   final VoidCallback onDismiss;
   const _ParseSuggestionChip({

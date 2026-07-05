@@ -10,7 +10,7 @@ import '../../widgets/mascot/mascot.dart';
 /// 첫 실행(또는 온보딩 미시청) 시 1회 표시되는 전체화면 온보딩.
 /// PageView 3장(소개) + 1장(유형 선택) + 점 인디케이터 + 다음/시작하기 버튼.
 /// 유형 선택은 로그인 없이 진행되며, 선택값은 기기에 로컬 저장된다.
-/// 보라→블루 그라데이션(스플래시 톤)에 HourSpace 로고.
+/// 보라→블루 그라데이션(스플래시 톤)에 Surlap 로고.
 class OnboardingScreen extends ConsumerStatefulWidget {
   final VoidCallback onDone;
   const OnboardingScreen({super.key, required this.onDone});

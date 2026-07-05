@@ -26,7 +26,7 @@ class MonthGrid extends StatefulWidget {
   final Map<String, List<EventItem>> events;
   final Map<String, List<TodoItem>> todosByDate;
   final List<CalendarTheme> themes;
-  final SpaceHourColors sh;
+  final SurlapColors sh;
   final bool showPast;
   final Map<String, int> starred;
   final Set<String> circles;
@@ -72,7 +72,7 @@ class MonthGrid extends StatefulWidget {
 class _MonthGridState extends State<MonthGrid> {
   int? _expandedRow;
 
-  SpaceHourColors get sh => widget.sh;
+  SurlapColors get sh => widget.sh;
 
   @override
   void didUpdateWidget(covariant MonthGrid old) {
@@ -395,7 +395,7 @@ class _ThinBar extends StatelessWidget {
 // 펼침: 색 + 이름
 class _LabelBar extends StatelessWidget {
   final WeekBar bar;
-  final SpaceHourColors sh;
+  final SurlapColors sh;
   const _LabelBar({required this.bar, required this.sh});
   @override
   Widget build(BuildContext context) {

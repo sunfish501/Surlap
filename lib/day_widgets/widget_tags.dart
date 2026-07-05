@@ -5,7 +5,7 @@ import '../core/theme/app_theme.dart';
 class TagsWidget extends StatefulWidget {
   final DayField field;
   final dynamic value;
-  final SpaceHourColors sh;
+  final SurlapColors sh;
   final bool compact;
   final ValueChanged<dynamic>? onChanged;
   const TagsWidget({super.key, required this.field, required this.value,

@@ -390,7 +390,7 @@ String dDayLabel(Birthday b) {
 
 class _BirthdayRow extends StatelessWidget {
   final Birthday b;
-  final SpaceHourColors sh;
+  final SurlapColors sh;
   final VoidCallback onDelete;
   const _BirthdayRow({
     required this.b,
@@ -474,7 +474,7 @@ class _BirthdayRow extends StatelessWidget {
 }
 
 class _Card extends StatelessWidget {
-  final SpaceHourColors sh;
+  final SurlapColors sh;
   final Widget child;
   const _Card({required this.sh, required this.child});
   @override
@@ -493,7 +493,7 @@ class _DayChip extends StatelessWidget {
   final String label;
   final bool selected;
   final Color color;
-  final SpaceHourColors sh;
+  final SurlapColors sh;
   final VoidCallback onTap;
   const _DayChip({
     required this.label,

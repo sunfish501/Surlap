@@ -5,7 +5,7 @@ import '../core/theme/app_theme.dart';
 class RatingWidget extends StatelessWidget {
   final DayField field;
   final dynamic value;
-  final SpaceHourColors sh;
+  final SurlapColors sh;
   final bool compact;
   final ValueChanged<dynamic>? onChanged;
   const RatingWidget({super.key, required this.field, required this.value,

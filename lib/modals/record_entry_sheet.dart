@@ -329,14 +329,14 @@ class _RecordEntrySheetState extends ConsumerState<_RecordEntrySheet> {
     );
   }
 
-  Widget _label(String t, SpaceHourColors sh) => Text(t,
+  Widget _label(String t, SurlapColors sh) => Text(t,
       style: AppType.label
           .copyWith(fontWeight: FontWeight.w700, color: sh.inkSoft));
 }
 
 class _StepBtn extends StatelessWidget {
   final IconData icon;
-  final SpaceHourColors sh;
+  final SurlapColors sh;
   final VoidCallback onTap;
   const _StepBtn({required this.icon, required this.sh, required this.onTap});
 
@@ -360,7 +360,7 @@ class _StepBtn extends StatelessWidget {
 
 class _Chip extends StatelessWidget {
   final String label;
-  final SpaceHourColors sh;
+  final SurlapColors sh;
   final VoidCallback onRemove;
   const _Chip(
       {required this.label, required this.sh, required this.onRemove});

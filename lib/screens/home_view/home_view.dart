@@ -264,7 +264,7 @@ class _HomeViewState extends ConsumerState<HomeView> {
   }
 
   Widget _buildGreeting(
-      SpaceHourColors sh, DateTime now, MascotExpression mascot) {
+      SurlapColors sh, DateTime now, MascotExpression mascot) {
     final hour = now.hour;
     final greeting = hour < 6
         ? tr('늦은 밤이에요')
@@ -333,7 +333,7 @@ class _HomeViewState extends ConsumerState<HomeView> {
 const double _cardGap = 14;
 const double _cardRadius = 22;
 
-BoxDecoration _softCard(SpaceHourColors sh,
+BoxDecoration _softCard(SurlapColors sh,
         {Color? color, double radius = _cardRadius, Color? border}) =>
     BoxDecoration(
       color: color ?? sh.card,
@@ -351,7 +351,7 @@ BoxDecoration _softCard(SpaceHourColors sh,
     );
 
 /// 통일된 line-icon 배지 + 라벨(카드 헤더).
-Widget _iconBadge(SpaceHourColors sh, IconData icon, String label,
+Widget _iconBadge(SurlapColors sh, IconData icon, String label,
     {Color? color}) {
   final c = color ?? sh.accent;
   return Row(
@@ -375,7 +375,7 @@ Widget _iconBadge(SpaceHourColors sh, IconData icon, String label,
 }
 
 /// 카드 안 라인 아이콘 빈 상태(마스코트 대신 통일된 아이콘).
-Widget _emptyNote(SpaceHourColors sh, String title, String? sub) => Padding(
+Widget _emptyNote(SurlapColors sh, String title, String? sub) => Padding(
       padding: const EdgeInsets.symmetric(vertical: 2),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -398,7 +398,7 @@ Widget _emptyNote(SpaceHourColors sh, String title, String? sub) => Padding(
 
 // ─── 다음 일정 카드 ──────────────────────────────────────────────
 class _NextEventCard extends StatelessWidget {
-  final SpaceHourColors sh;
+  final SurlapColors sh;
   final List<EventItem> upcoming;
   final List<EventItem> allToday;
   final List<CalendarTheme> themes;
@@ -589,7 +589,7 @@ class _NextEventCard extends StatelessWidget {
 
 // ─── 급식 카드 ───────────────────────────────────────────────────
 class _MealCard extends StatelessWidget {
-  final SpaceHourColors sh;
+  final SurlapColors sh;
   final SchoolMeals? meals;
   final bool loaded;
   final bool error;
@@ -699,7 +699,7 @@ class _MealCard extends StatelessWidget {
 
 // 텍스트 + 작은 링크형 액션(학교 연결 / 다시 시도).
 class _LinkLine extends StatelessWidget {
-  final SpaceHourColors sh;
+  final SurlapColors sh;
   final String text;
   final String action;
   final VoidCallback onTap;
@@ -733,7 +733,7 @@ class _LinkLine extends StatelessWidget {
 
 // ─── 오늘 일정(개수) 카드 ────────────────────────────────────────
 class _TodayStatsCard extends StatelessWidget {
-  final SpaceHourColors sh;
+  final SurlapColors sh;
   final int count;
   final VoidCallback onTap;
 
@@ -786,7 +786,7 @@ class _TodayStatsCard extends StatelessWidget {
 
 // ─── 오늘 할 일 카드 ─────────────────────────────────────────────
 class _TodayTodosCard extends StatelessWidget {
-  final SpaceHourColors sh;
+  final SurlapColors sh;
   final List<TodoItem> todos;
   final void Function(String id) onToggle;
   final void Function(TodoItem) onTapTodo;
@@ -887,7 +887,7 @@ class _TodayTodosCard extends StatelessWidget {
 
 // ─── 다가오는 생일 카드 ──────────────────────────────────────────
 class _UpcomingBirthdaysCard extends StatelessWidget {
-  final SpaceHourColors sh;
+  final SurlapColors sh;
   final List<Birthday> birthdays;
   final VoidCallback onTap;
   const _UpcomingBirthdaysCard(
@@ -957,7 +957,7 @@ class _UpcomingBirthdaysCard extends StatelessWidget {
 
 // ─── 이번 주 미니 스트립 ─────────────────────────────────────────
 class _WeekStripCard extends StatelessWidget {
-  final SpaceHourColors sh;
+  final SurlapColors sh;
   final DateTime monday;
   final List<String> weekKeys;
   final Map<String, int> eventCounts;
@@ -1071,7 +1071,7 @@ class _WeekStripCard extends StatelessWidget {
 }
 
 class _AcademicDDayCard extends StatelessWidget {
-  final SpaceHourColors sh;
+  final SurlapColors sh;
   final AcademicHighlight highlight;
   const _AcademicDDayCard({required this.sh, required this.highlight});
 

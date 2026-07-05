@@ -133,7 +133,7 @@ class DayTemplateManagerModal extends ConsumerWidget {
     );
   }
 
-  void _openEditor(BuildContext context, WidgetRef ref, SpaceHourColors sh, int? index) {
+  void _openEditor(BuildContext context, WidgetRef ref, SurlapColors sh, int? index) {
     final existing = index != null ? ref.read(dayTemplatesProvider)[index] : null;
     Navigator.push(
       context,
@@ -158,7 +158,7 @@ class DayTemplateManagerModal extends ConsumerWidget {
 }
 
 class _PresetsSection extends StatefulWidget {
-  final SpaceHourColors sh;
+  final SurlapColors sh;
   final WidgetRef ref;
   const _PresetsSection({required this.sh, required this.ref});
 
@@ -222,7 +222,7 @@ class _PresetsSectionState extends State<_PresetsSection> {
 
 class _PresetCard extends StatelessWidget {
   final ({String name, List<dynamic> fields}) preset;
-  final SpaceHourColors sh;
+  final SurlapColors sh;
   final VoidCallback onAdd;
   const _PresetCard({required this.preset, required this.sh, required this.onAdd});
 
@@ -264,7 +264,7 @@ class _PresetCard extends StatelessWidget {
 class _TemplateCard extends StatelessWidget {
   final DayTemplate template;
   final int index;
-  final SpaceHourColors sh;
+  final SurlapColors sh;
   final WidgetRef ref;
   final VoidCallback onEdit;
   const _TemplateCard({required this.template, required this.index,
@@ -444,9 +444,8 @@ class _DayTemplateEditorPageState extends State<DayTemplateEditorPage> {
                   physics: const NeverScrollableScrollPhysics(),
                   buildDefaultDragHandles: true,
                   itemCount: _fields.length,
-                  onReorder: (old, nw) {
+                  onReorderItem: (old, nw) {
                     setState(() {
-                      if (nw > old) { nw--; }
                       final item = _fields.removeAt(old);
                       _fields.insert(nw, item);
                     });
@@ -502,7 +501,7 @@ class _DayTemplateEditorPageState extends State<DayTemplateEditorPage> {
 
 class _ScopeSelector extends StatelessWidget {
   final DayTemplateScope scope;
-  final SpaceHourColors sh;
+  final SurlapColors sh;
   final ValueChanged<DayTemplateScope> onChanged;
   const _ScopeSelector({required this.scope, required this.sh, required this.onChanged});
 
@@ -574,7 +573,7 @@ class _ScopeSelector extends StatelessWidget {
 
 class _FieldEditor extends StatefulWidget {
   final DayField field;
-  final SpaceHourColors sh;
+  final SurlapColors sh;
   final String typeLabel;
   final ValueChanged<DayField> onChanged;
   final VoidCallback onDelete;
@@ -700,7 +699,7 @@ class _FieldEditorState extends State<_FieldEditor> {
 
 class _Card extends StatelessWidget {
   final Widget child;
-  final SpaceHourColors sh;
+  final SurlapColors sh;
   const _Card({required this.child, required this.sh});
   @override Widget build(BuildContext context) => Container(
     padding: const EdgeInsets.all(16),
@@ -714,7 +713,7 @@ class _Card extends StatelessWidget {
 }
 
 class _Label extends StatelessWidget {
-  final String text; final SpaceHourColors sh;
+  final String text; final SurlapColors sh;
   const _Label(this.text, this.sh);
   @override Widget build(BuildContext context) => Text(text,
     style: AppType.label.copyWith(fontWeight: FontWeight.w700,

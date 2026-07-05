@@ -18,7 +18,7 @@ import 'widget_timerange.dart';
 class WidgetCellRenderer extends StatelessWidget {
   final DayField field;
   final dynamic value;
-  final SpaceHourColors sh;
+  final SurlapColors sh;
   final bool compact;
   final ValueChanged<dynamic>? onChanged;
 

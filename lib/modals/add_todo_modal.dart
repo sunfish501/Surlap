@@ -439,7 +439,7 @@ class _AddTodoModalState extends ConsumerState<AddTodoModal> {
 // ── 마이크 버튼 ────────────────────────────────────────────────────
 class _MicButton extends StatelessWidget {
   final bool listening;
-  final SpaceHourColors sh;
+  final SurlapColors sh;
   final VoidCallback onStart;
   final VoidCallback onStop;
   const _MicButton(
@@ -477,7 +477,7 @@ class _MicButton extends StatelessWidget {
 class _PrioChip extends StatelessWidget {
   final int priority; // 0=없음
   final bool selected;
-  final SpaceHourColors sh;
+  final SurlapColors sh;
   final VoidCallback onTap;
   const _PrioChip(
       {required this.priority,

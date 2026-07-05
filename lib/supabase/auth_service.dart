@@ -142,7 +142,7 @@ class AuthNotifier extends Notifier<User?> {
         // 웹은 origin 만 쓰면 GitHub Pages 서브패스(/Surlap/)가 빠져
         // 앱이 아닌 루트로 복귀 → 세션을 못 받아 무한 로그인. 경로 보존 필요.
         // (Android의 Uri.base는 file:/// 이라 .origin이 StateError → 커스텀 스킴 사용)
-        redirectTo: kIsWeb ? _webRedirectUrl() : 'spacehour://login-callback',
+        redirectTo: kIsWeb ? _webRedirectUrl() : 'surlap://login-callback',
         // iOS: 기본(내장 SFSafariViewController)에선 Google이 임베디드 웹뷰로
         // 보고 흰 화면으로 막는다. 외부 Safari로 띄워야 로그인 후 커스텀 스킴
         // 콜백으로 정상 복귀. (Android는 supabase_flutter가 이미 external 강제)
@@ -165,7 +165,7 @@ class AuthNotifier extends Notifier<User?> {
     try {
       await client.auth.signInWithOAuth(
         OAuthProvider.apple,
-        redirectTo: kIsWeb ? _webRedirectUrl() : 'spacehour://login-callback',
+        redirectTo: kIsWeb ? _webRedirectUrl() : 'surlap://login-callback',
         authScreenLaunchMode: LaunchMode.externalApplication,
       );
     } catch (e, st) {

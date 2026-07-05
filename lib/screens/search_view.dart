@@ -189,7 +189,7 @@ class _SearchSheetState extends ConsumerState<_SearchSheet> {
 
 class SearchHitTile extends StatelessWidget {
   final SearchHit hit;
-  final SpaceHourColors sh;
+  final SurlapColors sh;
   final VoidCallback onTap;
   const SearchHitTile(
       {super.key, required this.hit, required this.sh, required this.onTap});

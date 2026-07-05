@@ -24,7 +24,7 @@ Future<void> showRecordTemplateSheet(BuildContext context) =>
 class _RecordTemplateSheet extends ConsumerWidget {
   const _RecordTemplateSheet();
 
-  Future<DateTimeRange?> _pickRange(BuildContext context, SpaceHourColors sh,
+  Future<DateTimeRange?> _pickRange(BuildContext context, SurlapColors sh,
       {DateTimeRange? initial}) {
     final now = DateTime.now();
     return showDateRangePicker(
@@ -51,7 +51,7 @@ class _RecordTemplateSheet extends ConsumerWidget {
     );
   }
 
-  Future<void> _apply(BuildContext context, WidgetRef ref, SpaceHourColors sh,
+  Future<void> _apply(BuildContext context, WidgetRef ref, SurlapColors sh,
       RecordTemplate tpl) async {
     // 프리셋(공부·독서·운동)은 바로 적용하지 않고, 먼저 커스터마이즈 시트를 띄워
     // 필요 없는 필드(태그/메모)를 빼고 이름·라벨을 다듬은 뒤 그 결과로 적용.
@@ -72,7 +72,7 @@ class _RecordTemplateSheet extends ConsumerWidget {
   }
 
   Future<void> _editRange(BuildContext context, WidgetRef ref,
-      SpaceHourColors sh, TemplateRange range) async {
+      SurlapColors sh, TemplateRange range) async {
     final r = await _pickRange(context, sh,
         initial: DateTimeRange(
             start: du.fromDateKey(range.start),
@@ -247,7 +247,7 @@ class _RecordTemplateSheet extends ConsumerWidget {
 
 class _TemplateCard extends StatelessWidget {
   final RecordTemplate tpl;
-  final SpaceHourColors sh;
+  final SurlapColors sh;
   final VoidCallback onApply;
   final VoidCallback onDuplicate;
   final VoidCallback? onEdit;
@@ -355,7 +355,7 @@ class _TemplateCard extends StatelessWidget {
 
 class _IconBtn extends StatelessWidget {
   final IconData icon;
-  final SpaceHourColors sh;
+  final SurlapColors sh;
   final bool danger;
   final VoidCallback onTap;
   const _IconBtn(

@@ -9,14 +9,14 @@ IconData todoStatusIcon(int status) => switch (status) {
     };
 
 /// 상태별 아이콘 색상. (priorityColor는 미완료 0단계 기본색)
-Color todoStatusColor(int status, int priority, SpaceHourColors sh) {
+Color todoStatusColor(int status, int priority, SurlapColors sh) {
   if (status == 2) return sh.accent;
   if (status == 1) return const Color(0xFFE8943A); // 진행중 = 주황
   return todoPriorityColor(priority, sh);
 }
 
 /// 우선순위(1~3)별 색상. 0(없음)은 보조 텍스트색.
-Color todoPriorityColor(int priority, SpaceHourColors sh) {
+Color todoPriorityColor(int priority, SurlapColors sh) {
   switch (priority) {
     case 1:
       return const Color(0xFFE0564A); // 빨강 (높음)

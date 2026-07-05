@@ -212,7 +212,7 @@ class ThemeManagerBody extends ConsumerWidget {
     ref.read(themesProvider.notifier).add(theme);
   }
 
-  void _importTheme(BuildContext context, WidgetRef ref, SpaceHourColors sh) {
+  void _importTheme(BuildContext context, WidgetRef ref, SurlapColors sh) {
     final ctrl = TextEditingController();
     showDialog(
       context: context,
@@ -266,7 +266,7 @@ class ThemeManagerBody extends ConsumerWidget {
 
 class _GroupLabel extends StatelessWidget {
   final String text;
-  final SpaceHourColors sh;
+  final SurlapColors sh;
   const _GroupLabel(this.text, this.sh);
 
   @override
@@ -283,7 +283,7 @@ class _ThemeRow extends ConsumerStatefulWidget {
   final CalendarTheme theme;
   final bool editable;
   final WidgetRef ref;
-  final SpaceHourColors sh;
+  final SurlapColors sh;
   final String? shareCode;
 
   const _ThemeRow({
@@ -394,7 +394,7 @@ class _ThemeRowState extends ConsumerState<_ThemeRow> {
   }
 
   // 색상 원 — 큰 사이즈 + 글로우 + 흰 링으로 "탭 가능" 강조.
-  Widget _colorDot(SpaceHourColors sh) {
+  Widget _colorDot(SurlapColors sh) {
     final dot = Container(
       width: 38,
       height: 38,
@@ -413,7 +413,7 @@ class _ThemeRowState extends ConsumerState<_ThemeRow> {
   }
 
   // 이름 — 평소엔 카드 제목 텍스트, 탭하면 편집 모드.
-  Widget _nameField(SpaceHourColors sh) {
+  Widget _nameField(SurlapColors sh) {
     final titleStyle = AppType.body.copyWith(
         fontSize: 20, fontWeight: FontWeight.w800, color: sh.ink);
     if (_editing) {
@@ -452,7 +452,7 @@ class _ThemeRowState extends ConsumerState<_ThemeRow> {
   }
 
   // 상태별 액션 칩(라벨 + 약한 배경).
-  List<Widget> _actionChips(SpaceHourColors sh) {
+  List<Widget> _actionChips(SurlapColors sh) {
     final t = widget.theme;
     if (t.shareRole == 'subscriber') {
       return [
@@ -475,7 +475,7 @@ class _ThemeRowState extends ConsumerState<_ThemeRow> {
 
   // 아이콘 버튼(라벨 없음). 접근성 위해 Tooltip + Semantics 유지.
   Widget _chip(IconData icon, String label, Color color, VoidCallback onTap,
-      SpaceHourColors sh) {
+      SurlapColors sh) {
     return Tooltip(
       message: label,
       child: Semantics(

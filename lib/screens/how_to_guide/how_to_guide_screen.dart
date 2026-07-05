@@ -468,7 +468,7 @@ class _HowToGuideScreenState extends State<HowToGuideScreen> {
     );
   }
 
-  Widget _buildCategoryBody(SpaceHourColors sh) {
+  Widget _buildCategoryBody(SurlapColors sh) {
     final topics = _filteredTopics;
     if (topics.isEmpty) return _EmptyHint(sh: sh);
     return ListView.separated(
@@ -489,7 +489,7 @@ class _HowToGuideScreenState extends State<HowToGuideScreen> {
     );
   }
 
-  Widget _buildSearchResults(SpaceHourColors sh) {
+  Widget _buildSearchResults(SurlapColors sh) {
     final matches = _globalMatches;
     if (matches.isEmpty) return _EmptyHint(sh: sh);
     return ListView.separated(
@@ -519,7 +519,7 @@ class _MatchedTopic {
 }
 
 class _Header extends StatelessWidget {
-  final SpaceHourColors sh;
+  final SurlapColors sh;
   const _Header({required this.sh});
 
   @override
@@ -555,7 +555,7 @@ class _Header extends StatelessWidget {
 }
 
 class _SearchField extends StatelessWidget {
-  final SpaceHourColors sh;
+  final SurlapColors sh;
   final TextEditingController controller;
   final ValueChanged<String> onChanged;
   const _SearchField(
@@ -607,7 +607,7 @@ class _SearchField extends StatelessWidget {
 }
 
 class _CategoryTabs extends StatelessWidget {
-  final SpaceHourColors sh;
+  final SurlapColors sh;
   final List<_Category> cats;
   final int current;
   final ValueChanged<int> onSelect;
@@ -665,7 +665,7 @@ class _CategoryTabs extends StatelessWidget {
 }
 
 class _TopicCard extends StatelessWidget {
-  final SpaceHourColors sh;
+  final SurlapColors sh;
   final _Topic topic;
   final bool expanded;
   final VoidCallback onTap;
@@ -770,7 +770,7 @@ class _TopicCard extends StatelessWidget {
 }
 
 class _StepRow extends StatelessWidget {
-  final SpaceHourColors sh;
+  final SurlapColors sh;
   final Color color;
   final int n;
   final _Step step;
@@ -842,7 +842,7 @@ class _StepRow extends StatelessWidget {
 }
 
 class _EmptyHint extends StatelessWidget {
-  final SpaceHourColors sh;
+  final SurlapColors sh;
   const _EmptyHint({required this.sh});
 
   @override

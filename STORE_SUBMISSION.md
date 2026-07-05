@@ -1,4 +1,4 @@
-# HourSpace 출시 체크리스트 (App Store / Google Play)
+# Surlap 출시 체크리스트 (App Store / Google Play)
 
 ## ✅ 코드/설정 완료 (이번 작업)
 - [x] Pretendard 폰트 번들 (시스템폰트 → 정품 한글 폰트)
@@ -22,9 +22,9 @@ Supabase 대시보드(프로젝트 `ngmvddxpoqtbrwpwiogh`) → SQL Editor →
 → 앱의 "회원 탈퇴"가 실제로 동작.
 
 ### 2. 개인정보처리방침 URL 활성화  (필수)
-GitHub: `kev208dev/HourSpace-app` → Settings → Pages →
+GitHub: `kev208dev/Surlap` → Settings → Pages →
 Source = `main` 브랜치 / `/docs` 폴더 → Save.
-→ URL: `https://kev208dev.github.io/HourSpace-app/privacy.html`
+→ URL: `https://kev208dev.github.io/Surlap/privacy.html`
 이 URL을 App Store Connect / Play Console 개인정보처리방침 칸에 입력.
 
 ### 3. Android 업로드 키스토어 생성  (Play 제출 시)
@@ -60,7 +60,7 @@ Xcode → Runner & HourSpaceWidget 타겟 → Signing & Capabilities →
 
 테스트가 필요한 경우 데모 계정:
   ID: demo@hourspace.app
-  PW: HourSpace2026!
+  PW: Surlap2026!
 
 Sign in with Apple도 제공합니다 (iOS 빌드).
 Google 로그인은 외부 브라우저(Safari)로 리다이렉트됩니다.
@@ -75,7 +75,7 @@ Google 로그인은 외부 브라우저(Safari)로 리다이렉트됩니다.
 - [ ] 카테고리: 생산성(Productivity)
 - [ ] 연령 등급: 4+ / 전체이용가
 - [ ] 데이터 안전(Play) / 개인정보 라벨(App Store): 이메일=앱기능, 추적 없음
-- [ ] 지원 URL: `https://kev208dev.github.io/HourSpace-app/`
+- [ ] 지원 URL: `https://kev208dev.github.io/Surlap/`
 
 ## 권한 사용 사유 (심사 메모용)
 - 연락처: 생일 가져오기(선택) · 마이크: 할 일 음성 입력(선택)

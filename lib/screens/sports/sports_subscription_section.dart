@@ -99,7 +99,7 @@ class SportsSubscriptionSection extends ConsumerWidget {
   Widget _subTile(
     BuildContext context,
     WidgetRef ref,
-    SpaceHourColors sh,
+    SurlapColors sh,
     SportsSubscriptionsNotifier notifier,
     SportSubscription s,
   ) {

@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:spacehour/core/constants/storage_keys.dart';
-import 'package:spacehour/storage/local_store.dart';
+import 'package:surlap/core/constants/storage_keys.dart';
+import 'package:surlap/storage/local_store.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();

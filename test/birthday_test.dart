@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:spacehour/providers/birthdays_provider.dart';
+import 'package:surlap/providers/birthdays_provider.dart';
 
 void main() {
   // 기준일 2026-06-04

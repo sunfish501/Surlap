@@ -5,7 +5,7 @@ import '../core/theme/app_theme.dart';
 class TimerangeWidget extends StatefulWidget {
   final DayField field;
   final dynamic value;
-  final SpaceHourColors sh;
+  final SurlapColors sh;
   final bool compact;
   final ValueChanged<dynamic>? onChanged;
   const TimerangeWidget({super.key, required this.field, required this.value,
@@ -85,7 +85,7 @@ class _TimerangeWidgetState extends State<TimerangeWidget> {
 class _TimeBtn extends StatelessWidget {
   final String? value;
   final String hint;
-  final SpaceHourColors sh;
+  final SurlapColors sh;
   final VoidCallback onTap;
   const _TimeBtn({required this.value, required this.hint, required this.sh, required this.onTap});
   @override Widget build(BuildContext context) => GestureDetector(

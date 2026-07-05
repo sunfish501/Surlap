@@ -160,7 +160,7 @@ Future<void> _confirmDeleteAccount(BuildContext context, WidgetRef ref) async {
 
 // ── 계정 hero 카드 ──
 class _AccountCard extends StatelessWidget {
-  final SpaceHourColors sh;
+  final SurlapColors sh;
   final bool loggedIn;
   final String name;
   final String email;

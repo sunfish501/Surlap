@@ -5,7 +5,7 @@ import '../core/theme/app_theme.dart';
 class NumberWidget extends StatefulWidget {
   final DayField field;
   final dynamic value;
-  final SpaceHourColors sh;
+  final SurlapColors sh;
   final bool compact;
   final ValueChanged<dynamic>? onChanged;
   const NumberWidget({super.key, required this.field, required this.value,
@@ -57,7 +57,7 @@ class _NumberWidgetState extends State<NumberWidget> {
 
 class _ValueDisplay extends StatelessWidget {
   final String text, label;
-  final SpaceHourColors sh;
+  final SurlapColors sh;
   const _ValueDisplay({required this.text, required this.label, required this.sh});
   @override Widget build(BuildContext context) => Column(
     crossAxisAlignment: CrossAxisAlignment.start,

@@ -3,10 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-/// HourSpace 인트로/스플래시 — 절제된 reveal + iOS풍 세그먼트 스피너.
+/// Surlap 인트로/스플래시 — 절제된 reveal + iOS풍 세그먼트 스피너.
 ///
 ///  1) 마스코트가 은은한 글로우와 함께 부드럽게 페이드·스케일 인
-///  2) 워드마크 "HourSpace"가 넓은 자간 → 제자리로 좁혀지며 페이드(타입 reveal)
+///  2) 워드마크 "Surlap"가 넓은 자간 → 제자리로 좁혀지며 페이드(타입 reveal)
 ///  3) 하단 세그먼트 스피너(12막대 순차 페이드 회전)로 로딩감
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});

@@ -398,7 +398,7 @@ class _PlannerViewState extends ConsumerState<PlannerView> {
   }
 
   // ── 날짜 헤더 셀(요일/날짜 + 종일) ──
-  Widget _dayHeader(DateTime d, SpaceHourColors sh) {
+  Widget _dayHeader(DateTime d, SurlapColors sh) {
     final isToday = du.isSameDay(d, DateTime.now());
     final isSun = d.weekday == DateTime.sunday;
     final isSat = d.weekday == DateTime.saturday;
@@ -482,7 +482,7 @@ class _PlannerViewState extends ConsumerState<PlannerView> {
     );
   }
 
-  Widget _allDayChip(EventItem e, DateTime d, SpaceHourColors sh) {
+  Widget _allDayChip(EventItem e, DateTime d, SurlapColors sh) {
     final c = eventColorFor(e, _themes, sh);
     return GestureDetector(
       onTap: () => _onEventTap(e, du.toDateKey(d)),
@@ -508,7 +508,7 @@ class _PlannerViewState extends ConsumerState<PlannerView> {
   }
 
   // ── 하루 컬럼(그리드 라인 + 시간표 + 이벤트 + now) ──
-  Widget _dayColumn(DateTime d, bool showTt, SpaceHourColors sh) {
+  Widget _dayColumn(DateTime d, bool showTt, SurlapColors sh) {
     final isToday = du.isSameDay(d, DateTime.now());
     final timed = _timedFor(d);
     final placed = _placeTimed(timed);
@@ -709,7 +709,7 @@ class _EventBlock extends StatelessWidget {
   final EventItem event;
   final Color color;
   final double height;
-  final SpaceHourColors sh;
+  final SurlapColors sh;
   final VoidCallback onTap;
   const _EventBlock(
       {required this.event,
@@ -804,7 +804,7 @@ class _EventBlock extends StatelessWidget {
 
 class _RecurringBlock extends StatelessWidget {
   final String name;
-  final SpaceHourColors sh;
+  final SurlapColors sh;
   const _RecurringBlock({required this.name, required this.sh});
 
   @override
@@ -834,7 +834,7 @@ class _RecurringBlock extends StatelessWidget {
 // 현재 시각선 — 보이는 모든 날짜 컬럼을 가로질러 그린다(시간축 따라 세로 위치).
 class _NowLineFull extends StatelessWidget {
   final double rowH;
-  final SpaceHourColors sh;
+  final SurlapColors sh;
   const _NowLineFull({required this.rowH, required this.sh});
 
   @override
@@ -865,7 +865,7 @@ class _NowLineFull extends StatelessWidget {
 // ── 헤더(제목 + 세그먼트 + ⋮) ──
 class _PlannerNav extends StatelessWidget {
   final Widget title;
-  final SpaceHourColors sh;
+  final SurlapColors sh;
   final bool showTimetable;
   final VoidCallback onToggleSchedule;
   final VoidCallback onPrev, onNext, onToday, onSearch;

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:spacehour/screens/onboarding/onboarding_screen.dart';
+import 'package:surlap/screens/onboarding/onboarding_screen.dart';
 
 void main() {
   testWidgets('온보딩 3장: 다음으로 진행, 마지막에 시작하기 → onDone', (tester) async {

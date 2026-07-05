@@ -23,7 +23,7 @@ class DaySpan {
 const double kSpanBarH = 13.0;
 
 Color eventColorFor(
-    EventItem e, List<CalendarTheme> themes, SpaceHourColors sh) {
+    EventItem e, List<CalendarTheme> themes, SurlapColors sh) {
   if (e.birthday) return sh.birthdayColor;
   if (e.academic) return sh.academicColor;
   if (e.sport && e.sportColor != null) return Color(e.sportColor!);
@@ -41,7 +41,7 @@ Color eventColorFor(
 ({List<DaySpan> spans, Set<String> spanned}) computeDaySpans(
   List<List<EventItem>> colEvents,
   List<CalendarTheme> themes,
-  SpaceHourColors sh,
+  SurlapColors sh,
 ) {
   final n = colEvents.length;
   final present = <String, List<bool>>{};
@@ -129,7 +129,7 @@ class WeekBar {
   List<List<TodoItem>> colTodos,
   List<DateTime> weekDates,
   List<CalendarTheme> themes,
-  SpaceHourColors sh,
+  SurlapColors sh,
 ) {
   final n = colEvents.length; // 7
   final bars = <WeekBar>[];
@@ -204,7 +204,7 @@ class WeekBar {
 
 class SpanBar extends StatelessWidget {
   final DaySpan span;
-  final SpaceHourColors sh;
+  final SurlapColors sh;
   const SpanBar({super.key, required this.span, required this.sh});
 
   @override

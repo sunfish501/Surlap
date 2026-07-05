@@ -74,15 +74,15 @@
 			<string>UIInterfaceOrientationLandscapeLeft</string>
 			<string>UIInterfaceOrientationLandscapeRight</string>
 		</array>
-		<!-- 테마 공유 커스텀 스킴: spacehour://theme/<code> -->
+		<!-- 테마 공유 커스텀 스킴: surlap://theme/<code> -->
 		<key>CFBundleURLTypes</key>
 		<array>
 			<dict>
 				<key>CFBundleURLName</key>
-				<string>com.spacehour.spacehour</string>
+				<string>com.kev208dev.Surlap</string>
 				<key>CFBundleURLSchemes</key>
 				<array>
-					<string>spacehour</string>
+					<string>surlap</string>
 				</array>
 			</dict>
 		</array>

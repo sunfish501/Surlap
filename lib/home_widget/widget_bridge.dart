@@ -21,9 +21,9 @@ import '../providers/user_type_provider.dart';
 class WidgetBridge {
   // 기존 iOS App Group / 위젯 ext 타깃 이름 유지(pbxproj 등록값과 일치 필수).
   // 새 이름으로 바꾸려면 Xcode 에서 타깃·entitlements 도 함께 갱신해야 위젯이 살아남.
-  static const appGroupId = 'group.com.spacehour.spacehour';
-  static const iosWidgetName = 'HourSpaceWidget';
-  static const androidWidgetName = 'HourSpaceWidgetProvider';
+  static const appGroupId = 'group.com.kev208dev.Surlap';
+  static const iosWidgetName = 'SurlapWidget';
+  static const androidWidgetName = 'SurlapWidgetProvider';
   static const dataKey = 'hs_widget';
 
   static const _maxAllDay = 6;

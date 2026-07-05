@@ -8,8 +8,8 @@ import 'coach_mark.dart';
 
 // ─── Liquid Glass Floating Bottom Navigation (2026 리디자인) ─────
 // 떠 있는 캡슐. 비활성 = 아이콘만, 활성 = 아이콘 + 라벨 알약(accent).
-class SpaceHourBottomNav extends ConsumerWidget {
-  const SpaceHourBottomNav({super.key});
+class SurlapBottomNav extends ConsumerWidget {
+  const SurlapBottomNav({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {

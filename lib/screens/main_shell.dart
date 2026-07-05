@@ -95,7 +95,7 @@ class MainShell extends ConsumerWidget {
           // ── 우측 하단 + 스피드다이얼 (테마일정·일정·할일) ──
           const _SpeedDialFab(),
           // ── glass 플로팅 하단 바 (콘텐츠 위 overlay) ──
-          const SpaceHourBottomNav(),
+          const SurlapBottomNav(),
         ],
       ),
     );
@@ -250,7 +250,7 @@ class _SpeedDialFabState extends State<_SpeedDialFab>
     int i,
     int count,
     double v,
-    SpaceHourColors sh,
+    SurlapColors sh,
   ) {
     // 버튼에서 가까운(아래쪽) 항목이 먼저, 느긋하게 위로 올라오도록 스태거.
     final order = count - 1 - i;
@@ -303,7 +303,7 @@ class _SpeedDialFabState extends State<_SpeedDialFab>
     );
   }
 
-  Widget _buildFab(SpaceHourColors sh, double v) {
+  Widget _buildFab(SurlapColors sh, double v) {
     return Semantics(
       label: '추가',
       button: true,

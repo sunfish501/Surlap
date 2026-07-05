@@ -468,7 +468,7 @@ class _DaySpan {
 }
 
 Color _eventColor(
-    EventItem e, List<CalendarTheme> themes, SpaceHourColors sh) {
+    EventItem e, List<CalendarTheme> themes, SurlapColors sh) {
   if (e.birthday) return sh.birthdayColor;
   if (e.academic) return sh.academicColor;
   final ids = e.themeIds;
@@ -482,7 +482,7 @@ Color _eventColor(
 
 class _SpanBar extends StatelessWidget {
   final _DaySpan span;
-  final SpaceHourColors sh;
+  final SurlapColors sh;
   const _SpanBar({required this.span, required this.sh});
 
   @override

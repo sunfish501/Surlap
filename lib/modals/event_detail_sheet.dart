@@ -18,7 +18,7 @@ class _EventDetailSheet extends StatelessWidget {
   const _EventDetailSheet({required this.e});
 
   ({Color color, IconData? icon, String? emoji, String label}) _meta(
-      SpaceHourColors sh) {
+      SurlapColors sh) {
     if (e.sport) {
       return (
         color: Color(e.sportColor ?? 0xFF6C63FF),
@@ -156,7 +156,7 @@ class _EventDetailSheet extends StatelessWidget {
     return emojiW;
   }
 
-  Widget _row(IconData icon, String text, SpaceHourColors sh, {Color? color}) {
+  Widget _row(IconData icon, String text, SurlapColors sh, {Color? color}) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 6),
       child: Row(

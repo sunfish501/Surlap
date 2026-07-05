@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 /// Surlap 브랜드 로고 / 워드마크 전용 컬러 램프.
-/// 메인 앱 테마(`SpaceHourColors`)와 분리 — 로고 자체의 시각 밸런스가 핵심이므로
+/// 메인 앱 테마(`SurlapColors`)와 분리 — 로고 자체의 시각 밸런스가 핵심이므로
 /// 임의로 톤 다운하지 말 것.
 abstract final class SurlapBrand {
   /// 잉크 / 워드마크 텍스트 (라이트 배경)

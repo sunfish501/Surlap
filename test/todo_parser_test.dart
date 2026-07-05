@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:spacehour/core/utils/todo_parser.dart';
-import 'package:spacehour/core/utils/date_utils.dart' as du;
+import 'package:surlap/core/utils/todo_parser.dart';
+import 'package:surlap/core/utils/date_utils.dart' as du;
 
 void main() {
   // 고정 기준일: 2026-06-03 (수요일)

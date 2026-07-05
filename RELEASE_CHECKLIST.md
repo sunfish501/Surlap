@@ -1,4 +1,4 @@
-# HourSpace 릴리스 체크리스트
+# Surlap 릴리스 체크리스트
 
 > **이 파일은 직접 해야 할 항목 목록이다. Claude가 자동으로 할 수 없는 것들.**
 
@@ -120,7 +120,7 @@ flutter test      # 없으면 skip
 | 항목 | 상태 |
 |------|------|
 | applicationId | `com.spacehour.spacehour` — 변경 금지 |
-| 앱 이름 | `HourSpace` — android:label, CFBundleDisplayName 모두 설정됨 |
+| 앱 이름 | `Surlap` — android:label, CFBundleDisplayName 모두 설정됨 |
 | 버전 | `1.0.0+1` |
 | 릴리스 서명 | ❌ debug key 사용 중 — keystore 생성 필요 |
 | assetlinks.json | ❌ 릴리스 SHA256 미추가 |

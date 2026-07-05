@@ -99,7 +99,7 @@ class _SheetState extends ConsumerState<_SportsSubscribeSheet> {
     );
   }
 
-  Widget _body(SpaceHourColors sh, int step) {
+  Widget _body(SurlapColors sh, int step) {
     if (step == 0) {
       return GridView.count(
         crossAxisCount: 2,
@@ -142,7 +142,7 @@ class _SheetState extends ConsumerState<_SportsSubscribeSheet> {
     );
   }
 
-  Widget _teamRow(SpaceHourColors sh, SportTeam t) {
+  Widget _teamRow(SurlapColors sh, SportTeam t) {
     final id = '${_sport!.kind.name}:${_league!.id}:${t.id}';
     final already = ref.watch(sportsSubscriptionsProvider
         .select((subs) => subs.any((s) => s.id == id)));
@@ -221,7 +221,7 @@ class _SheetState extends ConsumerState<_SportsSubscribeSheet> {
 class _Tile extends StatelessWidget {
   final String emoji, label;
   final String? sub;
-  final SpaceHourColors sh;
+  final SurlapColors sh;
   final VoidCallback onTap;
   const _Tile(
       {required this.emoji,
@@ -263,7 +263,7 @@ class _Tile extends StatelessWidget {
 
 class _Row extends StatelessWidget {
   final String label;
-  final SpaceHourColors sh;
+  final SurlapColors sh;
   final VoidCallback onTap;
   const _Row({required this.label, required this.sh, required this.onTap});
 

@@ -1,7 +1,7 @@
 import WidgetKit
 import SwiftUI
 
-// MARK: - 색·그라데이션 (목업 `HourSpace 위젯.dc.html` 1:1)
+// MARK: - 색·그라데이션 (목업 `Surlap 위젯.dc.html` 1:1)
 extension Color {
     init(hexString: String) {
         let h = hexString.replacingOccurrences(of: "#", with: "")
@@ -80,7 +80,7 @@ struct SurlapEntry: TimelineEntry {
 
 // MARK: - App Group UserDefaults 에서 데이터 읽기
 enum SurlapStore {
-    static let appGroup = "group.com.spacehour.spacehour"
+    static let appGroup = "group.com.kev208dev.Surlap"
 
     static func load() -> SurlapEntry {
         let d = UserDefaults(suiteName: appGroup)
@@ -309,7 +309,7 @@ struct Provider: TimelineProvider {
 }
 
 // MARK: - Entry view
-struct HourSpaceWidgetEntryView: View {
+struct SurlapWidgetEntryView: View {
     @Environment(\.widgetFamily) var family
     var entry: SurlapEntry
 
@@ -323,17 +323,17 @@ struct HourSpaceWidgetEntryView: View {
         }
         .padding(family == .systemSmall ? 15 : 18)
         .containerBackground(for: .widget) { surlapSurface }
-        .widgetURL(URL(string: "spacehour://widget"))
+        .widgetURL(URL(string: "surlap://widget"))
     }
 }
 
 // MARK: - Widget
 // pbxproj 에 박혀있는 kind/struct 명을 바꾸면 위젯이 사라지므로 그대로 유지.
-struct HourSpaceWidget: Widget {
-    let kind = "HourSpaceWidget"
+struct SurlapWidget: Widget {
+    let kind = "SurlapWidget"
     var body: some WidgetConfiguration {
         StaticConfiguration(kind: kind, provider: Provider()) { entry in
-            HourSpaceWidgetEntryView(entry: entry)
+            SurlapWidgetEntryView(entry: entry)
         }
         .configurationDisplayName("Surlap")
         .description("오늘 시간표와 지금 수업을 한눈에.")
@@ -342,8 +342,8 @@ struct HourSpaceWidget: Widget {
 }
 
 @main
-struct HourSpaceWidgetBundle: WidgetBundle {
+struct SurlapWidgetBundle: WidgetBundle {
     var body: some Widget {
-        HourSpaceWidget()
+        SurlapWidget()
     }
 }

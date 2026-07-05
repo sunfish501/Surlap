@@ -88,7 +88,7 @@ class _CopyField extends StatefulWidget {
   final String label;
   final String value;
   final bool mono;
-  final SpaceHourColors sh;
+  final SurlapColors sh;
   const _CopyField(
       {required this.label,
       required this.value,

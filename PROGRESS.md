@@ -24,9 +24,9 @@
 
 | 항목 | 상태 | 비고 |
 |------|------|------|
-| android:label | [완료] | HourSpace |
-| iOS CFBundleDisplayName | [완료] | HourSpace |
-| UI 텍스트 (AppHeader) | [완료] | HourSpace |
+| android:label | [완료] | Surlap |
+| iOS CFBundleDisplayName | [완료] | Surlap |
+| UI 텍스트 (AppHeader) | [완료] | Surlap |
 
 ### 배포 준비
 
