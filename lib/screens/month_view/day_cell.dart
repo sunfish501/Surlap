@@ -24,15 +24,19 @@ class DayCell extends StatelessWidget {
   final bool hasCircle;
   final List<DayTemplate> applicableTemplates;
   final Map<String, Map<String, dynamic>> dateWidgetValues;
+
   /// 기록 템플릿(공부 트래커 등) 셀 뱃지: 이모지 + 대표 숫자. 적용 기간에만 채워짐.
   final List<RecordBadge> recordBadges;
   final VoidCallback onTap;
   final VoidCallback onLongPress;
+
   /// 더블탭 → 동그라미 토글.
   final VoidCallback? onDoubleTap;
+
   /// 셀 탭 시 날짜 숫자가 액션 시트 헤더로 줌인되는 Hero 전환.
   /// 연속 보기는 같은 날짜가 여러 그리드에 중복 렌더되어 태그가 충돌하므로 끈다.
   final bool heroDateNumber;
+
   /// 여러 날 이어지는 일정 막대가 위에 겹쳐 그려질 때, 그만큼 셀 내용을 아래로 민다.
   final double topReserve;
 
@@ -86,13 +90,15 @@ class DayCell extends StatelessWidget {
       decoration: hasCircle
           ? BoxDecoration(
               border: Border.all(
-                  color: sh.accent.withValues(alpha: dimmed ? 0.3 : 0.7),
-                  width: 1.5),
-              shape: BoxShape.circle)
+                color: sh.accent.withValues(alpha: dimmed ? 0.3 : 0.7),
+                width: 1.5,
+              ),
+              shape: BoxShape.circle,
+            )
           : null,
       child: Text(
         '${date.day}',
-        style: AppType.label.copyWith(
+        style: AppType.labelMedium.copyWith(
           fontSize: 15,
           fontWeight: isToday ? FontWeight.w800 : FontWeight.w600,
           color: dayNumColor,
@@ -109,10 +115,7 @@ class DayCell extends StatelessWidget {
       ),
     );
     if (heroDateNumber) {
-      dayNumber = Hero(
-        tag: 'daycell-${du.toDateKey(date)}',
-        child: dayNumber,
-      );
+      dayNumber = Hero(tag: 'daycell-${du.toDateKey(date)}', child: dayNumber);
     }
 
     return GestureDetector(
@@ -130,11 +133,13 @@ class DayCell extends StatelessWidget {
           // 칸 구분 격자선 — 가로+세로 모두, 또렷하게.
           border: Border(
             bottom: BorderSide(
-                color: sh.ink.withValues(alpha: sh.dark ? 0.18 : 0.12),
-                width: 1),
+              color: sh.ink.withValues(alpha: sh.dark ? 0.18 : 0.12),
+              width: 1,
+            ),
             right: BorderSide(
-                color: sh.ink.withValues(alpha: sh.dark ? 0.18 : 0.12),
-                width: 1),
+              color: sh.ink.withValues(alpha: sh.dark ? 0.18 : 0.12),
+              width: 1,
+            ),
           ),
         ),
         padding: const EdgeInsets.fromLTRB(5, 4, 4, 4),
@@ -147,9 +152,12 @@ class DayCell extends StatelessWidget {
             // 이벤트 + 할 일 + 위젯 (남은 공간 채움, 넘치면 잘라 overflow 방지)
             Expanded(
               child: ClipRect(
-                child: SingleChildScrollView(
-                  physics: const NeverScrollableScrollPhysics(),
+                child: OverflowBox(
+                  alignment: Alignment.topLeft,
+                  minHeight: 0,
+                  maxHeight: double.infinity,
                   child: Column(
+                    mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       // 멀티데이 막대 자리 확보(연속 보기에서 위에 오버레이됨).
@@ -187,8 +195,12 @@ class DayCell extends StatelessWidget {
     }
     final total = visible.length + todos.length;
     if (total > shown) {
-      out.add(Text('+${total - shown}',
-          style: TextStyle(fontSize: 9, color: sh.inkSoft)));
+      out.add(
+        Text(
+          '+${total - shown}',
+          style: TextStyle(fontSize: 9, color: sh.inkSoft),
+        ),
+      );
     }
     return out;
   }
@@ -198,30 +210,38 @@ class DayCell extends StatelessWidget {
     if (recordBadges.isEmpty) return const [];
     final out = <Widget>[];
     for (final b in recordBadges) {
-      out.add(Padding(
-        padding: const EdgeInsets.only(bottom: 1),
-        child: Opacity(
-          opacity: dimmed ? 0.5 : 1.0,
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // 아이콘은 셀 색(accent) 따름 / 기록 없으면 흐리게. 이모지는 폴백.
-              recordGlyph(b.emoji,
-                  size: 13, color: sh.accent, faint: !b.hasData),
-              if (b.hasData) ...[
-                const SizedBox(width: 3),
-                Text(b.primaryText!,
+      out.add(
+        Padding(
+          padding: const EdgeInsets.only(bottom: 1),
+          child: Opacity(
+            opacity: dimmed ? 0.5 : 1.0,
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // 아이콘은 셀 색(accent) 따름 / 기록 없으면 흐리게. 이모지는 폴백.
+                recordGlyph(
+                  b.emoji,
+                  size: 13,
+                  color: sh.accent,
+                  faint: !b.hasData,
+                ),
+                if (b.hasData) ...[
+                  const SizedBox(width: 3),
+                  Text(
+                    b.primaryText!,
                     style: TextStyle(
                       fontSize: 11.5,
                       height: 1.0,
                       fontWeight: FontWeight.w800,
                       color: sh.accent,
-                    )),
+                    ),
+                  ),
+                ],
               ],
-            ],
+            ),
           ),
         ),
-      ));
+      );
     }
     return out;
   }
@@ -233,7 +253,8 @@ class DayCell extends StatelessWidget {
       for (final field in tpl.fields) {
         final value = tplValues[field.id];
         // skip fields with no value in compact mode
-        final hasVal = value != null &&
+        final hasVal =
+            value != null &&
             value != '' &&
             !(value is List && value.isEmpty) &&
             !(value is Map && value.isEmpty);
@@ -281,8 +302,7 @@ class _TodoLine extends StatelessWidget {
               style: TextStyle(
                 fontSize: 9.5,
                 color: todo.done ? sh.inkFaint : sh.ink,
-                decoration:
-                    todo.done ? TextDecoration.lineThrough : null,
+                decoration: todo.done ? TextDecoration.lineThrough : null,
               ),
             ),
           ),

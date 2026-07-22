@@ -102,9 +102,9 @@ class _SplashGateState extends ConsumerState<SplashGate> {
     }
 
     return AnimatedSwitcher(
-      duration: const Duration(milliseconds: 420),
+      duration: const Duration(milliseconds: 260),
       switchInCurve: Curves.easeOutCubic,
-      switchOutCurve: Curves.easeInCubic,
+      switchOutCurve: Curves.easeOutCubic,
       child: child,
     );
   }

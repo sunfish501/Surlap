@@ -7,6 +7,7 @@ import '../providers/themes_provider.dart';
 import '../providers/filter_provider.dart';
 import '../providers/birthdays_provider.dart';
 import '../providers/academic_schedule_provider.dart';
+import '../providers/holidays_provider.dart';
 import '../providers/sports_provider.dart';
 import '../screens/settings_view.dart' show CategoryFilterChip;
 
@@ -18,22 +19,15 @@ class CalendarFilterStrip extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final sh = context.sh;
-    final themes = ref.watch(themesProvider);
+    final themes = ref.watch(userThemesProvider);
     final hidden = ref.watch(filterProvider);
     final birthdays = ref.watch(birthdaysProvider);
     final academic = ref.watch(academicScheduleProvider);
     final sportsSubs = ref.watch(sportsSubscriptionsProvider);
 
-    // 표시할 카테고리(테마/생일/학사/스포츠)가 전혀 없으면 노출하지 않는다.
-    if (themes.isEmpty &&
-        birthdays.isEmpty &&
-        academic.isEmpty &&
-        sportsSubs.isEmpty) {
-      return const SizedBox.shrink();
-    }
-
-    // 전체 토글이 다뤄야 할 모든 카테고리 id(테마·생일·학사·스포츠).
+    // 전체 토글이 다뤄야 할 모든 카테고리 id(공휴일·테마·생일·학사·스포츠).
     final allIds = <String>[
+      holidayThemeId,
       ...themes.map((t) => t.id),
       if (birthdays.isNotEmpty) birthdayThemeId,
       if (academic.isNotEmpty) academicThemeId,
@@ -56,13 +50,22 @@ class CalendarFilterStrip extends ConsumerWidget {
           }
         },
       ),
-      ...themes.map((t) => CategoryFilterChip(
-            label: tr(t.name),
-            color: t.colorValue,
-            selected: !hidden.contains(t.id),
-            sh: sh,
-            onTap: () => ref.read(filterProvider.notifier).toggle(t.id),
-          )),
+      ...themes.map(
+        (t) => CategoryFilterChip(
+          label: tr(t.name),
+          color: t.colorValue,
+          selected: !hidden.contains(t.id),
+          sh: sh,
+          onTap: () => ref.read(filterProvider.notifier).toggle(t.id),
+        ),
+      ),
+      CategoryFilterChip(
+        label: tr(holidayCalendarTheme.name),
+        color: holidayCalendarTheme.colorValue,
+        selected: !hidden.contains(holidayThemeId),
+        sh: sh,
+        onTap: () => ref.read(filterProvider.notifier).toggle(holidayThemeId),
+      ),
       if (birthdays.isNotEmpty)
         CategoryFilterChip(
           label: tr('생일'),
@@ -82,13 +85,17 @@ class CalendarFilterStrip extends ConsumerWidget {
               ref.read(filterProvider.notifier).toggle(academicThemeId),
         ),
       // 스포츠 구독 — 구독별 칩(이모지+팀명, 고유색).
-      ...sportsSubs.where((s) => s.enabled).map((s) => CategoryFilterChip(
-            label: '${s.emoji} ${tr(s.teamName)}',
-            color: Color(s.color),
-            selected: !hidden.contains(s.id),
-            sh: sh,
-            onTap: () => ref.read(filterProvider.notifier).toggle(s.id),
-          )),
+      ...sportsSubs
+          .where((s) => s.enabled)
+          .map(
+            (s) => CategoryFilterChip(
+              label: '${s.emoji} ${tr(s.teamName)}',
+              color: Color(s.color),
+              selected: !hidden.contains(s.id),
+              sh: sh,
+              onTap: () => ref.read(filterProvider.notifier).toggle(s.id),
+            ),
+          ),
     ];
 
     return SizedBox(

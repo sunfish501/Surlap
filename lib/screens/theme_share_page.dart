@@ -1,65 +1,93 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import '../core/theme/app_theme.dart';
 import '../core/theme/design_tokens.dart';
 import '../modals/theme_manager_modal.dart';
 import 'sports/sports_subscription_section.dart';
 
-/// 공유 캘린더 화면 — 2탭(아이콘): 공유 일정 / 스포츠 구독.
+/// 캘린더 공유와 스포츠 구독을 한 화면에서 관리한다.
 class ThemeSharePage extends ConsumerWidget {
   const ThemeSharePage({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final sh = context.sh;
+
     return DefaultTabController(
       length: 2,
+      initialIndex: 0,
       child: Column(
         children: [
-          // ── 탭바(아이콘만) ──
           Padding(
-            padding: const EdgeInsets.fromLTRB(Gap.lg, Gap.sm, Gap.lg, 0),
-            child: TabBar(
-              indicatorSize: TabBarIndicatorSize.tab,
-              indicatorColor: sh.accent,
-              indicatorWeight: 2.5,
-              labelColor: sh.accent,
-              unselectedLabelColor: sh.inkSoft.withValues(alpha: 0.6),
-              dividerColor: sh.ink.withValues(alpha: 0.06),
-              tabs: const [
-                Tab(
-                  icon: Tooltip(
-                    message: '공유 일정',
-                    child: Icon(Icons.calendar_month_rounded, size: 24),
-                  ),
+            padding: const EdgeInsets.fromLTRB(Gap.lg, Gap.md, Gap.lg, 0),
+            child: Container(
+              height: 44,
+              padding: const EdgeInsets.all(Gap.xs),
+              decoration: BoxDecoration(
+                color: sh.card2,
+                borderRadius: BorderRadius.circular(Gap.md),
+                border: Border.all(color: sh.border, width: Borders.hairline),
+              ),
+              child: TabBar(
+                indicatorSize: TabBarIndicatorSize.tab,
+                dividerHeight: 0,
+                splashBorderRadius: BorderRadius.circular(Radii.small),
+                labelColor: sh.accent,
+                unselectedLabelColor: sh.inkSoft,
+                labelStyle: AppType.bodyMedium.copyWith(
+                  fontWeight: FontWeight.w700,
                 ),
-                Tab(
-                  icon: Tooltip(
-                    message: '스포츠 구독',
-                    child: Icon(Icons.sports_soccer_rounded, size: 24),
-                  ),
+                unselectedLabelStyle: AppType.bodyMedium.copyWith(
+                  fontWeight: FontWeight.w600,
                 ),
-              ],
+                indicator: BoxDecoration(
+                  color: sh.card,
+                  borderRadius: BorderRadius.circular(Radii.small),
+                  border: Border.all(color: sh.border, width: Borders.hairline),
+                ),
+                tabs: const [
+                  Tab(text: '캘린더 공유'),
+                  Tab(text: '스포츠 구독'),
+                ],
+              ),
             ),
           ),
           Expanded(
             child: TabBarView(
               children: [
-                // 탭1 — 공유 일정(캘린더 관리)
-                ListView(
-                  padding: const EdgeInsets.fromLTRB(Gap.lg, Gap.md, Gap.lg, 120),
-                  children: const [ThemeManagerBody()],
-                ),
-                // 탭2 — 스포츠 구독
-                ListView(
-                  padding: const EdgeInsets.fromLTRB(Gap.lg, Gap.md, Gap.lg, 120),
-                  children: const [SportsSubscriptionSection()],
-                ),
+                _ShareTab(sh: sh, child: const ThemeManagerBody()),
+                _ShareTab(sh: sh, child: const SportsSubscriptionSection()),
               ],
             ),
           ),
         ],
       ),
+    );
+  }
+}
+
+class _ShareTab extends StatelessWidget {
+  const _ShareTab({required this.sh, required this.child});
+
+  final SurlapColors sh;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return ListView(
+      padding: const EdgeInsets.fromLTRB(Gap.lg, Gap.lg, Gap.lg, Gap.xxl),
+      children: [
+        Container(
+          padding: const EdgeInsets.all(Gap.lg),
+          decoration: BoxDecoration(
+            color: sh.card,
+            borderRadius: BorderRadius.circular(Radii.card),
+            border: Border.all(color: sh.border, width: Borders.hairline),
+          ),
+          child: child,
+        ),
+      ],
     );
   }
 }

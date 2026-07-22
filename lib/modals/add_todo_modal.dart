@@ -10,7 +10,7 @@ import '../core/utils/todo_parser.dart';
 import '../core/utils/todo_style.dart';
 import '../models/todo_item.dart';
 import '../providers/todos_provider.dart';
-import '../widgets/mascot/mascot_feedback.dart';
+import '../widgets/app_toast.dart';
 
 /// 할 일 추가/편집 모달. dateKey가 주어지면 기본 날짜로 사용.
 Future<void> showAddTodoModal(
@@ -103,7 +103,8 @@ class _AddTodoModalState extends ConsumerState<AddTodoModal> {
 
   ParsedTodo get _parsed => parseTodoInput(_textCtrl.text);
   String? get _effDate => _dateTouched ? _dateOverride : _parsed.dateKey;
-  int get _effPriority => _prioTouched ? (_prioOverride ?? 0) : _parsed.priority;
+  int get _effPriority =>
+      _prioTouched ? (_prioOverride ?? 0) : _parsed.priority;
 
   // ── 음성 입력 (마이크를 꾹 누르고 있는 동안 듣기) ──────────────
   Future<void> _startListen() async {
@@ -114,7 +115,9 @@ class _AddTodoModalState extends ConsumerState<AddTodoModal> {
     if (!_speechReady) {
       if (mounted) {
         final detail = _speechErr != null ? ' ($_speechErr)' : '';
-        _snack(trf('음성 인식을 사용할 수 없어요. 설정에서 마이크·음성 인식 권한을 허용해 주세요.{0}', [detail]));
+        _snack(
+          trf('음성 인식을 사용할 수 없어요. 설정에서 마이크·음성 인식 권한을 허용해 주세요.{0}', [detail]),
+        );
       }
       return;
     }
@@ -131,8 +134,9 @@ class _AddTodoModalState extends ConsumerState<AddTodoModal> {
           if (!mounted) return;
           setState(() {
             _textCtrl.text = res.recognizedWords;
-            _textCtrl.selection =
-                TextSelection.collapsed(offset: _textCtrl.text.length);
+            _textCtrl.selection = TextSelection.collapsed(
+              offset: _textCtrl.text.length,
+            );
             // 음성으로 채울 땐 파싱값을 다시 따르도록 override 해제.
             _dateTouched = false;
             _prioTouched = false;
@@ -158,9 +162,11 @@ class _AddTodoModalState extends ConsumerState<AddTodoModal> {
 
   void _save() {
     final parsed = _parsed;
-    final title = parsed.content.isNotEmpty ? parsed.content : _textCtrl.text.trim();
+    final title = parsed.content.isNotEmpty
+        ? parsed.content
+        : _textCtrl.text.trim();
     if (title.isEmpty) {
-      MascotToast.error(context, tr('할 일을 입력해주세요'));
+      AppToast.error(context, tr('할 일을 입력해주세요'));
       return;
     }
     final notifier = ref.read(todosProvider.notifier);
@@ -174,21 +180,27 @@ class _AddTodoModalState extends ConsumerState<AddTodoModal> {
         ),
       );
     } else {
-      notifier.add(TodoItem(
-        id: const Uuid().v4(),
-        title: title,
-        dateKey: _effDate,
-        priority: _effPriority,
-        createdAt: DateTime.now().toIso8601String(),
-      ));
+      notifier.add(
+        TodoItem(
+          id: const Uuid().v4(),
+          title: title,
+          dateKey: _effDate,
+          priority: _effPriority,
+          createdAt: DateTime.now().toIso8601String(),
+        ),
+      );
     }
-    MascotToast.success(context, isEdit ? tr('할 일을 수정했어요') : tr('좋아요! 할 일을 추가했어요'));
+    AppToast.success(
+      context,
+      isEdit ? tr('할 일을 수정했어요') : tr('좋아요! 할 일을 추가했어요'),
+    );
     Navigator.pop(context);
   }
 
   Future<void> _pickDate() async {
-    final initial =
-        _effDate != null ? du.fromDateKey(_effDate!) : DateTime.now();
+    final initial = _effDate != null
+        ? du.fromDateKey(_effDate!)
+        : DateTime.now();
     final picked = await showDatePicker(
       context: context,
       initialDate: initial,
@@ -196,8 +208,9 @@ class _AddTodoModalState extends ConsumerState<AddTodoModal> {
       lastDate: DateTime(2100),
       builder: (ctx, child) => Theme(
         data: Theme.of(ctx).copyWith(
-          colorScheme:
-              Theme.of(ctx).colorScheme.copyWith(primary: context.sh.accent),
+          colorScheme: Theme.of(
+            ctx,
+          ).colorScheme.copyWith(primary: context.sh.accent),
         ),
         child: child!,
       ),
@@ -218,7 +231,9 @@ class _AddTodoModalState extends ConsumerState<AddTodoModal> {
     final effPrio = _effPriority;
 
     return Padding(
-      padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+      padding: EdgeInsets.only(
+        bottom: MediaQuery.of(context).viewInsets.bottom,
+      ),
       child: Container(
         decoration: BoxDecoration(
           color: sh.card,
@@ -242,12 +257,15 @@ class _AddTodoModalState extends ConsumerState<AddTodoModal> {
             ),
             Row(
               children: [
-                Text(isEdit ? tr('할 일 편집') : tr('할 일 추가'),
-                    style: AppType.title.copyWith(
-                        fontSize: 21,
-                        fontWeight: FontWeight.w800,
-                        letterSpacing: -0.3,
-                        color: sh.ink)),
+                Text(
+                  isEdit ? tr('할 일 편집') : tr('할 일 추가'),
+                  style: AppType.titleLarge.copyWith(
+                    fontSize: 21,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: -0.3,
+                    color: sh.ink,
+                  ),
+                ),
                 const Spacer(),
                 if (isEdit)
                   TextButton(
@@ -256,7 +274,9 @@ class _AddTodoModalState extends ConsumerState<AddTodoModal> {
                       Navigator.pop(context);
                     },
                     style: TextButton.styleFrom(
-                        foregroundColor: sh.danger, padding: EdgeInsets.zero),
+                      foregroundColor: sh.danger,
+                      padding: EdgeInsets.zero,
+                    ),
                     child: Text(tr('삭제'), style: const TextStyle(fontSize: 13)),
                   ),
                 // 항상 보이는 닫기(×) 버튼.
@@ -271,12 +291,16 @@ class _AddTodoModalState extends ConsumerState<AddTodoModal> {
             const SizedBox(height: 14),
 
             // ── 제목 + 마이크 ──────────────────────────────────────
-            Text(tr('할 일 (예: 내일 p1 빨래하기)'),
-                style: AppType.label.copyWith(color: sh.inkSoft)),
+            Text(
+              tr('할 일 (예: 내일 p1 빨래하기)'),
+              style: AppType.labelMedium.copyWith(color: sh.inkSoft),
+            ),
             const SizedBox(height: Gap.xs),
             Container(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: Gap.md, vertical: 4),
+              padding: const EdgeInsets.symmetric(
+                horizontal: Gap.md,
+                vertical: 4,
+              ),
               decoration: BoxDecoration(
                 color: sh.card2,
                 borderRadius: BorderRadius.circular(14),
@@ -288,7 +312,7 @@ class _AddTodoModalState extends ConsumerState<AddTodoModal> {
                     child: TextField(
                       controller: _textCtrl,
                       autofocus: true,
-                      style: AppType.body.copyWith(color: sh.ink),
+                      style: AppType.bodyLarge.copyWith(color: sh.ink),
                       decoration: InputDecoration(
                         hintText: tr('내일 p1 빨래하기'),
                         hintStyle: TextStyle(color: sh.inkFaint),
@@ -313,18 +337,23 @@ class _AddTodoModalState extends ConsumerState<AddTodoModal> {
               child: Text(
                 _listening
                     ? tr('듣고 있어요… 말한 뒤 손을 떼세요')
-                    : tr('마이크를 꾹 누른 채로 말하고 떼면 입력돼요 (예: "내일 p1 빨래하기"). 첫 사용 시 권한 허용 필요'),
-                style: AppType.caption.copyWith(
-                    color: _listening ? sh.accent : sh.inkFaint,
-                    height: 1.3),
+                    : tr(
+                        '마이크를 꾹 누른 채로 말하고 떼면 입력돼요 (예: "내일 p1 빨래하기"). 첫 사용 시 권한 허용 필요',
+                      ),
+                style: AppType.bodySmall.copyWith(
+                  color: _listening ? sh.accent : sh.inkFaint,
+                  height: 1.3,
+                ),
               ),
             ),
             if (parsed.content.isNotEmpty &&
                 parsed.content != _textCtrl.text.trim())
               Padding(
                 padding: const EdgeInsets.only(top: 6, left: 4),
-                child: Text(trf('내용: {0}', [parsed.content]),
-                    style: AppType.caption.copyWith(color: sh.accent)),
+                child: Text(
+                  trf('내용: {0}', [parsed.content]),
+                  style: AppType.bodySmall.copyWith(color: sh.accent),
+                ),
               ),
             const SizedBox(height: 16),
 
@@ -333,7 +362,10 @@ class _AddTodoModalState extends ConsumerState<AddTodoModal> {
               children: [
                 Icon(Icons.event_outlined, size: 18, color: sh.inkSoft),
                 const SizedBox(width: 8),
-                Text(tr('날짜'), style: AppType.body.copyWith(color: sh.inkSoft)),
+                Text(
+                  tr('날짜'),
+                  style: AppType.bodyLarge.copyWith(color: sh.inkSoft),
+                ),
                 const Spacer(),
                 if (effDate != null)
                   TextButton(
@@ -342,7 +374,9 @@ class _AddTodoModalState extends ConsumerState<AddTodoModal> {
                       _dateTouched = true;
                     }),
                     style: TextButton.styleFrom(
-                        foregroundColor: sh.inkFaint, padding: EdgeInsets.zero),
+                      foregroundColor: sh.inkFaint,
+                      padding: EdgeInsets.zero,
+                    ),
                     child: Text(tr('지움'), style: const TextStyle(fontSize: 12)),
                   ),
                 const SizedBox(width: 4),
@@ -350,22 +384,26 @@ class _AddTodoModalState extends ConsumerState<AddTodoModal> {
                   onTap: _pickDate,
                   child: Container(
                     padding: const EdgeInsets.symmetric(
-                        horizontal: 12, vertical: 7),
+                      horizontal: 12,
+                      vertical: 7,
+                    ),
                     decoration: BoxDecoration(
                       color: effDate != null
                           ? sh.accent.withValues(alpha: 0.12)
                           : sh.card2,
                       borderRadius: BorderRadius.circular(10),
                       border: Border.all(
-                          color: effDate != null
-                              ? sh.accent.withValues(alpha: 0.4)
-                              : sh.ink.withValues(alpha: 0.1)),
+                        color: effDate != null
+                            ? sh.accent.withValues(alpha: 0.4)
+                            : sh.ink.withValues(alpha: 0.1),
+                      ),
                     ),
                     child: Text(
                       effDate ?? tr('날짜 없음'),
-                      style: AppType.body.copyWith(
-                          color: effDate != null ? sh.accentInk : sh.inkFaint,
-                          fontWeight: FontWeight.w600),
+                      style: AppType.bodyLarge.copyWith(
+                        color: effDate != null ? sh.accentInk : sh.inkFaint,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                   ),
                 ),
@@ -374,7 +412,10 @@ class _AddTodoModalState extends ConsumerState<AddTodoModal> {
             const SizedBox(height: 14),
 
             // ── 우선순위 ──────────────────────────────────────────
-            Text(tr('우선순위'), style: AppType.label.copyWith(color: sh.inkSoft)),
+            Text(
+              tr('우선순위'),
+              style: AppType.labelMedium.copyWith(color: sh.inkSoft),
+            ),
             const SizedBox(height: Gap.sm),
             Row(
               children: [
@@ -402,13 +443,17 @@ class _AddTodoModalState extends ConsumerState<AddTodoModal> {
                   child: OutlinedButton(
                     onPressed: () => Navigator.pop(context),
                     style: OutlinedButton.styleFrom(
-                        foregroundColor: sh.inkSoft,
-                        side: BorderSide(color: sh.ink.withValues(alpha: 0.12)),
-                        minimumSize: const Size.fromHeight(52),
-                        shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(16))),
-                    child: Text(tr('취소'),
-                        style: TextStyle(fontWeight: FontWeight.w700)),
+                      foregroundColor: sh.inkSoft,
+                      side: BorderSide(color: sh.ink.withValues(alpha: 0.12)),
+                      minimumSize: const Size.fromHeight(52),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                    ),
+                    child: Text(
+                      tr('취소'),
+                      style: TextStyle(fontWeight: FontWeight.w700),
+                    ),
                   ),
                 ),
                 const SizedBox(width: Gap.md),
@@ -420,11 +465,16 @@ class _AddTodoModalState extends ConsumerState<AddTodoModal> {
                       backgroundColor: sh.accent,
                       minimumSize: const Size.fromHeight(52),
                       shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16)),
+                        borderRadius: BorderRadius.circular(16),
+                      ),
                     ),
-                    child: Text(isEdit ? tr('저장') : tr('추가'),
-                        style: const TextStyle(
-                            fontSize: 15, fontWeight: FontWeight.w800)),
+                    child: Text(
+                      isEdit ? tr('저장') : tr('추가'),
+                      style: const TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
                   ),
                 ),
               ],
@@ -442,11 +492,12 @@ class _MicButton extends StatelessWidget {
   final SurlapColors sh;
   final VoidCallback onStart;
   final VoidCallback onStop;
-  const _MicButton(
-      {required this.listening,
-      required this.sh,
-      required this.onStart,
-      required this.onStop});
+  const _MicButton({
+    required this.listening,
+    required this.sh,
+    required this.onStart,
+    required this.onStop,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -479,11 +530,12 @@ class _PrioChip extends StatelessWidget {
   final bool selected;
   final SurlapColors sh;
   final VoidCallback onTap;
-  const _PrioChip(
-      {required this.priority,
-      required this.selected,
-      required this.sh,
-      required this.onTap});
+  const _PrioChip({
+    required this.priority,
+    required this.selected,
+    required this.sh,
+    required this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -498,14 +550,18 @@ class _PrioChip extends StatelessWidget {
           color: selected ? c.withValues(alpha: 0.16) : sh.card2,
           borderRadius: BorderRadius.circular(999),
           border: Border.all(
-              color: selected ? c : sh.ink.withValues(alpha: 0.08),
-              width: selected ? 1.5 : 1),
+            color: selected ? c : sh.ink.withValues(alpha: 0.08),
+            width: selected ? 1.5 : 1,
+          ),
         ),
-        child: Text(label,
-            style: AppType.label.copyWith(
-                fontSize: 13,
-                fontWeight: FontWeight.w700,
-                color: selected ? c : sh.inkSoft)),
+        child: Text(
+          label,
+          style: AppType.labelMedium.copyWith(
+            fontSize: 13,
+            fontWeight: FontWeight.w700,
+            color: selected ? c : sh.inkSoft,
+          ),
+        ),
       ),
     );
   }

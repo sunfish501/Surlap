@@ -12,6 +12,10 @@ import 'providers/color_preset_provider.dart';
 import 'providers/events_provider.dart';
 import 'providers/event_notify_provider.dart';
 import 'providers/briefing_notify_provider.dart';
+import 'providers/academic_schedule_provider.dart';
+import 'providers/neis_cache_provider.dart';
+import 'providers/shared_theme_events_provider.dart';
+import 'providers/sports_provider.dart';
 import 'providers/themes_provider.dart';
 import 'providers/todos_provider.dart';
 import 'providers/birthdays_provider.dart';
@@ -48,10 +52,19 @@ class _SurlapAppState extends ConsumerState<SurlapApp>
     ref.listenManual(birthdaysProvider, (_, _) => _syncWidget());
     ref.listenManual(filterProvider, (_, _) => _syncWidget());
     ref.listenManual(recurringProvider, (_, _) => _syncWidget());
+    ref.listenManual(academicScheduleProvider, (_, _) => _syncWidget());
+    ref.listenManual(neisCacheProvider, (_, _) => _syncWidget());
+    ref.listenManual(sharedThemeEventsByDateProvider, (_, _) => _syncWidget());
+    ref.listenManual(sportsEventsByDateProvider, (_, _) => _syncWidget());
+    ref.listenManual(colorPresetProvider, (_, _) => _syncWidget());
+    ref.listenManual(localeProvider, (_, _) => _syncWidget());
     // 첫 프레임 후 홈 위젯 초기 동기화
     WidgetsBinding.instance.addPostFrameCallback((_) => _syncWidget());
     // 1분마다 위젯 갱신 — 진행 교시·남은시간이 실시간 반영되도록.
-    _widgetTick = Timer.periodic(const Duration(minutes: 1), (_) => _syncWidget());
+    _widgetTick = Timer.periodic(
+      const Duration(minutes: 1),
+      (_) => _syncWidget(),
+    );
     // 일정 알림 notifier를 깨워 events 변경 listen + 초기 재스케줄 트리거.
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.read(eventNotifyProvider.notifier).reschedule();
@@ -93,7 +106,8 @@ class _SurlapAppState extends ConsumerState<SurlapApp>
     // 자동 처리하므로 여기선 손대지 않는다. 단, error 가 실려오면(redirect URL 미등록 등)
     // 조용히 무한 로그인처럼 보이므로 사유를 표면화한다.
     if (uri.host == 'login-callback') {
-      final err = uri.queryParameters['error_description'] ??
+      final err =
+          uri.queryParameters['error_description'] ??
           uri.queryParameters['error'];
       if (err != null && err.isNotEmpty) {
         scaffoldMessengerKey.currentState?.showSnackBar(
@@ -117,8 +131,7 @@ class _SurlapAppState extends ConsumerState<SurlapApp>
 
   Future<void> _subscribeToCode(String code) async {
     final messenger = scaffoldMessengerKey.currentState;
-    void snack(String m) =>
-        messenger?.showSnackBar(SnackBar(content: Text(m)));
+    void snack(String m) => messenger?.showSnackBar(SnackBar(content: Text(m)));
     try {
       final theme = await ThemeShareService.fetchByCode(code);
       if (theme == null) {

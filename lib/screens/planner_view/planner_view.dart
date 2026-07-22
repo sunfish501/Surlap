@@ -21,7 +21,6 @@ import '../timetable_view/timetable_view.dart'
     show timetableSubjectsForDate, getDisplaySubjectName;
 import '../../widgets/view_segment_control.dart';
 import '../../widgets/arrow_pinch.dart';
-import '../../widgets/calendar_filter_strip.dart';
 import '../../widgets/header_collapse.dart';
 import '../month_view/multiday_span.dart' show eventColorFor;
 import '../../providers/academic_schedule_provider.dart';
@@ -32,7 +31,6 @@ import '../../providers/shared_theme_events_provider.dart';
 import '../../providers/recurring_events_provider.dart';
 import '../../modals/add_edit_event_modal.dart';
 import '../../modals/event_detail_sheet.dart';
-import '../search_view.dart';
 
 /// 주간(시간그리드) 뷰 — 한 화면 3일 + 가로로 연속(하루씩) 이동.
 /// 시간축(좌측 라벨) 고정, 날짜 헤더는 컬럼과 함께 가로 스크롤. 세로/가로 독립.
@@ -155,6 +153,7 @@ class _PlannerViewState extends ConsumerState<PlannerView> {
     }
   }
 
+  // ignore: unused_element
   void _shiftDays(int delta) {
     final h = _hCtrl;
     if (h == null || !h.hasClients) return;
@@ -162,6 +161,7 @@ class _PlannerViewState extends ConsumerState<PlannerView> {
         duration: const Duration(milliseconds: 300), curve: Curves.easeOutCubic);
   }
 
+  // ignore: unused_element
   void _goToday() {
     // 오늘을 3일 중 가운데로.
     final lead = _centerLeadIndex(_today);
@@ -258,33 +258,6 @@ class _PlannerViewState extends ConsumerState<PlannerView> {
     return CollapseOnScroll(
       child: Column(
         children: [
-          _PlannerNav(
-            title: ValueListenableBuilder<int>(
-              valueListenable: _leadVN,
-              builder: (_, lead, _) => Text(
-                _titleText(lead),
-                maxLines: 1,
-                style: AppType.title.copyWith(
-                    fontSize: 19,
-                    fontWeight: FontWeight.w800,
-                    letterSpacing: -0.3,
-                    color: sh.ink),
-              ),
-            ),
-            sh: sh,
-            showTimetable: showTt,
-            onToggleSchedule: () => ref
-                .read(settingsProvider.notifier)
-                .setShowTimetable(!showTt),
-            onPrev: () => _shiftDays(-_daysPerScreen),
-            onNext: () => _shiftDays(_daysPerScreen),
-            onToday: _goToday,
-            onSearch: () => showSearchSheet(context),
-          ),
-          CollapsibleHeader(
-            collapsed: ref.watch(headerCollapsedProvider),
-            child: const CalendarFilterStrip(),
-          ),
           Expanded(
             child: _hCtrl == null
                 ? const SizedBox.shrink()
@@ -388,6 +361,7 @@ class _PlannerViewState extends ConsumerState<PlannerView> {
     );
   }
 
+  // ignore: unused_element
   String _titleText(int lead) {
     final d = _dateFor(lead);
     final e = _dateFor(lead + _daysPerScreen - 1);
@@ -422,7 +396,7 @@ class _PlannerViewState extends ConsumerState<PlannerView> {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Text('${_dowName(d)} ',
-                        style: AppType.label.copyWith(
+                        style: AppType.labelMedium.copyWith(
                             fontSize: 12,
                             fontWeight: FontWeight.w700,
                             color: isToday
@@ -442,7 +416,7 @@ class _PlannerViewState extends ConsumerState<PlannerView> {
                               borderRadius: BorderRadius.circular(999))
                           : null,
                       child: Text('${d.day}',
-                          style: AppType.label.copyWith(
+                          style: AppType.labelMedium.copyWith(
                               fontSize: 14,
                               fontWeight: FontWeight.w800,
                               color: isToday ? Colors.white : sh.ink)),
@@ -863,6 +837,7 @@ class _NowLineFull extends StatelessWidget {
 }
 
 // ── 헤더(제목 + 세그먼트 + ⋮) ──
+// ignore: unused_element
 class _PlannerNav extends StatelessWidget {
   final Widget title;
   final SurlapColors sh;

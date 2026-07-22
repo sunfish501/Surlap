@@ -2,10 +2,11 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../../widgets/surlap_logo.dart';
 
 /// Surlap 인트로/스플래시 — 절제된 reveal + iOS풍 세그먼트 스피너.
 ///
-///  1) 마스코트가 은은한 글로우와 함께 부드럽게 페이드·스케일 인
+///  1) 브랜드 심볼이 은은한 글로우와 함께 부드럽게 페이드·스케일 인
 ///  2) 워드마크 "Surlap"가 넓은 자간 → 제자리로 좁혀지며 페이드(타입 reveal)
 ///  3) 하단 세그먼트 스피너(12막대 순차 페이드 회전)로 로딩감
 class SplashScreen extends StatefulWidget {
@@ -33,24 +34,37 @@ class _SplashScreenState extends State<SplashScreen>
   void initState() {
     super.initState();
     _intro = AnimationController(
-        vsync: this, duration: const Duration(milliseconds: 2200));
+      vsync: this,
+      duration: const Duration(milliseconds: 2200),
+    );
     _loop = AnimationController(
-        vsync: this, duration: const Duration(milliseconds: 3200))
-      ..repeat(reverse: true);
+      vsync: this,
+      duration: const Duration(milliseconds: 3200),
+    )..repeat(reverse: true);
 
-    Animation<double> curved(double a, double b, Curve c) =>
-        CurvedAnimation(parent: _intro, curve: Interval(a, b, curve: c));
+    Animation<double> curved(double a, double b, Curve c) => CurvedAnimation(
+      parent: _intro,
+      curve: Interval(a, b, curve: c),
+    );
 
     _markFade = curved(0.0, 0.42, Curves.easeOut);
-    _markScale = Tween<double>(begin: 0.90, end: 1.0)
-        .animate(curved(0.0, 0.55, Curves.easeOutCubic));
-    _markDrift = Tween<double>(begin: 16, end: 0)
-        .animate(curved(0.0, 0.55, Curves.easeOutCubic));
+    _markScale = Tween<double>(
+      begin: 0.90,
+      end: 1.0,
+    ).animate(curved(0.0, 0.55, Curves.easeOutCubic));
+    _markDrift = Tween<double>(
+      begin: 16,
+      end: 0,
+    ).animate(curved(0.0, 0.55, Curves.easeOutCubic));
     _wordFade = curved(0.42, 0.74, Curves.easeOut);
-    _wordSpacing = Tween<double>(begin: 9, end: 1.0)
-        .animate(curved(0.42, 0.88, Curves.easeOutCubic));
-    _wordDrift = Tween<double>(begin: 10, end: 0)
-        .animate(curved(0.42, 0.80, Curves.easeOutCubic));
+    _wordSpacing = Tween<double>(
+      begin: 9,
+      end: 1.0,
+    ).animate(curved(0.42, 0.88, Curves.easeOutCubic));
+    _wordDrift = Tween<double>(
+      begin: 10,
+      end: 0,
+    ).animate(curved(0.42, 0.80, Curves.easeOutCubic));
     _tagFade = curved(0.62, 0.9, Curves.easeOut);
     _spinFade = curved(0.7, 0.98, Curves.easeOut);
 
@@ -73,15 +87,9 @@ class _SplashScreenState extends State<SplashScreen>
         statusBarBrightness: Brightness.dark,
       ),
       child: Scaffold(
-        backgroundColor: const Color(0xFF6B3DF9),
-        body: DecoratedBox(
-          decoration: const BoxDecoration(
-            gradient: RadialGradient(
-              center: Alignment(0, -0.12),
-              radius: 1.0,
-              colors: [Color(0xFF7B4BFF), Color(0xFF5A2EE0)],
-            ),
-          ),
+        backgroundColor: const Color(0xFF5A2DF4),
+        body: ColoredBox(
+          color: const Color(0xFF5A2DF4),
           child: Stack(
             children: [
               Center(
@@ -112,15 +120,12 @@ class _SplashScreenState extends State<SplashScreen>
                                       height: 150 + 28 * breathe,
                                       decoration: BoxDecoration(
                                         shape: BoxShape.circle,
-                                        gradient: RadialGradient(colors: [
-                                          Colors.white.withValues(alpha: glow),
-                                          Colors.white.withValues(alpha: 0),
-                                        ]),
+                                        color: Colors.white.withValues(
+                                          alpha: glow * 0.45,
+                                        ),
                                       ),
                                     ),
-                                    Image.asset(
-                                        'assets/mascot/splash_icon.png',
-                                        width: 184, fit: BoxFit.contain),
+                                    const SurlapAppIconBadge(size: 160),
                                   ],
                                 ),
                               ),
@@ -198,8 +203,9 @@ class _SegmentSpinner extends StatefulWidget {
 class _SegmentSpinnerState extends State<_SegmentSpinner>
     with SingleTickerProviderStateMixin {
   late final AnimationController _c = AnimationController(
-      vsync: this, duration: const Duration(milliseconds: 900))
-    ..repeat();
+    vsync: this,
+    duration: const Duration(milliseconds: 900),
+  )..repeat();
 
   @override
   void dispose() {
@@ -246,8 +252,7 @@ class _SegPainter extends CustomPainter {
       final op = (1.0 - phase).clamp(0.22, 1.0);
       paint.color = color.withValues(alpha: op);
       final dir = Offset(math.cos(ang), math.sin(ang));
-      canvas.drawLine(
-          c + dir * rInner, c + dir * (rOuter - barW / 2), paint);
+      canvas.drawLine(c + dir * rInner, c + dir * (rOuter - barW / 2), paint);
     }
   }
 

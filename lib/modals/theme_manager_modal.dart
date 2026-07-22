@@ -12,9 +12,25 @@ import '../providers/themes_provider.dart';
 import '../providers/events_provider.dart';
 import '../supabase/auth_service.dart';
 import '../supabase/theme_share_service.dart';
-import '../widgets/mascot/mascot.dart';
-import '../widgets/mascot/mascot_feedback.dart';
+import '../widgets/app_empty_state.dart';
+import '../widgets/app_toast.dart';
 import 'share_code_modal.dart';
+
+String nextSharedThemeColorHex(Iterable<CalendarTheme> existing) {
+  final themes = existing.toList();
+  final usedColors = themes.map((theme) => theme.color.toLowerCase()).toSet();
+  String toHex(Color color) {
+    final value = color.toARGB32() & 0xFFFFFF;
+    return '#${value.toRadixString(16).padLeft(6, '0')}';
+  }
+
+  final palette = CategoryColors.palette.map((entry) => entry.light).toList();
+  final selectedColor = palette.firstWhere(
+    (color) => !usedColors.contains(toHex(color)),
+    orElse: () => palette[themes.length % palette.length],
+  );
+  return toHex(selectedColor);
+}
 
 Future<void> showThemeManagerModal(BuildContext context) {
   return showModalBottomSheet(
@@ -58,7 +74,12 @@ class ThemeManagerModal extends ConsumerWidget {
             ),
             // 헤더
             Padding(
-              padding: const EdgeInsets.fromLTRB(Gap.lg, Gap.sm, Gap.sm, Gap.md),
+              padding: const EdgeInsets.fromLTRB(
+                Gap.lg,
+                Gap.sm,
+                Gap.sm,
+                Gap.md,
+              ),
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -66,11 +87,14 @@ class ThemeManagerModal extends ConsumerWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(tr('공유 캘린더'),
-                            style: AppType.title.copyWith(
-                                fontSize: 20,
-                                fontWeight: FontWeight.w800,
-                                color: sh.ink)),
+                        Text(
+                          tr('공유 캘린더'),
+                          style: AppType.titleLarge.copyWith(
+                            fontSize: 20,
+                            fontWeight: FontWeight.w800,
+                            color: sh.ink,
+                          ),
+                        ),
                       ],
                     ),
                   ),
@@ -84,8 +108,12 @@ class ThemeManagerModal extends ConsumerWidget {
             Divider(color: sh.border, height: 1),
             Expanded(
               child: SingleChildScrollView(
-                padding:
-                    const EdgeInsets.fromLTRB(Gap.lg, Gap.sm, Gap.lg, Gap.xl),
+                padding: const EdgeInsets.fromLTRB(
+                  Gap.lg,
+                  Gap.sm,
+                  Gap.lg,
+                  Gap.xl,
+                ),
                 child: const ThemeManagerBody(),
               ),
             ),
@@ -103,10 +131,9 @@ class ThemeManagerBody extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final sh = context.sh;
-    final themes = ref.watch(themesProvider);
+    final themes = ref.watch(userThemesProvider);
 
-    final local =
-        themes.where((t) => t.shareCode == null).toList();
+    final local = themes.where((t) => t.shareCode == null).toList();
     final owned = themes
         .where((t) => t.shareCode != null && t.shareRole == 'owner')
         .toList();
@@ -122,33 +149,49 @@ class ThemeManagerBody extends ConsumerWidget {
         if (allEmpty)
           Padding(
             padding: const EdgeInsets.only(top: 8),
-            child: MascotEmptyState(
-              expression: MascotExpression.neutral,
+            child: AppEmptyState(
+              icon: Icons.calendar_month_rounded,
               title: tr('아직 만든 캘린더가 없어요'),
               message: tr('캘린더를 만들어 일정을 색으로 구분해요'),
-              mascotSize: 92,
-              showStars: false,
             ),
           ),
         if (local.isNotEmpty) ...[
           _GroupLabel(tr('내 카테고리'), sh),
-          ...local.map((t) => _ThemeRow(
+          ...local.map(
+            (t) => _ThemeRow(
               key: ValueKey(t.id),
-              theme: t, editable: true, ref: ref, sh: sh)),
+              theme: t,
+              editable: true,
+              ref: ref,
+              sh: sh,
+            ),
+          ),
         ],
         if (owned.isNotEmpty) ...[
           _GroupLabel(tr('공유 중 · 내가 공유'), sh),
-          ...owned.map((t) => _ThemeRow(
+          ...owned.map(
+            (t) => _ThemeRow(
               key: ValueKey(t.id),
-              theme: t, editable: true, ref: ref, sh: sh,
-              shareCode: t.shareCode)),
+              theme: t,
+              editable: true,
+              ref: ref,
+              sh: sh,
+              shareCode: t.shareCode,
+            ),
+          ),
         ],
         if (subbed.isNotEmpty) ...[
           _GroupLabel(tr('구독 중'), sh),
-          ...subbed.map((t) => _ThemeRow(
+          ...subbed.map(
+            (t) => _ThemeRow(
               key: ValueKey(t.id),
-              theme: t, editable: false, ref: ref, sh: sh,
-              shareCode: t.shareCode)),
+              theme: t,
+              editable: false,
+              ref: ref,
+              sh: sh,
+              shareCode: t.shareCode,
+            ),
+          ),
         ],
         const SizedBox(height: 18),
         // ── primary: 새 캘린더 만들기(텍스트 CTA) + 가져오기(아이콘) ──
@@ -158,15 +201,20 @@ class ThemeManagerBody extends ConsumerWidget {
               child: FilledButton.icon(
                 onPressed: () => _addTheme(ref),
                 icon: const Icon(Icons.add_rounded, size: 20),
-                label: Text(tr('새 공유일정 생성하기'),
-                    style: const TextStyle(
-                        fontSize: 15, fontWeight: FontWeight.w800)),
+                label: Text(
+                  tr('새 공유일정 생성하기'),
+                  style: const TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
                 style: FilledButton.styleFrom(
                   backgroundColor: sh.accent,
                   foregroundColor: Colors.white,
                   minimumSize: const Size.fromHeight(54),
                   shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16)),
+                    borderRadius: BorderRadius.circular(16),
+                  ),
                 ),
               ),
             ),
@@ -184,15 +232,19 @@ class ThemeManagerBody extends ConsumerWidget {
                     onPressed: () => _importTheme(context, ref, sh),
                     style: OutlinedButton.styleFrom(
                       padding: EdgeInsets.zero,
-                      backgroundColor:
-                          sh.ink.withValues(alpha: sh.dark ? 0.04 : 0.02),
-                      side:
-                          BorderSide(color: sh.ink.withValues(alpha: 0.12)),
+                      backgroundColor: sh.ink.withValues(
+                        alpha: sh.dark ? 0.04 : 0.02,
+                      ),
+                      side: BorderSide(color: sh.ink.withValues(alpha: 0.12)),
                       shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16)),
+                        borderRadius: BorderRadius.circular(16),
+                      ),
                     ),
-                    child: Icon(Icons.download_rounded,
-                        size: 22, color: sh.inkSoft),
+                    child: Icon(
+                      Icons.download_rounded,
+                      size: 22,
+                      color: sh.inkSoft,
+                    ),
                   ),
                 ),
               ),
@@ -204,10 +256,11 @@ class ThemeManagerBody extends ConsumerWidget {
   }
 
   void _addTheme(WidgetRef ref) {
+    final existing = ref.read(userThemesProvider);
     final theme = CalendarTheme(
       id: 'th_${const Uuid().v4().replaceAll('-', '').substring(0, 8)}',
-      name: '새 카테고리',
-      color: '#5b9bd5',
+      name: '새 공유일정',
+      color: nextSharedThemeColorHex(existing),
     );
     ref.read(themesProvider.notifier).add(theme);
   }
@@ -219,7 +272,10 @@ class ThemeManagerBody extends ConsumerWidget {
       builder: (ctx) => AlertDialog(
         backgroundColor: sh.card,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: Text(tr('공유 코드 입력'), style: AppType.section.copyWith(color: sh.ink)),
+        title: Text(
+          tr('공유 코드 입력'),
+          style: AppType.titleMedium.copyWith(color: sh.ink),
+        ),
         content: TextField(
           controller: ctrl,
           autofocus: true,
@@ -230,7 +286,10 @@ class ThemeManagerBody extends ConsumerWidget {
           textCapitalization: TextCapitalization.characters,
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: Text(tr('취소'))),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: Text(tr('취소')),
+          ),
           FilledButton(
             onPressed: () async {
               final code = ctrl.text.trim();
@@ -240,7 +299,7 @@ class ThemeManagerBody extends ConsumerWidget {
                 final theme = await ThemeShareService.fetchByCode(code);
                 if (theme == null) {
                   if (context.mounted) {
-                    MascotToast.error(context, tr('해당 코드의 캘린더를 찾을 수 없어요'));
+                    AppToast.error(context, tr('해당 코드의 캘린더를 찾을 수 없어요'));
                   }
                   return;
                 }
@@ -248,11 +307,14 @@ class ThemeManagerBody extends ConsumerWidget {
                 final subTheme = theme.copyWith(shareRole: 'subscriber');
                 ref.read(themesProvider.notifier).add(subTheme);
                 if (context.mounted) {
-                  MascotToast.success(context, trf('캘린더 "{0}" 가져왔어요', [theme.name]));
+                  AppToast.success(
+                    context,
+                    trf('캘린더 "{0}" 가져왔어요', [theme.name]),
+                  );
                 }
               } catch (e) {
                 if (context.mounted) {
-                  MascotToast.error(context, tr('가져오기에 실패했어요'));
+                  AppToast.error(context, tr('가져오기에 실패했어요'));
                 }
               }
             },
@@ -272,12 +334,15 @@ class _GroupLabel extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Padding(
     padding: const EdgeInsets.fromLTRB(0, Gap.lg, 0, Gap.sm),
-    child: Text(text,
-        style: AppType.label.copyWith(
-            fontWeight: FontWeight.w800, color: sh.inkSoft)),
+    child: Text(
+      text,
+      style: AppType.labelMedium.copyWith(
+        fontWeight: FontWeight.w800,
+        color: sh.inkSoft,
+      ),
+    ),
   );
 }
-
 
 class _ThemeRow extends ConsumerStatefulWidget {
   final CalendarTheme theme;
@@ -288,8 +353,11 @@ class _ThemeRow extends ConsumerStatefulWidget {
 
   const _ThemeRow({
     super.key,
-    required this.theme, required this.editable,
-    required this.ref, required this.sh, this.shareCode,
+    required this.theme,
+    required this.editable,
+    required this.ref,
+    required this.sh,
+    this.shareCode,
   });
 
   @override
@@ -343,8 +411,8 @@ class _ThemeRowState extends ConsumerState<_ThemeRow> {
     final subtitle = t.shareRole == 'owner'
         ? tr('내가 공유 중')
         : t.shareRole == 'subscriber'
-            ? tr('구독 중 · 읽기 전용')
-            : tr('공유 안 됨');
+        ? tr('구독 중 · 읽기 전용')
+        : tr('공유 안 됨');
 
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
@@ -366,18 +434,25 @@ class _ThemeRowState extends ConsumerState<_ThemeRow> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Row(children: [
-                      Expanded(child: _nameField(sh)),
-                      if (t.shareRole == 'subscriber')
-                        Padding(
-                          padding: const EdgeInsets.only(left: 6),
-                          child: Icon(Icons.lock_outline_rounded,
-                              size: 16, color: sh.inkFaint),
-                        ),
-                    ]),
+                    Row(
+                      children: [
+                        Expanded(child: _nameField(sh)),
+                        if (t.shareRole == 'subscriber')
+                          Padding(
+                            padding: const EdgeInsets.only(left: 6),
+                            child: Icon(
+                              Icons.lock_outline_rounded,
+                              size: 16,
+                              color: sh.inkFaint,
+                            ),
+                          ),
+                      ],
+                    ),
                     const SizedBox(height: 2),
-                    Text(subtitle,
-                        style: AppType.caption.copyWith(color: sh.inkSoft)),
+                    Text(
+                      subtitle,
+                      style: AppType.bodySmall.copyWith(color: sh.inkSoft),
+                    ),
                   ],
                 ),
               ),
@@ -405,7 +480,9 @@ class _ThemeRowState extends ConsumerState<_ThemeRow> {
           BoxShadow(color: _color.withValues(alpha: 0.40), blurRadius: 14),
         ],
         border: Border.all(
-            color: Colors.white.withValues(alpha: 0.22), width: 2),
+          color: Colors.white.withValues(alpha: 0.22),
+          width: 2,
+        ),
       ),
     );
     if (!widget.editable) return dot;
@@ -414,8 +491,11 @@ class _ThemeRowState extends ConsumerState<_ThemeRow> {
 
   // 이름 — 평소엔 카드 제목 텍스트, 탭하면 편집 모드.
   Widget _nameField(SurlapColors sh) {
-    final titleStyle = AppType.body.copyWith(
-        fontSize: 20, fontWeight: FontWeight.w800, color: sh.ink);
+    final titleStyle = AppType.bodyLarge.copyWith(
+      fontSize: 20,
+      fontWeight: FontWeight.w800,
+      color: sh.ink,
+    );
     if (_editing) {
       return TextField(
         controller: _nameCtrl,
@@ -456,26 +536,65 @@ class _ThemeRowState extends ConsumerState<_ThemeRow> {
     final t = widget.theme;
     if (t.shareRole == 'subscriber') {
       return [
-        _chip(Icons.refresh_rounded, tr('받기'), sh.inkSoft, _refreshSubscribed, sh),
+        _chip(
+          Icons.refresh_rounded,
+          tr('받기'),
+          sh.inkSoft,
+          _refreshSubscribed,
+          sh,
+        ),
         _chip(Icons.copy_rounded, tr('복제'), sh.accent, _duplicateToMine, sh),
-        _chip(Icons.delete_outline_rounded, tr('구독 취소'), sh.danger, () => _delete(), sh),
+        _chip(
+          Icons.delete_outline_rounded,
+          tr('구독 취소'),
+          sh.danger,
+          () => _delete(),
+          sh,
+        ),
       ];
     }
     final chips = <Widget>[];
     if (widget.shareCode != null) {
-      chips.add(_chip(Icons.ios_share_rounded, tr('공유'), sh.accent,
-          () => _shareLink(t.name, widget.shareCode!), sh));
+      chips.add(
+        _chip(
+          Icons.ios_share_rounded,
+          tr('공유'),
+          sh.accent,
+          () => _shareLink(t.name, widget.shareCode!),
+          sh,
+        ),
+      );
     } else if (widget.editable) {
-      chips.add(_chip(
-          Icons.link_rounded, tr('공유'), sh.accent, () => _shareTheme(context), sh));
+      chips.add(
+        _chip(
+          Icons.link_rounded,
+          tr('공유'),
+          sh.accent,
+          () => _shareTheme(context),
+          sh,
+        ),
+      );
     }
-    chips.add(_chip(Icons.delete_outline_rounded, tr('삭제'), sh.danger, () => _delete(), sh));
+    chips.add(
+      _chip(
+        Icons.delete_outline_rounded,
+        tr('삭제'),
+        sh.danger,
+        () => _delete(),
+        sh,
+      ),
+    );
     return chips;
   }
 
   // 아이콘 버튼(라벨 없음). 접근성 위해 Tooltip + Semantics 유지.
-  Widget _chip(IconData icon, String label, Color color, VoidCallback onTap,
-      SurlapColors sh) {
+  Widget _chip(
+    IconData icon,
+    String label,
+    Color color,
+    VoidCallback onTap,
+    SurlapColors sh,
+  ) {
     return Tooltip(
       message: label,
       child: Semantics(
@@ -499,7 +618,9 @@ class _ThemeRowState extends ConsumerState<_ThemeRow> {
   }
 
   void _saveName(String name) {
-    if (name.trim().isEmpty) { return; }
+    if (name.trim().isEmpty) {
+      return;
+    }
     final updated = widget.theme.copyWith(name: name.trim());
     ref.read(themesProvider.notifier).update(updated);
     _syncOwned(updated);
@@ -510,8 +631,9 @@ class _ThemeRowState extends ConsumerState<_ThemeRow> {
   void _syncOwned(CalendarTheme t) {
     if (t.shareCode != null && t.shareRole == 'owner') {
       final events = eventsForTheme(ref.read(eventsProvider), t.id);
-      ThemeShareService.updateShare(t.shareCode!, t, events)
-          .catchError((Object e) {
+      ThemeShareService.updateShare(t.shareCode!, t, events).catchError((
+        Object e,
+      ) {
         debugPrint('[ThemeShare] 소유 테마 수정 동기화 실패: $e');
       });
     }
@@ -526,17 +648,23 @@ class _ThemeRowState extends ConsumerState<_ThemeRow> {
       final latest = await ThemeShareService.fetchByCode(code);
       if (latest == null) {
         messenger.showSnackBar(
-            SnackBar(content: Text(tr('원본 캘린더를 찾을 수 없어요(삭제됨?)'))));
+          SnackBar(content: Text(tr('원본 캘린더를 찾을 수 없어요(삭제됨?)'))),
+        );
         return;
       }
       // id/역할/코드는 유지, 내용(이름·색·이미지)만 최신으로.
-      ref.read(themesProvider.notifier).update(widget.theme.copyWith(
-            name: latest.name,
-            color: latest.color,
-            image: latest.image,
-          ));
+      ref
+          .read(themesProvider.notifier)
+          .update(
+            widget.theme.copyWith(
+              name: latest.name,
+              color: latest.color,
+              image: latest.image,
+            ),
+          );
       messenger.showSnackBar(
-          SnackBar(content: Text(trf('"{0}" 최신 내용 반영됨', [latest.name]))));
+        SnackBar(content: Text(trf('"{0}" 최신 내용 반영됨', [latest.name]))),
+      );
     } catch (e) {
       messenger.showSnackBar(SnackBar(content: Text(trf('새로고침 실패: {0}', [e]))));
     }
@@ -552,7 +680,7 @@ class _ThemeRowState extends ConsumerState<_ThemeRow> {
       // shareCode/shareRole 없음 → 내가 편집할 수 있는 로컬 테마
     );
     ref.read(themesProvider.notifier).add(copy);
-    MascotToast.success(context, trf('"{0}" 내 캘린더로 복제했어요', [copy.name]));
+    AppToast.success(context, trf('"{0}" 내 캘린더로 복제했어요', [copy.name]));
   }
 
   void _pickColor() async {
@@ -562,6 +690,7 @@ class _ThemeRowState extends ConsumerState<_ThemeRow> {
       final v = c.toARGB32() & 0xFFFFFF;
       return '#${v.toRadixString(16).padLeft(6, '0')}';
     }
+
     final palette = CategoryColors.palette;
     final picked = await showDialog<String>(
       context: context,
@@ -569,32 +698,50 @@ class _ThemeRowState extends ConsumerState<_ThemeRow> {
         final sh = context.sh;
         return AlertDialog(
           backgroundColor: sh.card,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-          title: Text(tr('색상 선택'), style: AppType.section.copyWith(color: sh.ink)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          title: Text(
+            tr('색상 선택'),
+            style: AppType.titleMedium.copyWith(color: sh.ink),
+          ),
           content: SizedBox(
             width: 280,
             child: Wrap(
-              spacing: 10, runSpacing: 10,
+              spacing: 10,
+              runSpacing: 10,
               children: palette.map((cc) {
                 final c = cc.of(brightness);
                 final selected = _color.toARGB32() == c.toARGB32();
                 return GestureDetector(
                   onTap: () => Navigator.pop(ctx, hex(c)),
                   child: Container(
-                    width: 40, height: 40,
+                    width: 40,
+                    height: 40,
                     decoration: BoxDecoration(
                       color: c,
                       shape: BoxShape.circle,
                       border: selected
                           ? Border.all(color: sh.ink, width: 2.5)
-                          : Border.all(color: c.withValues(alpha: 0.4), width: 1),
+                          : Border.all(
+                              color: c.withValues(alpha: 0.4),
+                              width: 1,
+                            ),
                       boxShadow: selected
-                          ? [BoxShadow(color: c.withValues(alpha: 0.4), blurRadius: 8)]
+                          ? [
+                              BoxShadow(
+                                color: c.withValues(alpha: 0.4),
+                                blurRadius: 8,
+                              ),
+                            ]
                           : null,
                     ),
                     child: selected
-                        ? const Icon(Icons.check_rounded,
-                            color: Colors.white, size: 20)
+                        ? const Icon(
+                            Icons.check_rounded,
+                            color: Colors.white,
+                            size: 20,
+                          )
                         : null,
                   ),
                 );
@@ -604,8 +751,14 @@ class _ThemeRowState extends ConsumerState<_ThemeRow> {
         );
       },
     );
-    if (picked == null) { return; }
-    setState(() => _color = Color(int.parse('FF${picked.replaceAll('#', '')}', radix: 16)));
+    if (picked == null) {
+      return;
+    }
+    setState(
+      () => _color = Color(
+        int.parse('FF${picked.replaceAll('#', '')}', radix: 16),
+      ),
+    );
     final updated = widget.theme.copyWith(color: picked);
     ref.read(themesProvider.notifier).update(updated);
     _syncOwned(updated);
@@ -644,22 +797,23 @@ class _ThemeRowState extends ConsumerState<_ThemeRow> {
   Future<void> _shareTheme(BuildContext context) async {
     // 로그인 안 된 경우: 예외 대신 친절한 안내.
     if (ref.read(authProvider) == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(tr('로그인해야 이용할 수 있는 서비스입니다'))),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(tr('로그인해야 이용할 수 있는 서비스입니다'))));
       return;
     }
     try {
       final events = eventsForTheme(ref.read(eventsProvider), widget.theme.id);
       final code = await ThemeShareService.shareTheme(widget.theme, events);
-      ref.read(themesProvider.notifier).update(
-          widget.theme.copyWith(shareCode: code, shareRole: 'owner'));
+      ref
+          .read(themesProvider.notifier)
+          .update(widget.theme.copyWith(shareCode: code, shareRole: 'owner'));
       if (context.mounted) _shareLink(widget.theme.name, code);
     } catch (e) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(tr('로그인해야 이용할 수 있는 서비스입니다'))),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(tr('로그인해야 이용할 수 있는 서비스입니다'))));
       }
     }
   }

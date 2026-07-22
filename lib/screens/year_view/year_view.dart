@@ -1,403 +1,217 @@
-import 'dart:ui' show lerpDouble;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import '../../core/theme/app_theme.dart';
 import '../../core/theme/design_tokens.dart';
-import '../../providers/view_provider.dart';
 import '../../core/utils/date_utils.dart' as du;
+import '../../providers/academic_schedule_provider.dart';
+import '../../providers/birthdays_provider.dart';
 import '../../providers/events_provider.dart';
-
-// 연간 미니 월 카드 라운드(홈·캘린더 톤과 통일).
-const double _yRadius = 18;
+import '../../providers/shared_theme_events_provider.dart';
+import '../../providers/sports_provider.dart';
+import '../../providers/todos_provider.dart';
+import '../../providers/view_provider.dart';
 
 class YearView extends ConsumerWidget {
   const YearView({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final view = ref.watch(viewProvider);
-    final events = ref.watch(eventsProvider);
     final sh = context.sh;
-    final year = view.viewYear;
-
-    return GridView.builder(
-      padding: const EdgeInsets.fromLTRB(Gap.xl, Gap.sm, Gap.xl, 110),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 3,
-        childAspectRatio: 0.85,
-        crossAxisSpacing: Gap.sm,
-        mainAxisSpacing: Gap.sm,
-      ),
-      itemCount: 12,
-      itemBuilder: (context, i) {
-        final month = i + 1;
-        return _MiniMonthCard(
-          year: year,
-          month: month,
-          events: events,
-          sh: sh,
-          // 셀이 제자리에서 커지며 펼쳐지는 zoom-in 후 월간으로 전환.
-          onTap: (cardCtx) =>
-              _zoomToMonth(cardCtx, ref, year, month, sh, events),
-        );
-      },
-    );
-  }
-
-  // 탭한 미니 월 카드의 화면 위치를 잡아, 그 자리에서 풀스크린으로 커지는
-  // 오버레이를 띄운 뒤 월간 뷰로 전환한다(뒤에서 월간이 빌드돼 끝에 드러남).
-  void _zoomToMonth(BuildContext cardCtx, WidgetRef ref, int year, int month,
-      SurlapColors sh, Map<String, List<dynamic>> events) {
-    final notifier = ref.read(viewProvider.notifier);
-    final box = cardCtx.findRenderObject();
-    // rect/overlay를 전환 전에 확보(전환 시작하면 year 뷰가 사라짐).
-    if (box is! RenderBox || !box.hasSize) {
-      notifier.setYearMonth(year, month);
-      notifier.setMode(ViewMode.events);
-      return;
+    final year = ref.watch(viewProvider).viewYear;
+    final eventKeys = <String>{
+      for (final entry in ref.watch(eventsProvider).entries)
+        if (entry.value.isNotEmpty) entry.key,
+      for (final entry in ref.watch(academicScheduleProvider).entries)
+        if (entry.value.isNotEmpty) entry.key,
+      for (final entry in ref.watch(sportsEventsByDateProvider).entries)
+        if (entry.value.isNotEmpty) entry.key,
+      for (final entry in ref.watch(sharedThemeEventsByDateProvider).entries)
+        if (entry.value.isNotEmpty) entry.key,
+      for (final todo in ref.watch(todosProvider))
+        if (todo.dateKey != null) todo.dateKey!,
+    };
+    final birthdays = ref.watch(birthdaysProvider);
+    for (final birthday in birthdays) {
+      eventKeys.add(
+        '$year-${birthday.month.toString().padLeft(2, '0')}-'
+        '${birthday.day.toString().padLeft(2, '0')}',
+      );
     }
-    final rect = box.localToGlobal(Offset.zero) & box.size;
-    final overlay = Overlay.of(cardCtx);
 
-    // 월간 뷰를 먼저 띄워 오버레이 뒤에서 빌드되게 한다.
-    notifier.setYearMonth(year, month);
-    notifier.setMode(ViewMode.events);
-
-    late OverlayEntry entry;
-    entry = OverlayEntry(
-      builder: (_) => _ZoomOverlay(
-        startRect: rect,
-        year: year,
-        month: month,
-        sh: sh,
-        events: events,
-        onDone: () => entry.remove(),
+    return GestureDetector(
+      onHorizontalDragEnd: (details) {
+        final velocity = details.primaryVelocity ?? 0;
+        if (velocity < -180) ref.read(viewProvider.notifier).nextYear();
+        if (velocity > 180) ref.read(viewProvider.notifier).prevYear();
+      },
+      child: GridView.builder(
+        padding: const EdgeInsets.fromLTRB(Gap.lg, Gap.xs, Gap.lg, 76),
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 3,
+          childAspectRatio: 0.9,
+          crossAxisSpacing: Gap.sm,
+          mainAxisSpacing: Gap.md,
+        ),
+        itemCount: 12,
+        itemBuilder: (context, index) {
+          final month = index + 1;
+          return _MiniMonth(
+            year: year,
+            month: month,
+            eventKeys: eventKeys,
+            sh: sh,
+            onTap: () {
+              final notifier = ref.read(viewProvider.notifier);
+              notifier.setYearMonth(year, month);
+              notifier.setMode(ViewMode.events);
+            },
+          );
+        },
       ),
     );
-    overlay.insert(entry);
   }
 }
 
-// ── 연간→월간 줌인 오버레이 ───────────────────────────────────────────
-// 미니 월 카드를 시작 위치(startRect)에서 풀스크린까지 키우며, 마지막 구간엔
-// 페이드아웃해 뒤에서 빌드된 실제 월간 뷰가 드러나게 한다.
-class _ZoomOverlay extends StatefulWidget {
-  final Rect startRect;
-  final int year, month;
-  final SurlapColors sh;
-  final Map<String, List<dynamic>> events;
-  final VoidCallback onDone;
-
-  const _ZoomOverlay({
-    required this.startRect,
+class _MiniMonth extends StatelessWidget {
+  const _MiniMonth({
     required this.year,
     required this.month,
-    required this.sh,
-    required this.events,
-    required this.onDone,
-  });
-
-  @override
-  State<_ZoomOverlay> createState() => _ZoomOverlayState();
-}
-
-class _ZoomOverlayState extends State<_ZoomOverlay>
-    with SingleTickerProviderStateMixin {
-  late final AnimationController _c = AnimationController(
-      vsync: this, duration: const Duration(milliseconds: 360));
-
-  @override
-  void initState() {
-    super.initState();
-    _c.addStatusListener((s) {
-      if (s == AnimationStatus.completed) widget.onDone();
-    });
-    _c.forward();
-  }
-
-  @override
-  void dispose() {
-    _c.dispose();
-    super.dispose();
-  }
-
-  static const _monthNames = [
-    '1월', '2월', '3월', '4월', '5월', '6월',
-    '7월', '8월', '9월', '10월', '11월', '12월',
-  ];
-
-  @override
-  Widget build(BuildContext context) {
-    final sh = widget.sh;
-    final full = Offset.zero & MediaQuery.of(context).size;
-    return AnimatedBuilder(
-      animation: _c,
-      builder: (_, _) {
-        final t = Curves.easeOutCubic.transform(_c.value);
-        final rect = Rect.lerp(widget.startRect, full, t)!;
-        final radius = lerpDouble(_yRadius, 0, t)!;
-        // 마지막 22% 구간에 카드 페이드아웃 → 실제 월간 뷰 노출.
-        final fade = (1 - ((t - 0.78) / 0.22)).clamp(0.0, 1.0);
-        return IgnorePointer(
-          child: Stack(
-            children: [
-              Positioned.fromRect(
-                rect: rect,
-                child: Opacity(
-                  opacity: fade,
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: sh.card,
-                      borderRadius: BorderRadius.circular(radius),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black
-                              .withValues(alpha: sh.dark ? 0.3 : 0.12),
-                          blurRadius: 24,
-                          offset: const Offset(0, 10),
-                        ),
-                      ],
-                    ),
-                    clipBehavior: Clip.antiAlias,
-                    child: Column(
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.symmetric(vertical: 6),
-                          width: double.infinity,
-                          color: sh.card2,
-                          child: Center(
-                            child: Text(
-                              _monthNames[widget.month - 1],
-                              style: AppType.label.copyWith(
-                                  fontSize: 12 + 8 * t,
-                                  fontWeight: FontWeight.w800,
-                                  color: sh.inkSoft),
-                            ),
-                          ),
-                        ),
-                        Expanded(
-                          child: _MiniMonthGrid(
-                            year: widget.year,
-                            month: widget.month,
-                            sh: sh,
-                            events: widget.events,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        );
-      },
-    );
-  }
-}
-
-// ── 미니 월 카드 ────────────────────────────────────────────────────
-
-class _MiniMonthCard extends StatelessWidget {
-  final int year, month;
-  final Map<String, List<dynamic>> events;
-  final SurlapColors sh;
-  final void Function(BuildContext cardContext) onTap;
-
-  const _MiniMonthCard({
-    required this.year,
-    required this.month,
-    required this.events,
+    required this.eventKeys,
     required this.sh,
     required this.onTap,
   });
 
-  static const _monthNames = [
-    '1월', '2월', '3월', '4월', '5월', '6월',
-    '7월', '8월', '9월', '10월', '11월', '12월',
-  ];
+  final int year;
+  final int month;
+  final Set<String> eventKeys;
+  final SurlapColors sh;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
     final now = DateTime.now();
-    final isCurrentMonth = year == now.year && month == now.month;
+    final currentMonth = now.year == year && now.month == month;
+    final first = DateTime(year, month, 1);
+    final days = DateUtils.getDaysInMonth(year, month);
+    final leading = first.weekday % 7;
 
-    return GestureDetector(
-      onTap: () => onTap(context),
-      child: Container(
-        decoration: BoxDecoration(
-          color: sh.card,
-          borderRadius: BorderRadius.circular(_yRadius),
-          border: isCurrentMonth
-              ? Border.all(color: sh.accent, width: 1.5)
-              : Border.all(color: sh.ink.withValues(alpha: 0.05)),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: sh.dark ? 0.28 : 0.05),
-              blurRadius: 14,
-              offset: const Offset(0, 6),
-            ),
-          ],
-        ),
-        child: Column(
-          children: [
-            // 월 헤더
-            Container(
-              padding: const EdgeInsets.symmetric(vertical: 6),
-              decoration: BoxDecoration(
-                color: isCurrentMonth
-                    ? sh.accent.withValues(alpha: 0.12)
-                    : sh.card2,
-                borderRadius:
-                    const BorderRadius.vertical(top: Radius.circular(_yRadius)),
-              ),
-              child: Center(
+    return Semantics(
+      button: true,
+      label: '$year년 $month월',
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(Radii.small),
+        child: Padding(
+          padding: const EdgeInsets.all(2),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Padding(
+                padding: const EdgeInsets.only(left: 2, bottom: 3),
                 child: Text(
-                  _monthNames[month - 1],
-                  style: AppType.label.copyWith(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w800,
-                    color: isCurrentMonth ? sh.accent : sh.inkSoft,
+                  '$month월',
+                  style: AppType.bodySmall.copyWith(
+                    color: currentMonth ? sh.accent : sh.ink,
+                    fontWeight: FontWeight.w700,
                   ),
                 ),
               ),
-            ),
-            // 미니 캘린더 그리드 (이벤트 dot 포함)
-            Expanded(
-              child: _MiniMonthGrid(
-                year: year,
-                month: month,
-                sh: sh,
-                events: events,
+              Expanded(
+                child: LayoutBuilder(
+                  builder: (context, constraints) {
+                    final cellHeight = constraints.maxHeight / 6;
+                    return GridView.builder(
+                      physics: const NeverScrollableScrollPhysics(),
+                      padding: EdgeInsets.zero,
+                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: 7,
+                        mainAxisExtent: cellHeight,
+                      ),
+                      itemCount: leading + days,
+                      itemBuilder: (_, index) {
+                        if (index < leading) return const SizedBox.shrink();
+                        final day = index - leading + 1;
+                        final date = DateTime(year, month, day);
+                        final key = du.toDateKey(date);
+                        return _MiniDay(
+                          day: day,
+                          weekday: date.weekday,
+                          today: DateUtils.isSameDay(date, now),
+                          hasEvent: eventKeys.contains(key),
+                          sh: sh,
+                        );
+                      },
+                    );
+                  },
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
   }
 }
 
-// ── 공유 미니 그리드 위젯 ─────────────────────────────────────────────
-// _MiniMonthCard(년 뷰)와 _ZoomOverlay(전환 중) 양쪽에서 재사용.
-
-class _MiniMonthGrid extends StatelessWidget {
-  final int year, month;
-  final SurlapColors sh;
-  /// null이면 이벤트 dot 표시 안 함 (줌 오버레이에서 사용).
-  final Map<String, List<dynamic>>? events;
-
-  const _MiniMonthGrid({
-    required this.year,
-    required this.month,
+class _MiniDay extends StatelessWidget {
+  const _MiniDay({
+    required this.day,
+    required this.weekday,
+    required this.today,
+    required this.hasEvent,
     required this.sh,
-    this.events,
   });
 
-  static const _dow = ['일', '월', '화', '수', '목', '금', '토'];
+  final int day;
+  final int weekday;
+  final bool today;
+  final bool hasEvent;
+  final SurlapColors sh;
 
   @override
   Widget build(BuildContext context) {
-    final first = DateTime(year, month, 1);
-    // 일요일 시작
-    final startOffset = first.weekday % 7;
-    final daysInMonth = DateTime(year, month + 1, 0).day;
-    final cells = startOffset + daysInMonth;
-    final rows = (cells / 7).ceil();
-    final now = DateTime.now();
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
-      child: Column(
-        children: [
-          // 요일 헤더 (일=빨강, 토=파랑 살짝)
-          Row(
-            children: List.generate(
-              7,
-              (i) => Expanded(
-                child: Center(
-                  child: Text(_dow[i],
-                      style: TextStyle(
-                          fontSize: 7,
-                          fontWeight: FontWeight.w600,
-                          color: i == 0
-                              ? sh.sun.withValues(alpha: 0.7)
-                              : i == 6
-                                  ? sh.sat.withValues(alpha: 0.7)
-                                  : sh.inkFaint)),
-                ),
+    final textColor = today
+        ? Theme.of(context).colorScheme.onPrimary
+        : weekday == DateTime.sunday
+        ? sh.sun
+        : weekday == DateTime.saturday
+        ? sh.sat
+        : sh.ink;
+    return Stack(
+      alignment: Alignment.center,
+      children: [
+        Container(
+          width: 16,
+          height: 16,
+          alignment: Alignment.center,
+          decoration: today
+              ? BoxDecoration(color: sh.accent, shape: BoxShape.circle)
+              : null,
+          child: Text(
+            '$day',
+            style: TextStyle(
+              color: textColor,
+              fontSize: 8,
+              height: 1,
+              fontWeight: today ? FontWeight.w700 : FontWeight.w400,
+              fontFeatures: const [FontFeature.tabularFigures()],
+            ),
+          ),
+        ),
+        if (hasEvent && !today)
+          Positioned(
+            bottom: 0,
+            child: Container(
+              width: 3,
+              height: 3,
+              decoration: BoxDecoration(
+                color: sh.accent,
+                shape: BoxShape.circle,
               ),
             ),
           ),
-          // 날짜 셀
-          Expanded(
-            child: Column(
-              children: List.generate(rows, (r) {
-                return Expanded(
-                  child: Row(
-                    children: List.generate(7, (c) {
-                      final idx = r * 7 + c;
-                      final day = idx - startOffset + 1;
-                      if (day < 1 || day > daysInMonth) {
-                        return const Expanded(child: SizedBox());
-                      }
-                      final key =
-                          du.toDateKey(DateTime(year, month, day));
-                      final hasEvent =
-                          events != null && (events![key] ?? []).isNotEmpty;
-                      final isToday = year == now.year &&
-                          month == now.month &&
-                          day == now.day;
-                      return Expanded(
-                        child: Center(
-                          child: Container(
-                            width: 15,
-                            height: 15,
-                            decoration: isToday
-                                ? BoxDecoration(
-                                    color: sh.accent,
-                                    shape: BoxShape.circle,
-                                  )
-                                : null,
-                            child: Stack(
-                              alignment: Alignment.center,
-                              children: [
-                                Text(
-                                  '$day',
-                                  style: TextStyle(
-                                    fontSize: 7.5,
-                                    color: isToday ? Colors.white : sh.ink,
-                                    fontWeight: isToday
-                                        ? FontWeight.w700
-                                        : FontWeight.w400,
-                                  ),
-                                ),
-                                if (hasEvent)
-                                  Positioned(
-                                    bottom: isToday ? 1 : 0,
-                                    child: Container(
-                                      width: 3,
-                                      height: 3,
-                                      decoration: BoxDecoration(
-                                        color:
-                                            isToday ? Colors.white : sh.accent,
-                                        shape: BoxShape.circle,
-                                      ),
-                                    ),
-                                  ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      );
-                    }),
-                  ),
-                );
-              }),
-            ),
-          ),
-        ],
-      ),
+      ],
     );
   }
 }

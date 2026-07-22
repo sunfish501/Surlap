@@ -5,7 +5,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../i18n/strings.dart';
 import '../../models/user_type.dart';
 import '../../providers/user_type_provider.dart';
-import '../../widgets/mascot/mascot.dart';
+import '../../widgets/surlap_logo.dart';
 
 /// 첫 실행(또는 온보딩 미시청) 시 1회 표시되는 전체화면 온보딩.
 /// PageView 3장(소개) + 1장(유형 선택) + 점 인디케이터 + 다음/시작하기 버튼.
@@ -20,11 +20,10 @@ class OnboardingScreen extends ConsumerStatefulWidget {
 }
 
 class _Slide {
-  final MascotExpression expression;
+  final IconData icon;
   final String headline;
   final String sub;
-  const _Slide(
-      {required this.expression, required this.headline, required this.sub});
+  const _Slide({required this.icon, required this.headline, required this.sub});
 }
 
 class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
@@ -34,19 +33,19 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
 
   static const _slides = [
     _Slide(
-      expression: MascotExpression.thinking,
+      icon: Icons.school_outlined,
       headline: '학교 시간표·급식,\n자동으로 채워져요',
       sub: '학년·반만 알려주면 시간표와 급식이 매일 들어와요. (NEIS 연동)',
     ),
     _Slide(
-      expression: MascotExpression.happy,
+      icon: Icons.calendar_month_outlined,
       headline: '일정·할 일·기록을\n앱 하나로',
       sub: '달력, 할 일, 하루 기록까지 — 여러 앱을 오갈 필요 없어요.',
     ),
     _Slide(
-      expression: MascotExpression.cheering,
-      headline: '백호가 함께해요',
-      sub: '오늘을 응원하고, 비어 있는 하루엔 쉼을 권하는 작은 친구.',
+      icon: Icons.auto_awesome_outlined,
+      headline: '오늘 필요한 정보만\n한눈에 보여드려요',
+      sub: '일정과 할 일, 다음 수업을 놓치지 않도록 홈에서 바로 정리해요.',
     ),
   ];
 
@@ -68,7 +67,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
       widget.onDone();
     } else {
       _pc.nextPage(
-        duration: const Duration(milliseconds: 320),
+        duration: const Duration(milliseconds: 260),
         curve: Curves.easeOutCubic,
       );
     }
@@ -87,14 +86,8 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
       ),
       child: Scaffold(
         backgroundColor: const Color(0xFF5A2DF4),
-        body: DecoratedBox(
-          decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [Color(0xFF5A2DF4), Color(0xFF7C4DFF)],
-            ),
-          ),
+        body: ColoredBox(
+          color: const Color(0xFF5A2DF4),
           child: Stack(
             children: [
               // 배경 깊이감(스플래시와 통일)
@@ -102,14 +95,17 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                 top: -120,
                 right: -90,
                 child: _SoftCircle(
-                    size: 320, color: Colors.white.withValues(alpha: 0.10)),
+                  size: 320,
+                  color: Colors.white.withValues(alpha: 0.10),
+                ),
               ),
               Positioned(
                 bottom: -150,
                 left: -110,
                 child: _SoftCircle(
-                    size: 360,
-                    color: const Color(0xFF9B6BFF).withValues(alpha: 0.30)),
+                  size: 360,
+                  color: const Color(0xFF9B6BFF).withValues(alpha: 0.30),
+                ),
               ),
               SafeArea(
                 child: Column(
@@ -121,8 +117,11 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                         mainAxisSize: MainAxisSize.min,
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Image.asset('assets/mascot/splash_icon.png',
-                              height: 26, fit: BoxFit.contain),
+                          const SurlapLogo(
+                            size: 26,
+                            mono: true,
+                            color: Colors.white,
+                          ),
                           const SizedBox(width: 8),
                           Text(
                             'Surlap',
@@ -160,14 +159,15 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                       children: List.generate(_pageCount, (i) {
                         final active = i == _page;
                         return AnimatedContainer(
-                          duration: const Duration(milliseconds: 240),
+                          duration: const Duration(milliseconds: 180),
                           curve: Curves.easeOutCubic,
                           margin: const EdgeInsets.symmetric(horizontal: 4),
                           width: active ? 22 : 8,
                           height: 8,
                           decoration: BoxDecoration(
-                            color: Colors.white
-                                .withValues(alpha: active ? 1.0 : 0.4),
+                            color: Colors.white.withValues(
+                              alpha: active ? 1.0 : 0.4,
+                            ),
                             borderRadius: BorderRadius.circular(999),
                           ),
                         );
@@ -185,13 +185,16 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Colors.white,
                             foregroundColor: const Color(0xFF5A2DF4),
-                            disabledBackgroundColor:
-                                Colors.white.withValues(alpha: 0.45),
-                            disabledForegroundColor:
-                                const Color(0xFF5A2DF4).withValues(alpha: 0.5),
+                            disabledBackgroundColor: Colors.white.withValues(
+                              alpha: 0.45,
+                            ),
+                            disabledForegroundColor: const Color(
+                              0xFF5A2DF4,
+                            ).withValues(alpha: 0.5),
                             elevation: 0,
                             shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(999)),
+                              borderRadius: BorderRadius.circular(999),
+                            ),
                           ),
                           child: Text(
                             _isPicker ? tr('시작하기') : tr('다음'),
@@ -227,9 +230,17 @@ class _SlideView extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          // 마스코트
-          MascotView(
-              expression: slide.expression, size: 168, showStars: true),
+          Container(
+            width: 152,
+            height: 152,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.14),
+              shape: BoxShape.circle,
+              border: Border.all(color: Colors.white.withValues(alpha: 0.24)),
+            ),
+            child: Icon(slide.icon, size: 68, color: Colors.white),
+          ),
           const SizedBox(height: 40),
           Text(
             tr(slide.headline),
@@ -325,8 +336,11 @@ class _TypeCard extends StatelessWidget {
   final UserType type;
   final bool selected;
   final VoidCallback onTap;
-  const _TypeCard(
-      {required this.type, required this.selected, required this.onTap});
+  const _TypeCard({
+    required this.type,
+    required this.selected,
+    required this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -337,10 +351,8 @@ class _TypeCard extends StatelessWidget {
         curve: Curves.easeOutCubic,
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         decoration: BoxDecoration(
-          color: selected
-              ? Colors.white
-              : Colors.white.withValues(alpha: 0.12),
-          borderRadius: BorderRadius.circular(18),
+          color: selected ? Colors.white : Colors.white.withValues(alpha: 0.12),
+          borderRadius: BorderRadius.circular(16),
           border: Border.all(
             color: selected
                 ? Colors.white
@@ -361,9 +373,7 @@ class _TypeCard extends StatelessWidget {
                       fontSize: 16,
                       fontWeight: FontWeight.w800,
                       letterSpacing: -0.2,
-                      color: selected
-                          ? const Color(0xFF5A2DF4)
-                          : Colors.white,
+                      color: selected ? const Color(0xFF5A2DF4) : Colors.white,
                     ),
                   ),
                   const SizedBox(height: 2),
@@ -380,8 +390,11 @@ class _TypeCard extends StatelessWidget {
               ),
             ),
             if (selected)
-              const Icon(Icons.check_circle_rounded,
-                  color: Color(0xFF5A2DF4), size: 22),
+              const Icon(
+                Icons.check_circle_rounded,
+                color: Color(0xFF5A2DF4),
+                size: 22,
+              ),
           ],
         ),
       ),
@@ -400,12 +413,7 @@ class _SoftCircle extends StatelessWidget {
     return Container(
       width: size,
       height: size,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        gradient: RadialGradient(
-          colors: [color, color.withValues(alpha: 0.0)],
-        ),
-      ),
+      decoration: BoxDecoration(shape: BoxShape.circle, color: color),
     );
   }
 }

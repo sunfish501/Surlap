@@ -1,6 +1,17 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-enum ViewMode { home, events, year, planner, day, timetable, settings, themes, profile }
+enum ViewMode {
+  home,
+  events,
+  year,
+  planner,
+  day,
+  timetable,
+  settings,
+  themes,
+  profile,
+  search,
+}
 
 // 슬라이드 순서: home/timetable/settings/themes/profile은 방향 없음(-1)
 // 연간↔월간↔주간↔일간 전환은 슬라이드 없이(0) 즉시 전환.
@@ -14,6 +25,7 @@ const _viewOrder = {
   ViewMode.settings: -1,
   ViewMode.themes: -1,
   ViewMode.profile: -1,
+  ViewMode.search: -1,
 };
 
 int viewIndex(ViewMode m) => _viewOrder[m] ?? -1;
@@ -34,8 +46,11 @@ class ViewState {
   });
 
   ViewState copyWith({
-    ViewMode? mode, int? viewYear, int? viewMonth,
-    String? viewDay, ViewMode? prevMode,
+    ViewMode? mode,
+    int? viewYear,
+    int? viewMonth,
+    String? viewDay,
+    ViewMode? prevMode,
   }) => ViewState(
     mode: mode ?? this.mode,
     viewYear: viewYear ?? this.viewYear,
@@ -58,21 +73,37 @@ class ViewNotifier extends Notifier<ViewState> {
   @override
   ViewState build() {
     final now = DateTime.now();
-    return ViewState(viewYear: now.year, viewMonth: now.month, mode: ViewMode.events);
+    return ViewState(viewYear: now.year, viewMonth: now.month);
   }
 
   void setMode(ViewMode mode) {
     state = state.copyWith(mode: mode, prevMode: state.mode);
   }
 
+  void openSearch() => setMode(ViewMode.search);
+
+  void closeSearch() {
+    final target = state.prevMode == null || state.prevMode == ViewMode.search
+        ? ViewMode.home
+        : state.prevMode!;
+    state = state.copyWith(mode: target, prevMode: ViewMode.search);
+  }
+
   void setDayView(String dateKey) {
-    state = state.copyWith(mode: ViewMode.day, viewDay: dateKey, prevMode: state.mode);
+    state = state.copyWith(
+      mode: ViewMode.day,
+      viewDay: dateKey,
+      prevMode: state.mode,
+    );
   }
 
   /// 주간 뷰로 이동하며 기준 날짜(주 anchor)를 전달.
   void setWeekView(String dateKey) {
     state = state.copyWith(
-        mode: ViewMode.planner, viewDay: dateKey, prevMode: state.mode);
+      mode: ViewMode.planner,
+      viewDay: dateKey,
+      prevMode: state.mode,
+    );
   }
 
   void goToToday() {
@@ -83,14 +114,20 @@ class ViewNotifier extends Notifier<ViewState> {
   void prevMonth() {
     int m = state.viewMonth - 1;
     int y = state.viewYear;
-    if (m < 1) { m = 12; y--; }
+    if (m < 1) {
+      m = 12;
+      y--;
+    }
     state = state.copyWith(viewYear: y, viewMonth: m);
   }
 
   void nextMonth() {
     int m = state.viewMonth + 1;
     int y = state.viewYear;
-    if (m > 12) { m = 1; y++; }
+    if (m > 12) {
+      m = 1;
+      y++;
+    }
     state = state.copyWith(viewYear: y, viewMonth: m);
   }
 
@@ -101,5 +138,6 @@ class ViewNotifier extends Notifier<ViewState> {
       state = state.copyWith(viewYear: year, viewMonth: month);
 }
 
-final viewProvider =
-    NotifierProvider<ViewNotifier, ViewState>(ViewNotifier.new);
+final viewProvider = NotifierProvider<ViewNotifier, ViewState>(
+  ViewNotifier.new,
+);
