@@ -40,7 +40,10 @@ class _ContinuousMonthListState extends State<ContinuousMonthList> {
   void initState() {
     super.initState();
     _anchorMonth = _monthOnly(widget.targetMonth);
-    _controller = ScrollController();
+    // The anchor already represents the currently selected month. Restoring a
+    // previous pixel offset on top of a new anchor shifts the list twice and
+    // also forces unnecessary layout work when returning to this tab.
+    _controller = ScrollController(keepScrollOffset: false);
   }
 
   @override
@@ -129,7 +132,6 @@ class _ContinuousMonthListState extends State<ContinuousMonthList> {
     return NotificationListener<ScrollNotification>(
       onNotification: _onScrollNotification,
       child: CustomScrollView(
-        key: const PageStorageKey<String>('continuous-month-scroll'),
         controller: _controller,
         center: _centerKey,
         physics: const AlwaysScrollableScrollPhysics(),

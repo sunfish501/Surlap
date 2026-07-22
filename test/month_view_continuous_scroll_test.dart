@@ -3,9 +3,23 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:surlap/providers/view_provider.dart';
 import 'package:surlap/screens/month_view/continuous_month_list.dart';
+import 'package:surlap/screens/month_view/month_view.dart';
 
 void main() {
   const itemExtent = 300.0;
+
+  test('calendar data is indexed once by month', () {
+    final indexed = indexCalendarItemsByMonth<int>({
+      '2026-07-01': [1],
+      '2026-07-31': [2],
+      '2026-08-01': [3],
+      'invalid': [4],
+    });
+
+    expect(indexed['2026-07']?.keys, {'2026-07-01', '2026-07-31'});
+    expect(indexed['2026-08']?['2026-08-01'], [3]);
+    expect(indexed.containsKey('invalid'), isFalse);
+  });
 
   Widget monthItem(BuildContext context, DateTime month) {
     final key = '${month.year}-${month.month}';
@@ -40,6 +54,11 @@ void main() {
         ),
       ),
     );
+
+    final scrollView = tester.widget<CustomScrollView>(
+      find.byType(CustomScrollView),
+    );
+    expect(scrollView.controller?.keepScrollOffset, isFalse);
 
     await tester.timedDrag(
       find.byType(CustomScrollView),

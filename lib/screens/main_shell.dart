@@ -124,9 +124,10 @@ class _MainShellState extends ConsumerState<MainShell> {
   }.contains(mode);
 
   String _viewKey(ViewState view) {
-    if (view.mode == ViewMode.events) {
-      return 'events_${view.viewYear}_${view.viewMonth}';
-    }
+    // The visible month is scroll state, not a navigation destination.
+    // Keeping this key stable prevents AnimatedSwitcher from destroying and
+    // rebuilding the entire month grid whenever the header month changes.
+    if (view.mode == ViewMode.events) return 'events';
     if (view.mode == ViewMode.year) return 'year_${view.viewYear}';
     if (view.mode == ViewMode.day || view.mode == ViewMode.planner) {
       return '${view.mode}_${view.viewDay}';

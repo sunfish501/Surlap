@@ -7,8 +7,10 @@ import 'package:surlap/core/constants/color_presets.dart';
 import 'package:surlap/core/theme/app_theme.dart';
 import 'package:surlap/modals/add_edit_event_modal.dart';
 import 'package:surlap/providers/color_preset_provider.dart';
+import 'package:surlap/providers/view_provider.dart';
 import 'package:surlap/screens/home_view/home_view.dart';
 import 'package:surlap/screens/main_shell.dart';
+import 'package:surlap/screens/month_view/month_view.dart';
 import 'package:surlap/screens/profile_view.dart';
 import 'package:surlap/screens/search_view.dart';
 import 'package:surlap/screens/theme_share_page.dart';
@@ -201,5 +203,30 @@ void main() {
     await tester.tap(cancelButton);
     await tester.pumpAndSettle();
     expect(find.byType(AddEditEventModal), findsNothing);
+  });
+
+  testWidgets('월 헤더 변경은 월 화면 인스턴스를 재생성하지 않는다', (tester) async {
+    await pumpShell(tester);
+    await openDrawer(tester);
+    await tester.tap(find.text('캘린더'));
+    await tester.pumpAndSettle();
+
+    final monthFinder = find.byType(MonthView);
+    final monthElement = monthFinder.evaluate().single;
+    final scope = ProviderScope.containerOf(
+      tester.element(find.byType(MainShell)),
+    );
+    final current = scope.read(viewProvider);
+    final next = DateTime(current.viewYear, current.viewMonth + 1);
+
+    scope.read(viewProvider.notifier).setYearMonth(next.year, next.month);
+    await tester.pump();
+
+    expect(monthFinder.evaluate().single, same(monthElement));
+    await tester.pumpAndSettle();
+    expect(
+      find.byKey(ValueKey('month-title-${next.year}-${next.month}')),
+      findsWidgets,
+    );
   });
 }

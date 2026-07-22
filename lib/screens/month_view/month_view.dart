@@ -29,6 +29,26 @@ import '../../providers/view_provider.dart';
 import 'continuous_month_list.dart';
 import 'month_grid.dart';
 
+String calendarMonthKey(DateTime month) =>
+    '${month.year}-${month.month.toString().padLeft(2, '0')}';
+
+/// Builds the date-to-items lookup once, so lazy month creation is O(1)
+/// instead of scanning every stored date at each month boundary.
+Map<String, Map<String, List<T>>> indexCalendarItemsByMonth<T>(
+  Map<String, List<T>> items,
+) {
+  final result = <String, Map<String, List<T>>>{};
+  for (final entry in items.entries) {
+    if (entry.key.length < 10 || entry.key[4] != '-' || entry.key[7] != '-') {
+      continue;
+    }
+    final monthKey = entry.key.substring(0, 7);
+    result.putIfAbsent(monthKey, () => <String, List<T>>{})[entry.key] =
+        entry.value;
+  }
+  return result;
+}
+
 class MonthView extends ConsumerStatefulWidget {
   const MonthView({super.key});
 
@@ -38,10 +58,29 @@ class MonthView extends ConsumerStatefulWidget {
 
 class _MonthViewState extends ConsumerState<MonthView> {
   static const double _minimumMonthExtent = 600;
+  late DateTime _targetMonth;
+  late DateTime _visibleMonth;
+
+  @override
+  void initState() {
+    super.initState();
+    final view = ref.read(viewProvider);
+    _targetMonth = DateTime(view.viewYear, view.viewMonth);
+    _visibleMonth = _targetMonth;
+  }
 
   @override
   Widget build(BuildContext context) {
-    final view = ref.watch(viewProvider);
+    ref.listen<ViewState>(viewProvider, (previous, next) {
+      if (next.mode != ViewMode.events) return;
+      final nextMonth = DateTime(next.viewYear, next.viewMonth);
+      if (_sameMonth(nextMonth, _visibleMonth) ||
+          _sameMonth(nextMonth, _targetMonth)) {
+        return;
+      }
+      setState(() => _targetMonth = nextMonth);
+    });
+
     final events = ref.watch(eventsProvider);
     final themes = ref.watch(themesProvider);
     final settings = ref.watch(settingsProvider);
@@ -125,6 +164,13 @@ class _MonthViewState extends ConsumerState<MonthView> {
       }
     });
 
+    final eventsByMonth = indexCalendarItemsByMonth(mergedEvents);
+    final todosByMonth = indexCalendarItemsByMonth(todosByDate);
+    final birthdaysByMonth = <int, List<Birthday>>{};
+    for (final birthday in birthdays) {
+      birthdaysByMonth.putIfAbsent(birthday.month, () => []).add(birthday);
+    }
+
     return LayoutBuilder(
       builder: (context, constraints) {
         final monthExtent = math.max(
@@ -137,17 +183,20 @@ class _MonthViewState extends ConsumerState<MonthView> {
             .toDouble();
 
         return ContinuousMonthList(
-          targetMonth: DateTime(view.viewYear, view.viewMonth),
+          targetMonth: _targetMonth,
           itemExtent: monthExtent,
           onVisibleMonthChanged: _syncHeaderMonth,
           itemBuilder: (context, month) {
             final monthEvents = _eventsForMonth(
-              mergedEvents,
-              birthdays,
+              eventsByMonth[calendarMonthKey(month)] ??
+                  const <String, List<EventItem>>{},
+              birthdaysByMonth[month.month] ?? const <Birthday>[],
               month,
               includeBirthdays: !hiddenThemes.contains(birthdayThemeId),
             );
-            final monthTodos = _itemsForMonth(todosByDate, month);
+            final monthTodos =
+                todosByMonth[calendarMonthKey(month)] ??
+                const <String, List<TodoItem>>{};
             final monthTitle =
                 '${month.year}${dates.yearWord} ${dates.monthName(month.month)}'
                     .trim();
@@ -240,13 +289,13 @@ class _MonthViewState extends ConsumerState<MonthView> {
   }
 
   Map<String, List<EventItem>> _eventsForMonth(
-    Map<String, List<EventItem>> events,
+    Map<String, List<EventItem>> monthEvents,
     List<Birthday> birthdays,
     DateTime month, {
     required bool includeBirthdays,
   }) {
-    final result = _itemsForMonth(events, month);
-    if (!includeBirthdays) return result;
+    if (!includeBirthdays || birthdays.isEmpty) return monthEvents;
+    final result = Map<String, List<EventItem>>.of(monthEvents);
 
     final daysInMonth = DateTime(month.year, month.month + 1, 0).day;
     for (final birthday in birthdays) {
@@ -266,19 +315,11 @@ class _MonthViewState extends ConsumerState<MonthView> {
     return result;
   }
 
-  Map<String, List<T>> _itemsForMonth<T>(
-    Map<String, List<T>> items,
-    DateTime month,
-  ) {
-    final prefix = '${month.year}-${month.month.toString().padLeft(2, '0')}-';
-    return Map<String, List<T>>.fromEntries(
-      items.entries.where((entry) => entry.key.startsWith(prefix)),
-    );
-  }
-
   void _syncHeaderMonth(DateTime month) {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
+      _visibleMonth = DateTime(month.year, month.month);
+      _targetMonth = _visibleMonth;
       final current = ref.read(viewProvider);
       if (current.viewYear == month.year && current.viewMonth == month.month) {
         return;
@@ -290,4 +331,7 @@ class _MonthViewState extends ConsumerState<MonthView> {
   void _showDayActions(BuildContext context, DateTime date) {
     showDayActionSheet(context, du.toDateKey(date), date);
   }
+
+  bool _sameMonth(DateTime a, DateTime b) =>
+      a.year == b.year && a.month == b.month;
 }
